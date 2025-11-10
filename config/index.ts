@@ -1,13 +1,15 @@
+// @ts-ignore
 import tailwindcss from '@tailwindcss/postcss'
 import { defineConfig, type UserConfigExport } from '@tarojs/cli'
 import path from 'path'
+// @ts-ignore
 import { UnifiedViteWeappTailwindcssPlugin } from 'weapp-tailwindcss/vite'
 import devConfig from './dev'
 import prodConfig from './prod'
 // import tailwindcss from '@tailwindcss/vite'
 
 // https://taro-docs.jd.com/docs/next/config#defineconfig-辅助函数
-export default defineConfig<'vite'>(async (merge, { command, mode }) => {
+export default defineConfig<'vite'>(async (merge) => {
   // const { default: tailwindcss } = await import('@tailwindcss/vite')
 
   const baseConfig: UserConfigExport<'vite'> = {
@@ -30,6 +32,11 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
       ],
       options: {
       }
+    },
+    alias: {
+      '@': path.resolve(__dirname, '..', 'src'),
+      '@/components': path.resolve(__dirname, '..', 'src/components'),
+      '@/utils': path.resolve(__dirname, '..', 'src/utils'),
     },
     framework: 'react',
     compiler: {
@@ -69,6 +76,11 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
             namingPattern: 'module', // 转换模式，取值为 global/module
             generateScopedName: '[name]__[local]___[hash:base64:5]'
           }
+        },
+        // 添加 SCSS 支持
+        sass: {
+          enable: true,
+          config: {}
         }
       },
     },
