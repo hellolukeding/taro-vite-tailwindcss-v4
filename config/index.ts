@@ -1,9 +1,9 @@
+import tailwindcss from '@tailwindcss/postcss'
 import { defineConfig, type UserConfigExport } from '@tarojs/cli'
+import path from 'path'
+import { UnifiedViteWeappTailwindcssPlugin } from 'weapp-tailwindcss/vite'
 import devConfig from './dev'
 import prodConfig from './prod'
-import { UnifiedViteWeappTailwindcssPlugin } from 'weapp-tailwindcss/vite'
-import tailwindcss from '@tailwindcss/postcss'
-import path from 'path'
 // import tailwindcss from '@tailwindcss/vite'
 
 // https://taro-docs.jd.com/docs/next/config#defineconfig-辅助函数
