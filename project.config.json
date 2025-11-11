@@ -16,6 +16,7 @@
       "outputPath": ""
     }
   },
+  "requiredPrivateInfos": ["getLocation"],
   "compileType": "miniprogram",
   "libVersion": "3.7.8",
   "srcMiniprogramRoot": "dist/",
