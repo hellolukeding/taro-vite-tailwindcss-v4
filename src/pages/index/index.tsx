@@ -1,4 +1,5 @@
-import NaviBar from '@/components/NaviBar'
+import HomePage from '@/components/HomePage'
+import { theme } from '@/style/theme'
 import { View } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import './index.css'
@@ -9,8 +10,8 @@ export default function Index() {
   })
 
   return (
-    <View className='w-screen h-screen '>
-      <NaviBar />
+    <View className={`w-screen h-screen bg-[${theme.mainColor}]`}>
+      <HomePage />
     </View>
 
   )

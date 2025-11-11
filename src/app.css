@@ -1,1 +1,11 @@
 @import "weapp-tailwindcss";
+
+/* 使用系统字体以避免外部网络加载问题 */
+/* 字体已注释掉外部加载，改用系统默认字体 */
+page {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+}
+
+/* 外部字体已禁用，改用系统字体 */
