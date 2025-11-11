@@ -1,6 +1,6 @@
-import { View } from "@tarojs/components";
-import Taro from "@tarojs/taro";
-import React, { useCallback, useRef, useState } from "react";
+import { Canvas, View } from '@tarojs/components';
+import Taro from '@tarojs/taro';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 interface JoystickProps {
   size?: number;
@@ -16,35 +16,155 @@ interface JoystickProps {
 
 const Joystick: React.FC<JoystickProps> = ({
   size = 200,
-  backgroundColor = "#ffffff",
-  knobColor = "#3f9b6a",
+  backgroundColor = '#f0f0f0',
+  knobColor = '#3f9b6a',
   onDirectionChange,
 }) => {
   const [knobPosition, setKnobPosition] = useState({ x: 0, y: 0 });
-  const [isPressed, setIsPressed] = useState(false);
+  const canvasRef = useRef<any>(null);
   const centerRef = useRef<{ x: number; y: number } | null>(null);
   const isPressedRef = useRef(false);
 
-  const knobSize = size * 0.3;
+  const knobSize = size * 0.25; // 摇杆球大小
   const containerRadius = size / 2;
-  const maxDistance = containerRadius - knobSize / 2;
+  const maxDistance = containerRadius - knobSize - 10; // 留一些边距
 
+  // 绘制摇杆
+  const drawJoystick = useCallback(
+    (ctx: any, knobX: number, knobY: number) => {
+      // 清空画布
+      ctx.clearRect(0, 0, size, size);
+
+      // 绘制外圈背景
+      ctx.beginPath();
+      ctx.arc(containerRadius, containerRadius, containerRadius - 5, 0, 2 * Math.PI);
+      ctx.fillStyle = backgroundColor;
+      ctx.fill();
+      ctx.strokeStyle = '#ddd';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // 绘制十字辅助线
+      ctx.strokeStyle = '#e0e0e0';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(containerRadius, 10);
+      ctx.lineTo(containerRadius, size - 10);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(10, containerRadius);
+      ctx.lineTo(size - 10, containerRadius);
+      ctx.stroke();
+
+      // 绘制中心圆圈
+      ctx.beginPath();
+      ctx.arc(containerRadius, containerRadius, maxDistance, 0, 2 * Math.PI);
+      ctx.strokeStyle = '#ddd';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 绘制中心点
+      ctx.beginPath();
+      ctx.arc(containerRadius, containerRadius, 4, 0, 2 * Math.PI);
+      ctx.fillStyle = '#999';
+      ctx.fill();
+
+      // 如果有移动，绘制方向线
+      if (knobX !== 0 || knobY !== 0) {
+        ctx.beginPath();
+        ctx.moveTo(containerRadius, containerRadius);
+        ctx.lineTo(containerRadius + knobX, containerRadius + knobY);
+        ctx.strokeStyle = knobColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // 绘制摇杆球（带阴影效果）
+      const knobAbsX = containerRadius + knobX;
+      const knobAbsY = containerRadius + knobY;
+
+      // 阴影
+      ctx.beginPath();
+      ctx.arc(knobAbsX + 2, knobAbsY + 2, knobSize, 0, 2 * Math.PI);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fill();
+
+      // 摇杆球
+      ctx.beginPath();
+      ctx.arc(knobAbsX, knobAbsY, knobSize, 0, 2 * Math.PI);
+      ctx.fillStyle = knobColor;
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // 摇杆球高光
+      ctx.beginPath();
+      ctx.arc(knobAbsX - knobSize / 3, knobAbsY - knobSize / 3, knobSize / 3, 0, 2 * Math.PI);
+      const gradient = ctx.createRadialGradient(
+        knobAbsX - knobSize / 3,
+        knobAbsY - knobSize / 3,
+        0,
+        knobAbsX - knobSize / 3,
+        knobAbsY - knobSize / 3,
+        knobSize / 3
+      );
+      gradient.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fill();
+    },
+    [size, backgroundColor, knobColor, containerRadius, maxDistance, knobSize]
+  );
+
+  // 初始化 Canvas
+  useEffect(() => {
+    const query = Taro.createSelectorQuery();
+    query
+      .select('#joystick-canvas')
+      .fields({ node: true, size: true })
+      .exec((res) => {
+        if (res[0]) {
+          const canvas = res[0].node;
+          const ctx = canvas.getContext('2d');
+
+          // 设置 Canvas 尺寸
+          const dpr = Taro.getSystemInfoSync().pixelRatio || 1;
+          canvas.width = size * dpr;
+          canvas.height = size * dpr;
+          ctx.scale(dpr, dpr);
+
+          canvasRef.current = { canvas, ctx };
+
+          // 初始绘制
+          drawJoystick(ctx, 0, 0);
+        }
+      });
+  }, [size, drawJoystick]);
+
+  // 更新位置
   const updatePosition = useCallback(
     (x: number, y: number) => {
       const distance = Math.sqrt(x * x + y * y);
 
+      // 限制在最大距离内
       if (distance > maxDistance) {
         const angle = Math.atan2(y, x);
         x = Math.cos(angle) * maxDistance;
         y = Math.sin(angle) * maxDistance;
       }
 
-      const normalizedDistance =
-        distance > maxDistance ? maxDistance : distance;
+      const normalizedDistance = distance > maxDistance ? maxDistance : distance;
       const angle = Math.atan2(y, x) * (180 / Math.PI);
 
       setKnobPosition({ x, y });
 
+      // 重新绘制
+      if (canvasRef.current) {
+        drawJoystick(canvasRef.current.ctx, x, y);
+      }
+
+      // 回调
       if (onDirectionChange) {
         onDirectionChange({
           x: maxDistance > 0 ? x / maxDistance : 0,
@@ -54,20 +174,20 @@ const Joystick: React.FC<JoystickProps> = ({
         });
       }
     },
-    [maxDistance, onDirectionChange],
+    [maxDistance, onDirectionChange, drawJoystick]
   );
 
+  // 触摸开始
   const handleTouchStart = useCallback(
     (e: any) => {
       e.stopPropagation();
-      setIsPressed(true);
       isPressedRef.current = true;
 
       const touch = e.touches[0];
 
-      // 使用 Taro API 获取元素位置
+      // 获取 Canvas 位置
       Taro.createSelectorQuery()
-        .select("#joystick-container")
+        .select('#joystick-container')
         .boundingClientRect((rect: any) => {
           if (rect) {
             centerRef.current = {
@@ -84,9 +204,10 @@ const Joystick: React.FC<JoystickProps> = ({
         })
         .exec();
     },
-    [updatePosition],
+    [updatePosition]
   );
 
+  // 触摸移动
   const handleTouchMove = useCallback(
     (e: any) => {
       if (!isPressedRef.current || !centerRef.current) return;
@@ -97,79 +218,62 @@ const Joystick: React.FC<JoystickProps> = ({
       const y = touch.clientY - centerRef.current.y;
       updatePosition(x, y);
     },
-    [updatePosition],
+    [updatePosition]
   );
 
+  // 触摸结束
   const handleTouchEnd = useCallback(() => {
-    setIsPressed(false);
     isPressedRef.current = false;
     setKnobPosition({ x: 0, y: 0 });
+
+    // 重置到中心
+    if (canvasRef.current) {
+      drawJoystick(canvasRef.current.ctx, 0, 0);
+    }
+
     if (onDirectionChange) {
       onDirectionChange({ x: 0, y: 0, angle: 0, distance: 0 });
     }
-  }, [onDirectionChange]);
+  }, [onDirectionChange, drawJoystick]);
 
   return (
     <View
       id='joystick-container'
-      className='flex items-center justify-center'
       style={{
         width: `${size}px`,
         height: `${size}px`,
-        backgroundColor: backgroundColor,
-        borderRadius: "50%",
-        position: "relative",
-        border: `2px solid #ddd`,
-        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-        margin: "0 auto",
-        userSelect: "none",
-        touchAction: "none",
+        position: 'relative',
+        margin: '0 auto',
+        userSelect: 'none',
+        touchAction: 'none',
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* 中心点 */}
-      <View
+      <Canvas
+        id='joystick-canvas'
+        type='2d'
         style={{
-          position: "absolute",
-          width: "4px",
-          height: "4px",
-          backgroundColor: "#666",
-          borderRadius: "50%",
-          zIndex: 10,
+          width: `${size}px`,
+          height: `${size}px`,
         }}
       />
 
-      {/* 摇杆球 */}
+      {/* 调试信息 */}
       <View
         style={{
-          position: "absolute",
-          width: `${knobSize}px`,
-          height: `${knobSize}px`,
-          backgroundColor: knobColor,
-          borderRadius: "50%",
-          transform: `translate(${knobPosition.x}px, ${knobPosition.y}px)`,
-          transition: isPressed ? "none" : "transform 0.1s ease-out",
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
-          zIndex: 20,
+          position: 'absolute',
+          bottom: '-30px',
+          left: '0',
+          right: '0',
+          textAlign: 'center',
+          fontSize: '12px',
+          color: '#666',
         }}
-      />
-
-      {/* 方向指示线 */}
-      {(knobPosition.x !== 0 || knobPosition.y !== 0) && (
-        <View
-          style={{
-            position: "absolute",
-            width: "1px",
-            height: `${Math.sqrt(knobPosition.x ** 2 + knobPosition.y ** 2)}px`,
-            backgroundColor: "rgba(0, 0, 0, 0.2)",
-            transformOrigin: "0 0",
-            transform: `rotate(${Math.atan2(knobPosition.y, knobPosition.x) * (180 / Math.PI)}deg)`,
-            zIndex: 5,
-          }}
-        />
-      )}
+      >
+        X: {knobPosition.x.toFixed(0)} Y: {knobPosition.y.toFixed(0)}
+      </View>
     </View>
   );
 };
