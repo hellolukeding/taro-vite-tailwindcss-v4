@@ -1,94 +1,126 @@
-import { AddPage, BottomTabBar, MyPage, PromptItem, PromptSquare } from '@/components'
-import { View } from '@tarojs/components'
-import { useLoad } from '@tarojs/taro'
+import { View, Text, Image, ScrollView, Input } from '@tarojs/components'
+import { Icon } from '@/components/common/Icon'
+import { WorkCard } from '@/components/business/WorkCard'
+import { mockWorks, mockCategories } from '@/mock/square'
+import { mockUser } from '@/mock/user'
 import { useState } from 'react'
 import './index.css'
 
 export default function Index() {
-  useLoad(() => {
-    console.log('Page loaded.')
-  })
-
-  const [activeTab, setActiveTab] = useState(0)
-
-  // 模拟数据
-  const promptData: PromptItem[] = [
-    {
-      id: 1,
-      title: "小红书爆款文案",
-      desc: "帮你写出吸引人的种草文案，提升转化率",
-      avatar: "https://img.yzcdn.cn/vant/cat.jpg",
-      image: "https://img.yzcdn.cn/vant/cat.jpg",
-      likes: 128,
-      comments: 45
-    },
-    {
-      id: 2,
-      title: "AI绘画提示词",
-      desc: "Midjourney/Stable Diffusion专业提示词生成",
-      avatar: "https://img.yzcdn.cn/vant/dog.jpg",
-      image: "https://img.yzcdn.cn/vant/dog.jpg",
-      likes: 256,
-      comments: 89
-    },
-    {
-      id: 3,
-      title: "职场邮件助手",
-      desc: "专业、得体的商务邮件模板",
-      avatar: "https://img.yzcdn.cn/vant/cat.jpg",
-      image: "https://img.yzcdn.cn/vant/cat.jpg",
-      likes: 89,
-      comments: 23
-    },
-    {
-      id: 4,
-      title: "学习计划制定",
-      desc: "个性化学习路径规划，高效提升技能",
-      avatar: "https://img.yzcdn.cn/vant/dog.jpg",
-      image: "https://img.yzcdn.cn/vant/dog.jpg",
-      likes: 167,
-      comments: 56
-    },
-    {
-      id: 5,
-      title: "社交媒体文案",
-      desc: "朋友圈、微博、小红书文案一键生成",
-      avatar: "https://img.yzcdn.cn/vant/cat.jpg",
-      image: "https://img.yzcdn.cn/vant/cat.jpg",
-      likes: 342,
-      comments: 123
-    },
-    {
-      id: 6,
-      title: "创意写作助手",
-      desc: "小说、故事、诗歌创作灵感来源",
-      avatar: "https://img.yzcdn.cn/vant/dog.jpg",
-      image: "https://img.yzcdn.cn/vant/dog.jpg",
-      likes: 201,
-      comments: 67
-    }
-  ]
-
-  // 根据tab显示不同内容
-  const renderContent = () => {
-    if (activeTab === 0) {
-      return <PromptSquare data={promptData} />
-    } else if (activeTab === 1) {
-      return <AddPage />
-    } else if (activeTab === 2) {
-      return <MyPage />
-    }
-  }
+  const [selectedCategory, setSelectedCategory] = useState(0)
+  const [searchText, setSearchText] = useState('')
 
   return (
-    <View className='w-screen h-screen bg-white flex flex-col'>
-      {/* 主要内容区域 */}
-      <View className='flex-1 overflow-hidden'>
-        {renderContent()}
+    <View className='index-page'>
+      {/* 黑色圆角头部 */}
+      <View className='page-header'>
+        {/* 顶部导航 */}
+        <View className='header-nav'>
+          {/* 位置选择器 */}
+          <View className='location-selector'>
+            <Text className='text-white text-sm font-medium'>北京</Text>
+            <Icon name='expand_more' size={20} color='white' />
+          </View>
+
+          {/* 右侧图标 */}
+          <View className='header-icons'>
+            <View className='icon-btn'>
+              <Icon name='notifications' size={20} color='white' />
+            </View>
+            <Image
+              src={mockUser.avatar}
+              className='avatar'
+              mode='aspectFill'
+            />
+          </View>
+        </View>
+
+        {/* 搜索框 */}
+        <View className='search-container'>
+          <Icon
+            name='search'
+            size={20}
+            color='#6B7280'
+            className='search-icon'
+          />
+          <Input
+            className='search-input'
+            placeholder='搜索提示词、风格、创作者...'
+            value={searchText}
+            onInput={(e) => setSearchText(e.detail.value)}
+          />
+        </View>
       </View>
 
+      {/* 主内容区域 */}
+      <ScrollView scrollY className='page-content'>
+        {/* 分类Pills */}
+        <View className='category-section'>
+          <ScrollView scrollX className='category-scroll'>
+            {mockCategories.map((category, index) => (
+              <View
+                key={category}
+                onClick={() => setSelectedCategory(index)}
+                className={`category-pill ${selectedCategory === index ? 'active' : ''}`}
+              >
+                <Text className={`text-sm font-medium ${selectedCategory === index ? 'text-white' : 'text-gray-600'}`}>
+                  {category}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* 瀑布流作品列表 - 使用左右两列布局 */}
+        <View className='works-section'>
+          {/* 左列 */}
+          <View className='work-column'>
+            {mockWorks.filter((_, i) => i % 2 === 0).map((work) => (
+              <WorkCard key={work.id} work={work} />
+            ))}
+          </View>
+          {/* 右列 */}
+          <View className='work-column'>
+            {mockWorks.filter((_, i) => i % 2 === 1).map((work) => (
+              <WorkCard key={work.id} work={work} />
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+
       {/* 底部导航栏 */}
-      <BottomTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+      <View className='bottom-nav-container'>
+        <View className='nav-content'>
+          {/* 广场 */}
+          <View className='nav-item active'>
+            <Icon name='grid_view' size={26} filled />
+            <Text className='nav-text'>广场</Text>
+          </View>
+
+          {/* 创作 */}
+          <View className='nav-item'>
+            <View className='create-btn'>
+              <Icon name='add_photo_alternate' size={24} />
+            </View>
+            <Text className='nav-text'>创作</Text>
+          </View>
+
+          {/* 消息 */}
+          <View className='nav-item'>
+            <Icon name='chat_bubble_outline' size={26} />
+            <Text className='nav-text'>消息</Text>
+          </View>
+
+          {/* 我的 */}
+          <View className='nav-item'>
+            <View className='nav-item-wrapper'>
+              <Icon name='person' size={26} filled />
+              <View className='nav-dot' />
+            </View>
+            <Text className='nav-text-bold'>我的</Text>
+          </View>
+        </View>
+      </View>
     </View>
   )
 }

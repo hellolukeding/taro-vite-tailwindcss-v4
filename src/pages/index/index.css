@@ -1,784 +1,196 @@
-/* 小红书风格首页样式 */
-.page {
-  height: 100vh;
-  background: #f8f8f8;
-}
-
-/* 自定义滚动条 */
-::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
-
-/* 卡片阴影效果 */
-.shadow-sm {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-/* 按钮点击效果 */
-.btn-active:active {
-  transform: scale(0.95);
-  transition: transform 0.1s ease;
-}
-
-/* 渐变背景 */
-.gradient-bg {
-  background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
-}
-
-/* 玻璃拟态效果 */
-.glass {
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.8);
-}
-
-/* 小红书红色主题 */
-.red-theme {
-  color: #ff2442;
-}
-
-.bg-red-theme {
-  background-color: #ff2442;
-}
-
-/* 卡片圆角 */
-.rounded-card {
-  border-radius: 16px;
-}
-
-/* 文本省略 */
-.text-ellipsis {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.text-ellipsis-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* 瀑布流样式 */
-.waterfall-container {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  padding: 12px;
-}
-
-.waterfall-column {
-  flex: 1;
+/* 页面容器 */
+.index-page {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  height: 100vh;
+  background-color: #ffffff;
 }
 
-.waterfall-card {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid #f0f0f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s ease;
+/* 黑色圆角头部 */
+.page-header {
+  background-color: #000000;
+  padding-top: 56px;
+  padding-bottom: 24px;
+  padding-left: 24px;
+  padding-right: 24px;
+  border-bottom-left-radius: 32px;
+  border-bottom-right-radius: 32px;
+  position: relative;
+  z-index: 10;
 }
 
-.waterfall-card:active {
-  transform: scale(0.98);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.waterfall-image {
-  width: 100%;
-  overflow: hidden;
-  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
-}
-
-.waterfall-content {
-  padding: 12px;
-}
-
-.waterfall-title {
-  font-weight: 600;
-  color: #333;
-  font-size: 14px;
-  line-height: 1.4;
-  margin-bottom: 6px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.waterfall-desc {
-  color: #666;
-  font-size: 12px;
-  line-height: 1.3;
-  margin-bottom: 8px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.waterfall-author {
+.header-nav {
   display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.waterfall-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  margin-right: 6px;
-  border: 1px solid #f0f0f0;
-}
-
-.waterfall-username {
-  font-size: 11px;
-  color: #999;
-}
-
-.waterfall-actions {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding-top: 8px;
-  border-top: 1px solid #f5f5f5;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
-.waterfall-stats {
+.location-selector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.header-icons {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.waterfall-stat {
+.icon-btn {
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
-  font-size: 11px;
-  color: #666;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
-.waterfall-use-btn {
-  padding: 4px 10px;
-  background: #ff2442;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 500;
-  color: white;
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
 }
 
-.waterfall-use-btn:active {
-  background: #e01e3a;
-}
-
-/* 瀑布流卡片高度变体 */
-.waterfall-height-1 {
-  height: 120px;
-}
-
-.waterfall-height-2 {
-  height: 160px;
-}
-
-.waterfall-height-3 {
-  height: 200px;
-}
-
-/* 瀑布流增强样式 */
-.waterfall-card-hover {
-  box-shadow: 0 4px 16px rgba(255, 36, 66, 0.15);
-  border-color: #ff2442;
-}
-
-.waterfall-image-overlay {
+/* 搜索框 */
+.search-container {
   position: relative;
 }
 
-.waterfall-image-tag {
+.search-icon {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  background: rgba(255, 36, 66, 0.9);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 500;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
 }
 
-/* 瀑布流间距优化 */
-.waterfall-gap-small {
-  gap: 8px;
-}
-
-.waterfall-gap-medium {
-  gap: 12px;
-}
-
-.waterfall-gap-large {
-  gap: 16px;
-}
-
-/* 瀑布流响应式 */
-@media (max-width: 375px) {
-  .waterfall-container {
-    padding: 8px;
-    gap: 8px;
-  }
-  .waterfall-column {
-    gap: 8px;
-  }
-  .waterfall-card {
-    border-radius: 10px;
-  }
-  .waterfall-content {
-    padding: 10px;
-  }
-  .waterfall-title {
-    font-size: 13px;
-  }
-  .waterfall-desc {
-    font-size: 11px;
-  }
-}
-
-/* 瀑布流加载动画 */
-@keyframes waterfallFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.waterfall-card-enter {
-  animation: waterfallFadeIn 0.4s ease-out forwards;
-}
-
-/* 瀑布流骨架屏 */
-.waterfall-skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-}
-
-@keyframes skeleton-loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* 瀑布流空状态 */
-.waterfall-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  color: #999;
-}
-
-.waterfall-empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  opacity: 0.5;
-}
-
-.waterfall-empty-text {
-  font-size: 14px;
-  text-align: center;
-  line-height: 1.5;
-}
-
-/* 瀑布流刷新指示器 */
-.waterfall-refresh {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-  color: #999;
-  font-size: 12px;
-}
-
-.waterfall-refresh-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #f0f0f0;
-  border-top: 2px solid #ff2442;
-  border-radius: 50%;
-  margin-right: 8px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* 瀑布流图片占位符 */
-.waterfall-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
-  color: #ccc;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* 瀑布流卡片阴影层次 */
-.waterfall-shadow-soft {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.waterfall-shadow-medium {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.waterfall-shadow-strong {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-}
-
-/* 瀑布流交互反馈 */
-.waterfall-press-active {
-  transform: scale(0.97);
-  transition: transform 0.1s ease;
-}
-
-/* 瀑布流视觉增强 */
-.waterfall-glow {
-  box-shadow: 0 0 0 1px rgba(255, 36, 66, 0.1),
-    0 4px 16px rgba(255, 36, 66, 0.15);
-}
-
-.waterfall-premium {
-  border: 1px solid rgba(255, 36, 66, 0.3);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 36, 66, 0.02) 0%,
-    rgba(255, 255, 255, 1) 100%
-  );
-}
-
-/* 按钮样式 */
-.btn-primary {
-  background: #ff2442;
-  color: white;
-  border-radius: 20px;
-  padding: 8px 16px;
-  font-weight: 500;
-}
-
-.btn-primary:active {
-  background: #e01e3a;
-}
-
-/* 导航栏激活状态 */
-.nav-active {
-  color: #ff2442;
-  font-weight: 600;
-}
-
-.nav-inactive {
-  color: #666;
-}
-
-/* 中间添加按钮 */
-.add-btn {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: #ff2442;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(255, 36, 66, 0.3);
-}
-
-.add-btn:active {
-  background: #e01e3a;
-  transform: scale(0.95);
-}
-
-/* 图片占位符 */
-.image-placeholder {
-  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-  font-size: 14px;
-}
-
-/* 列表项 */
-.list-item {
-  border-radius: 12px;
-  overflow: hidden;
-  background: white;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.list-item:active {
-  transform: scale(0.98);
-  transition: transform 0.1s ease;
-}
-
-/* 头像 */
-.avatar {
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid #f0f0f0;
-}
-
-/* 统计数字 */
-.stat-number {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-weight: 700;
-}
-
-/* 标签 */
-.tag {
-  background: #fff0f1;
-  color: #ff2442;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-/* 分割线 */
-.divider {
-  height: 1px;
-  background: #f0f0f0;
-  margin: 16px 0;
-}
-
-/* 空状态 */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  color: #999;
-}
-
-.empty-state-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  opacity: 0.5;
-}
-
-/* 动画效果 */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* 加载动画 */
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  color: #999;
-  font-size: 14px;
-}
-
-/* 悬浮效果 */
-.floating {
-  box-shadow: 0 4px 20px rgba(255, 36, 66, 0.2);
-  transition: box-shadow 0.3s ease;
-}
-
-.floating:hover {
-  box-shadow: 0 6px 28px rgba(255, 36, 66, 0.3);
-}
-
-/* 文本样式 */
-.text-title {
-  font-weight: 600;
-  color: #333;
-  font-size: 16px;
-}
-
-.text-subtitle {
-  color: #666;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.text-meta {
-  color: #999;
-  font-size: 12px;
-}
-
-/* 交互反馈 */
-.touchable {
-  cursor: pointer;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.touchable:active {
-  opacity: 0.7;
-}
-
-/* 安全区域适配 */
-.safe-area-top {
-  padding-top: env(safe-area-inset-top);
-}
-
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-/* 毛玻璃效果 */
-.frosted-glass {
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.85);
-}
-
-/* 渐变文字 */
-.gradient-text {
-  background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* 边框效果 */
-.border-soft {
-  border: 1px solid #f0f0f0;
-  border-radius: 12px;
-}
-
-.border-strong {
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-}
-
-/* 阴影层次 */
-.shadow-1 {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.shadow-2 {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.shadow-3 {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
-
-/* 按钮变体 */
-.btn-ghost {
-  background: transparent;
-  border: 1px solid #ddd;
-  color: #666;
-  border-radius: 20px;
-  padding: 6px 14px;
-  font-size: 13px;
-}
-
-.btn-ghost:active {
-  background: #f5f5f5;
-}
-
-.btn-small {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-/* 卡片变体 */
-.card-soft {
-  background: #fafafa;
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid #f0f0f0;
-}
-
-.card-white {
-  background: white;
+.search-input {
+  width: 100%;
+  background-color: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-/* 布局辅助 */
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.flex-column {
-  display: flex;
-  flex-direction: column;
-}
-
-/* 间距 */
-.mt-1 {
-  margin-top: 4px;
-}
-.mt-2 {
-  margin-top: 8px;
-}
-.mt-3 {
-  margin-top: 12px;
-}
-.mt-4 {
-  margin-top: 16px;
-}
-.mt-5 {
-  margin-top: 20px;
-}
-
-.mb-1 {
-  margin-bottom: 4px;
-}
-.mb-2 {
-  margin-bottom: 8px;
-}
-.mb-3 {
-  margin-bottom: 12px;
-}
-.mb-4 {
-  margin-bottom: 16px;
-}
-.mb-5 {
-  margin-bottom: 20px;
-}
-
-.ml-1 {
-  margin-left: 4px;
-}
-.ml-2 {
-  margin-left: 8px;
-}
-.ml-3 {
-  margin-left: 12px;
-}
-
-.mr-1 {
-  margin-right: 4px;
-}
-.mr-2 {
-  margin-right: 8px;
-}
-.mr-3 {
-  margin-right: 12px;
-}
-
-.p-1 {
-  padding: 4px;
-}
-.p-2 {
-  padding: 8px;
-}
-.p-3 {
-  padding: 12px;
-}
-.p-4 {
-  padding: 16px;
-}
-.p-5 {
-  padding: 20px;
-}
-
-.px-2 {
-  padding-left: 8px;
-  padding-right: 8px;
-}
-.px-3 {
-  padding-left: 12px;
-  padding-right: 12px;
-}
-.px-4 {
-  padding-left: 16px;
+  padding-left: 40px;
   padding-right: 16px;
-}
-
-.py-1 {
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-.py-2 {
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-.py-3 {
   padding-top: 12px;
   padding-bottom: 12px;
+  font-size: 14px;
+  color: #374151;
 }
 
-/* 尺寸 */
-.w-full {
-  width: 100%;
-}
-.h-full {
+/* 主内容区域 */
+.page-content {
+  flex: 1;
   height: 100%;
 }
 
-/* 响应式 */
-@media (max-width: 375px) {
-  .text-title {
-    font-size: 15px;
-  }
-  .text-subtitle {
-    font-size: 12px;
-  }
-  .list-item {
-    margin-bottom: 10px;
-  }
+/* 分类区域 */
+.category-section {
+  padding: 16px 24px;
 }
 
-/* 深色模式适配 */
-@media (prefers-color-scheme: dark) {
-  .card-white {
-    background: #1c1c1e;
-    border-color: #2c2c2e;
-  }
-  .text-title {
-    color: #f0f0f0;
-  }
-  .text-subtitle {
-    color: #aaa;
-  }
-  .text-meta {
-    color: #888;
-  }
+.category-scroll {
+  display: flex;
+  gap: 12px;
+  white-space: nowrap;
+  overflow-x: scroll;
+}
+
+.category-pill {
+  padding: 8px 20px;
+  border-radius: 9999px;
+  background-color: #f3f4f6;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.category-pill.active {
+  background-color: #000000;
+}
+
+/* 作品区域 - 瀑布流布局 */
+.works-section {
+  display: flex;
+  gap: 16px;
+  padding: 0 16px 16px;
+}
+
+.work-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 底部导航栏 */
+.bottom-nav-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-top: 1px solid #f3f4f6;
+  padding: 8px 24px 32px;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.03);
+  z-index: 50;
+}
+
+.nav-content {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  color: #9ca3af;
+}
+
+.nav-item.active {
+  color: #000000;
+}
+
+.nav-item-wrapper {
+  position: relative;
+}
+
+.nav-dot {
+  position: absolute;
+  top: 8px;
+  right: -4px;
+  width: 6px;
+  height: 6px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  border: 1px solid #ffffff;
+}
+
+.create-btn {
+  width: 48px;
+  height: 32px;
+  border-radius: 9999px;
+  background-color: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-text {
+  font-size: 10px;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.nav-text-bold {
+  font-size: 10px;
+  font-weight: 700;
+  color: #000000;
 }

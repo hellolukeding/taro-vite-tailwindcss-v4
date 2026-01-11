@@ -1,5 +1,6 @@
 import { useLaunch } from '@tarojs/taro'
 import { PropsWithChildren } from 'react'
+import { UserProvider, TaskPollingProvider } from '@/store'
 // Taroify 全局样式 - 在 Vite 模式下 babel-plugin-import 可能不生效，使用全局引入
 import "@taroify/core/index.scss"
 import "@taroify/icons/index.scss"
@@ -11,10 +12,11 @@ function App({ children }: PropsWithChildren<any>) {
     console.log('App launched.')
   })
 
-  // children 是将要会渲染的页面
-  return children
+  return (
+    <UserProvider>
+    { children }
+    </UserProvider>
+  )
 }
-
-
 
 export default App
