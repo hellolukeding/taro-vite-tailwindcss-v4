@@ -22,68 +22,64 @@ export default function StudioPage() {
   }
 
   return (
-    <View className='bg-white min-h-screen pb-24'>
+    <View className='studio-page'>
       {/* 黑色头部 */}
-      <View className='bg-black pt-12 pb-8 px-6 rounded-b-3xl relative z-10'>
+      <View className='studio-header'>
         {/* 顶部导航 */}
-        <View className='flex justify-between items-center mb-6'>
-          <View className='flex items-center gap-2'>
-            <Icon name='arrow_back_ios' size={24} color='white' />
-            <Text className='text-white text-xl font-semibold tracking-wide'>创作工坊</Text>
+        <View className='header-nav'>
+          <View className='nav-left'>
+            <Icon name='arrow_back_ios' size={24} color='#FFFFFF' />
+            <Text className='page-title'>创作工坊</Text>
           </View>
-          <View className='flex items-center gap-3'>
-            <View className='bg-white/20 p-2 rounded-xl backdrop-blur-sm'>
-              <Icon name='history' size={20} color='white' />
+          <View className='nav-right'>
+            <View className='icon-btn-bg'>
+              <Icon name='history' size={20} color='#FFFFFF' />
             </View>
             <Image
               src={mockUser.avatar}
-              className='w-10 h-10 rounded-full border-2 border-white'
+              className='user-avatar'
               mode='aspectFill'
             />
           </View>
         </View>
 
         {/* Prompt输入区 */}
-        <View className='bg-white rounded-2xl p-5 shadow-2xl border border-gray-100'>
-          <View className='flex justify-between items-center mb-3'>
-            <Text className='text-xs font-bold text-black uppercase tracking-wider flex items-center gap-1'>
-              <Icon name='edit_note' size={16} />
-              提示词
-            </Text>
-            <View className='flex items-center gap-1 text-xs font-bold text-white bg-black px-3 py-1.5 rounded-lg hover:opacity-80 transition shadow-md">
-              <Icon name='translate' size={12} color='white' />
-              中译英
+        <View className='prompt-section'>
+          <View className='prompt-header'>
+            <View className='prompt-title'>
+              <Icon name='edit_note' size={16} color='#000000' />
+              <Text>提示词</Text>
+            </View>
+            <View className='translate-btn'>
+              <Icon name='translate' size={12} color='#FFFFFF' />
+              <Text>中译英</Text>
             </View>
           </View>
           <Input
-            className='w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm placeholder-gray-400 h-24'
+            className='prompt-input'
             placeholder='描述你想生成的图片... (例如: 一个未来城市的街道，霓虹灯光，8k分辨率)'
             value={prompt}
             onInput={(e) => setPrompt(e.detail.value)}
           />
-          <View className='flex justify-end mt-3'>
-            <View className='flex items-center gap-1 text-xs font-semibold text-black border border-gray-200 px-3 py-1.5 rounded-full hover:bg-gray-50 transition'>
-              <Icon name='casino' size={14} />
-              随机
-            </View>
+          <View className='random-btn'>
+            <Icon name='casino' size={14} color='#000000' />
+            <Text>随机</Text>
           </View>
         </View>
       </View>
 
       {/* 主内容区域 */}
-      <ScrollView scrollY className='px-5 mt-8 space-y-10 pb-8'>
+      <ScrollView scrollY className='studio-content'>
         {/* 模型选择 */}
-        <View>
-          <View className='flex justify-between items-end mb-5'>
-            <Text className='text-lg font-bold flex items-center gap-2'>
-              <View className='w-1.5 h-6 bg-black rounded-full' />
-              选择模型
-            </Text>
-            <Text className='text-xs font-bold text-black border-b-2 border-black pb-0.5'>
-              查看全部
-            </Text>
+        <View className='section'>
+          <View className='section-header'>
+            <View className='section-title'>
+              <View className='title-bar' />
+              <Text>选择模型</Text>
+            </View>
+            <Text className='view-all'>查看全部</Text>
           </View>
-          <ScrollView scrollX className='flex gap-4 overflow-x-auto pb-4 pl-1'>
+          <ScrollView scrollX className='model-scroll'>
             {mockModels.map((model) => (
               <ModelCard
                 key={model.id}
@@ -95,12 +91,12 @@ export default function StudioPage() {
         </View>
 
         {/* 图片比例选择 */}
-        <View>
-          <Text className='text-lg font-bold mb-5 flex items-center gap-2'>
-            <View className='w-1.5 h-6 bg-black rounded-full' />
-            图片比例
-          </Text>
-          <View className='grid grid-cols-4 gap-3'>
+        <View className='section'>
+          <View className='section-title-single'>
+            <View className='title-bar' />
+            <Text>图片比例</Text>
+          </View>
+          <View className='ratio-grid'>
             {(['1:1', '3:4', '16:9', '9:16'] as ImageRatio[]).map((ratio) => (
               <RatioButton
                 key={ratio}
@@ -113,33 +109,32 @@ export default function StudioPage() {
         </View>
 
         {/* 高级设置 */}
-        <View>
+        <View className='section'>
           <View
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className='bg-white rounded-2xl border-2 border-gray-100 overflow-hidden'
+            className='advanced-settings'
           >
-            <View className='flex justify-between items-center p-4'>
-              <View className='flex items-center gap-2'>
-                <Icon name='tune' size={20} />
-                <Text className='font-bold text-sm'>高级设置</Text>
+            <View className='settings-header'>
+              <View className='settings-title'>
+                <Icon name='tune' size={20} color='#000000' />
+                <Text>高级设置</Text>
               </View>
               <Icon
                 name='expand_more'
                 size={20}
-                className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+                color='#000000'
+                className={`expand-icon ${showAdvanced ? 'expanded' : ''}`}
               />
             </View>
 
             {showAdvanced && (
-              <View className='px-5 pb-5 pt-2 border-t border-gray-100 bg-gray-50/50'>
-                <View className='mt-2 space-y-6'>
+              <View className='settings-content'>
+                <View className='settings-body'>
                   {/* 步数滑块 */}
-                  <View>
-                    <View className='flex justify-between mb-2'>
-                      <Text className='text-xs font-bold text-gray-500 uppercase'>步数</Text>
-                      <Text className='text-xs font-bold text-black bg-white px-2 py-0.5 rounded border border-gray-200'>
-                        {steps}
-                      </Text>
+                  <View className='slider-group'>
+                    <View className='slider-header'>
+                      <Text className='slider-label'>步数</Text>
+                      <Text className='slider-value'>{steps}</Text>
                     </View>
                     <input
                       type='range'
@@ -147,18 +142,15 @@ export default function StudioPage() {
                       max='50'
                       value={steps}
                       onChange={(e) => setSteps(Number(e.target.value))}
-                      className='w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer'
-                      style={{ accentColor: '#000000' }}
+                      className='slider-input'
                     />
                   </View>
 
                   {/* CFG滑块 */}
-                  <View>
-                    <View className='flex justify-between mb-2'>
-                      <Text className='text-xs font-bold text-gray-500 uppercase'>提示词引导 (CFG)</Text>
-                      <Text className='text-xs font-bold text-black bg-white px-2 py-0.5 rounded border border-gray-200'>
-                        {cfgScale}
-                      </Text>
+                  <View className='slider-group'>
+                    <View className='slider-header'>
+                      <Text className='slider-label'>提示词引导 (CFG)</Text>
+                      <Text className='slider-value'>{cfgScale}</Text>
                     </View>
                     <input
                       type='range'
@@ -167,8 +159,7 @@ export default function StudioPage() {
                       step='0.5'
                       value={cfgScale}
                       onChange={(e) => setCfgScale(Number(e.target.value))}
-                      className='w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer'
-                      style={{ accentColor: '#000000' }}
+                      className='slider-input'
                     />
                   </View>
                 </View>
@@ -179,29 +170,29 @@ export default function StudioPage() {
       </ScrollView>
 
       {/* 底部生成栏 */}
-      <View className='fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 pb-8 z-50'>
-        <View className='flex items-center gap-4 max-w-md mx-auto'>
+      <View className='generate-bar'>
+        <View className='generate-content'>
           {/* 消耗积分 */}
-          <View className='flex flex-col'>
-            <Text className='text-[10px] font-bold uppercase text-gray-400'>预计消耗</Text>
-            <View className='flex items-center gap-1'>
-              <Icon name='bolt' size={16} color='yellow-500' filled />
-              <Text className='font-bold text-lg text-black'>2</Text>
+          <View className='cost-info'>
+            <Text className='cost-label'>预计消耗</Text>
+            <View className='cost-value'>
+              <Icon name='bolt' size={16} color='#FBBF24' filled />
+              <Text>2</Text>
             </View>
           </View>
 
-          <View className='h-8 w-[1px] bg-gray-200 mx-2' />
+          <View className='divider' />
 
           {/* 余额 */}
-          <View className='flex flex-col mr-auto'>
-            <Text className='text-[10px] font-bold uppercase text-gray-400'>余额</Text>
-            <Text className='font-bold text-sm text-black'>{mockUser.credits}</Text>
+          <View className='balance-info'>
+            <Text className='cost-label'>余额</Text>
+            <Text className='balance-value'>{mockUser.credits}</Text>
           </View>
 
           {/* 立即生成按钮 */}
-          <View className='bg-black hover:opacity-90 text-white font-bold py-3.5 px-8 rounded-full shadow-lg flex items-center gap-2 transform active:scale-95 transition-all justify-center text-sm tracking-wide'>
-            <Icon name='auto_awesome' size={20} color='white' />
-            立即生成
+          <View className='generate-btn'>
+            <Icon name='auto_awesome' size={20} color='#FFFFFF' />
+            <Text>立即生成</Text>
           </View>
         </View>
       </View>

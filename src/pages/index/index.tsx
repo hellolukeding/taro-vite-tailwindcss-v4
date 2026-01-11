@@ -1,126 +1,105 @@
-import { View, Text, Image, ScrollView, Input } from '@tarojs/components'
+import { BottomNav } from '@/components/business/BottomNav'
 import { Icon } from '@/components/common/Icon'
-import { WorkCard } from '@/components/business/WorkCard'
-import { mockWorks, mockCategories } from '@/mock/square'
-import { mockUser } from '@/mock/user'
+import { mockCategories, mockWorks } from '@/mock/square'
+import { Search } from "@taroify/core"
+import { Image, ScrollView, Text, View } from '@tarojs/components'
 import { useState } from 'react'
 import './index.css'
 
 export default function Index() {
   const [selectedCategory, setSelectedCategory] = useState(0)
-  const [searchText, setSearchText] = useState('')
 
   return (
-    <View className='index-page'>
+    <View className='page'>
       {/* 黑色圆角头部 */}
-      <View className='page-header'>
+      <View className='header'>
         {/* 顶部导航 */}
-        <View className='header-nav'>
-          {/* 位置选择器 */}
-          <View className='location-selector'>
-            <Text className='text-white text-sm font-medium'>北京</Text>
-            <Icon name='expand_more' size={20} color='white' />
-          </View>
 
-          {/* 右侧图标 */}
-          <View className='header-icons'>
-            <View className='icon-btn'>
-              <Icon name='notifications' size={20} color='white' />
-            </View>
-            <Image
-              src={mockUser.avatar}
-              className='avatar'
-              mode='aspectFill'
-            />
-          </View>
-        </View>
 
-        {/* 搜索框 */}
-        <View className='search-container'>
-          <Icon
-            name='search'
-            size={20}
-            color='#6B7280'
-            className='search-icon'
-          />
+        {/* 搜索框
+        <View className='search-box'>
+          <Icon name='search' size={20} color='#6B7280' className='search-icon' />
           <Input
-            className='search-input'
+            className='search-field'
             placeholder='搜索提示词、风格、创作者...'
-            value={searchText}
-            onInput={(e) => setSearchText(e.detail.value)}
           />
-        </View>
+        </View> */}
+
+        <Search
+          className='search-bar-black'
+          shape='rounded'
+          placeholder='请输入搜索关键词'
+          clearable
+        />
       </View>
 
       {/* 主内容区域 */}
-      <ScrollView scrollY className='page-content'>
+      <ScrollView scrollY className='content'>
         {/* 分类Pills */}
-        <View className='category-section'>
-          <ScrollView scrollX className='category-scroll'>
+        <View className='category-bar'>
+          <View className='category-scroll'>
             {mockCategories.map((category, index) => (
               <View
                 key={category}
                 onClick={() => setSelectedCategory(index)}
-                className={`category-pill ${selectedCategory === index ? 'active' : ''}`}
+                className={`pill ${selectedCategory === index ? 'pill-active' : ''}`}
               >
-                <Text className={`text-sm font-medium ${selectedCategory === index ? 'text-white' : 'text-gray-600'}`}>
+                <Text className={`pill-text ${selectedCategory === index ? 'white-text' : 'gray-text'}`}>
                   {category}
                 </Text>
               </View>
             ))}
-          </ScrollView>
+          </View>
         </View>
 
-        {/* 瀑布流作品列表 - 使用左右两列布局 */}
-        <View className='works-section'>
+        {/* 瀑布流作品列表 */}
+        <View className='works'>
           {/* 左列 */}
-          <View className='work-column'>
+          <View className='column'>
             {mockWorks.filter((_, i) => i % 2 === 0).map((work) => (
-              <WorkCard key={work.id} work={work} />
+              <View key={work.id} className='work-card'>
+                <Image src={work.imageUrl} className='work-img' mode='aspectFill' />
+                {work.isVIP && <View className='vip-tag'>VIP</View>}
+                <Text className='work-prompt'>{work.prompt}</Text>
+                <View className='work-footer'>
+                  <View className='work-author'>
+                    <Image src={work.creator.avatar} className='author-avatar' mode='aspectFill' />
+                    <Text className='author-name'>{work.creator.name}</Text>
+                  </View>
+                  <View className='work-likes'>
+                    <Icon name='favorite' size={14} color='#F43F5E' />
+                    <Text className='likes-num'>{work.likes}</Text>
+                  </View>
+                </View>
+              </View>
             ))}
           </View>
           {/* 右列 */}
-          <View className='work-column'>
+          <View className='column'>
             {mockWorks.filter((_, i) => i % 2 === 1).map((work) => (
-              <WorkCard key={work.id} work={work} />
+              <View key={work.id} className='work-card'>
+                <Image src={work.imageUrl} className='work-img' mode='aspectFill' />
+                {work.isVIP && <View className='vip-tag'>VIP</View>}
+                <Text className='work-prompt'>{work.prompt}</Text>
+                <View className='work-footer'>
+                  <View className='work-author'>
+                    <Image src={work.creator.avatar} className='author-avatar' mode='aspectFill' />
+                    <Text className='author-name'>{work.creator.name}</Text>
+                  </View>
+                  <View className='work-likes'>
+                    <Icon name='favorite' size={14} color='#F43F5E' />
+                    <Text className='likes-num'>{work.likes}</Text>
+                  </View>
+                </View>
+              </View>
             ))}
           </View>
         </View>
       </ScrollView>
 
+
       {/* 底部导航栏 */}
-      <View className='bottom-nav-container'>
-        <View className='nav-content'>
-          {/* 广场 */}
-          <View className='nav-item active'>
-            <Icon name='grid_view' size={26} filled />
-            <Text className='nav-text'>广场</Text>
-          </View>
-
-          {/* 创作 */}
-          <View className='nav-item'>
-            <View className='create-btn'>
-              <Icon name='add_photo_alternate' size={24} />
-            </View>
-            <Text className='nav-text'>创作</Text>
-          </View>
-
-          {/* 消息 */}
-          <View className='nav-item'>
-            <Icon name='chat_bubble_outline' size={26} />
-            <Text className='nav-text'>消息</Text>
-          </View>
-
-          {/* 我的 */}
-          <View className='nav-item'>
-            <View className='nav-item-wrapper'>
-              <Icon name='person' size={26} filled />
-              <View className='nav-dot' />
-            </View>
-            <Text className='nav-text-bold'>我的</Text>
-          </View>
-        </View>
-      </View>
+      <BottomNav activeTab='home' />
     </View>
   )
 }

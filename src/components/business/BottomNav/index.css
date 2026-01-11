@@ -1,0 +1,27 @@
+/* 自定义 Tabbar 样式 */
+.custom-tabbar {
+  /* 调整高度 */
+  --tabbar-height: 60px;
+
+  /* 调整图标大小 */
+  --tabbar-item-icon-size: 24px;
+
+  /* 调整字体大小 */
+  --tabbar-item-font-size: 20px;
+
+  /* 未选中颜色 */
+  --tabbar-item-color: #9ca3af;
+
+  /* 选中颜色 */
+  --tabbar-item-active-color: #000000;
+
+  /* 背景色 */
+  --tabbar-background-color: #ffffff;
+
+  /* 圆角 */
+  border-top-left-radius: 30px;
+  border-top-right-radius: 30px;
+
+  /* 阴影 */
+  box-shadow: 0 -5px 20px -5px rgba(0, 0, 0, 0.05);
+}
