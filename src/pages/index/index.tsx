@@ -1,7 +1,7 @@
 import { BottomNav } from '@/components/business/BottomNav'
 import { Icon } from '@/components/common/Icon'
 import { mockCategories, mockWorks } from '@/mock/square'
-import { Search } from "@taroify/core"
+import { Search, Tabs } from "@taroify/core"
 import { Image, ScrollView, Text, View } from '@tarojs/components'
 import { useState } from 'react'
 import './index.css'
@@ -35,21 +35,15 @@ export default function Index() {
 
       {/* 主内容区域 */}
       <ScrollView scrollY className='content'>
-        {/* 分类Pills */}
-        <View className='category-bar'>
-          <View className='category-scroll'>
-            {mockCategories.map((category, index) => (
-              <View
-                key={category}
-                onClick={() => setSelectedCategory(index)}
-                className={`pill ${selectedCategory === index ? 'pill-active' : ''}`}
-              >
-                <Text className={`pill-text ${selectedCategory === index ? 'white-text' : 'gray-text'}`}>
-                  {category}
-                </Text>
-              </View>
-            ))}
-          </View>
+        <View className='w-full mb-2'>
+          <Tabs >
+            {mockCategories.map((category, index) => {
+              return (
+                <Tabs.TabPane title={category} key={category}></Tabs.TabPane>
+
+              )
+            })}
+          </Tabs>
         </View>
 
         {/* 瀑布流作品列表 */}
@@ -60,7 +54,7 @@ export default function Index() {
               <View key={work.id} className='work-card'>
                 <Image src={work.imageUrl} className='work-img' mode='aspectFill' />
                 {work.isVIP && <View className='vip-tag'>VIP</View>}
-                <Text className='work-prompt'>{work.prompt}</Text>
+                <Text className='work-prompt text-lg'>{work.prompt}</Text>
                 <View className='work-footer'>
                   <View className='work-author'>
                     <Image src={work.creator.avatar} className='author-avatar' mode='aspectFill' />
@@ -99,7 +93,7 @@ export default function Index() {
 
 
       {/* 底部导航栏 */}
-      <BottomNav activeTab='home' />
+      <BottomNav />
     </View>
   )
 }

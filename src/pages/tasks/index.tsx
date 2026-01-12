@@ -1,9 +1,9 @@
-import { View, Text, Image, ScrollView } from '@tarojs/components'
-import { Icon } from '@/components/common/Icon'
 import { BottomNav } from '@/components/business/BottomNav'
 import { TaskCard } from '@/components/business/TaskCard'
-import { mockUser } from '@/mock/user'
+import { Icon } from '@/components/common/Icon'
 import { mockTasks } from '@/mock/tasks'
+import { mockUser } from '@/mock/user'
+import { Image, ScrollView, Text, View } from '@tarojs/components'
 import { useState } from 'react'
 import './index.css'
 
@@ -115,7 +115,7 @@ export default function TasksPage() {
       </ScrollView>
 
       {/* 底部导航栏 */}
-      <BottomNav activeTab='profile' />
+      <BottomNav />
     </View>
   )
 }

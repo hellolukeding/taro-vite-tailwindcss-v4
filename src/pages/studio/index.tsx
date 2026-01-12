@@ -1,201 +1,133 @@
-import { View, Text, Image, ScrollView, Input } from '@tarojs/components'
+import CommonWarp from '@/components/CommonWarp'
+import { GenerateBar } from '@/components/business/GenerateBar'
+import ImgUploader from '@/components/business/ImgUploader'
+import { PromptInput } from '@/components/business/PromptInput'
+import { RatioSelector } from '@/components/business/RatioSelector'
+import ResolutionSelector from '@/components/business/ResolutionSelector'
+import { StudioModelSelector } from '@/components/business/StudioModelSelector'
 import { Icon } from '@/components/common/Icon'
-import { ModelCard } from '@/components/business/ModelCard'
-import { RatioButton } from '@/components/business/RatioButton'
-import { mockModels } from '@/mock/studio'
-import { mockUser } from '@/mock/user'
+import { mockModels, mockPromptExamples, type MockModel } from '@/mock/studio'
+import { ScrollView, Text, View } from '@tarojs/components'
+import Taro from '@tarojs/taro'
 import { useState } from 'react'
-import './index.css'
 
-type ImageRatio = '1:1' | '3:4' | '16:9' | '9:16'
+type ImageRatio = 'auto' | '1:1' | '3:4' | '4:3' | '16:9' | '9:16' | '21:9' | '3:2' | '2:3' | '5:4' | '4:5'
 
-export default function StudioPage() {
+interface StudioProps { }
+
+const Studio: React.FC<StudioProps> = (props) => {
   const [prompt, setPrompt] = useState('')
-  const [selectedModelId, setSelectedModelId] = useState('1')
-  const [selectedRatio, setSelectedRatio] = useState<ImageRatio>('1:1')
-  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [models, setModels] = useState<MockModel[]>(mockModels)
+  const [selectedRatio, setSelectedRatio] = useState<ImageRatio>('auto')
   const [steps, setSteps] = useState(30)
-  const [cfgScale, setCfgScale] = useState(7.5)
+  const [cfg, setCfg] = useState(7.5)
+  const [isGenerating, setIsGenerating] = useState(false)
 
+  // Handle model selection
   const handleModelSelect = (modelId: string) => {
-    setSelectedModelId(modelId)
+    setModels(prev => prev.map(model => ({
+      ...model,
+      isSelected: model.id === modelId
+    })))
+  }
+
+  // Handle translate
+  const handleTranslate = () => {
+    if (!prompt.trim()) {
+      Taro.showToast({ title: '请输入提示词', icon: 'none' })
+      return
+    }
+    // TODO: Implement translation API
+    Taro.showToast({ title: '翻译功能开发中', icon: 'none' })
+  }
+
+  // Handle random prompt
+  const handleRandom = () => {
+    const randomIndex = Math.floor(Math.random() * mockPromptExamples.length)
+    setPrompt(mockPromptExamples[randomIndex])
+  }
+
+  // Handle generate
+  const handleGenerate = () => {
+    if (!prompt.trim()) {
+      Taro.showToast({ title: '请输入提示词', icon: 'none' })
+      return
+    }
+
+    const selectedModel = models.find(m => m.isSelected)
+    if (!selectedModel) {
+      Taro.showToast({ title: '请选择模型', icon: 'none' })
+      return
+    }
+
+    setIsGenerating(true)
+    // TODO: Implement generation API
+    setTimeout(() => {
+      setIsGenerating(false)
+      Taro.showToast({ title: '生成功能开发中', icon: 'none' })
+    }, 2000)
   }
 
   return (
-    <View className='studio-page'>
-      {/* 黑色头部 */}
-      <View className='studio-header'>
-        {/* 顶部导航 */}
-        <View className='header-nav'>
-          <View className='nav-left'>
-            <Icon name='arrow_back_ios' size={24} color='#FFFFFF' />
-            <Text className='page-title'>创作工坊</Text>
-          </View>
-          <View className='nav-right'>
-            <View className='icon-btn-bg'>
-              <Icon name='history' size={20} color='#FFFFFF' />
+    <CommonWarp title='创作工坊' withHeader={false}>
+      <ScrollView scrollY className='h-full bg-gray-50'>
+        {/* Header Section */}
+        <View className='bg-black pt-20 pb-8 px-3 rounded-b-2xl shadow-xl relative z-10'>
+          {/* Top Bar */}
+          <View className='flex justify-between items-center mb-6'>
+            <View className='flex items-center gap-2' onClick={() => Taro.navigateBack()}>
+              <Icon name='arrow_back_ios' size={20} color='white' />
+              <Text className='text-white text-xl font-semibold tracking-wide'>创作工坊</Text>
             </View>
-            <Image
-              src={mockUser.avatar}
-              className='user-avatar'
-              mode='aspectFill'
-            />
-          </View>
-        </View>
 
-        {/* Prompt输入区 */}
-        <View className='prompt-section'>
-          <View className='prompt-header'>
-            <View className='prompt-title'>
-              <Icon name='edit_note' size={16} color='#000000' />
-              <Text>提示词</Text>
-            </View>
-            <View className='translate-btn'>
-              <Icon name='translate' size={12} color='#FFFFFF' />
-              <Text>中译英</Text>
-            </View>
           </View>
-          <Input
-            className='prompt-input'
-            placeholder='描述你想生成的图片... (例如: 一个未来城市的街道，霓虹灯光，8k分辨率)'
+
+          {/* 图片上传 */}
+          <ImgUploader />
+
+          {/* Prompt Input */}
+          <PromptInput
             value={prompt}
-            onInput={(e) => setPrompt(e.detail.value)}
+            onChange={setPrompt}
+            onTranslate={handleTranslate}
+            onRandom={handleRandom}
           />
-          <View className='random-btn'>
-            <Icon name='casino' size={14} color='#000000' />
-            <Text>随机</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* 主内容区域 */}
-      <ScrollView scrollY className='studio-content'>
-        {/* 模型选择 */}
-        <View className='section'>
-          <View className='section-header'>
-            <View className='section-title'>
-              <View className='title-bar' />
-              <Text>选择模型</Text>
-            </View>
-            <Text className='view-all'>查看全部</Text>
-          </View>
-          <ScrollView scrollX className='model-scroll'>
-            {mockModels.map((model) => (
-              <ModelCard
-                key={model.id}
-                model={model}
-                onPress={() => handleModelSelect(model.id)}
-              />
-            ))}
-          </ScrollView>
         </View>
 
-        {/* 图片比例选择 */}
-        <View className='section'>
-          <View className='section-title-single'>
-            <View className='title-bar' />
-            <Text>图片比例</Text>
-          </View>
-          <View className='ratio-grid'>
-            {(['1:1', '3:4', '16:9', '9:16'] as ImageRatio[]).map((ratio) => (
-              <RatioButton
-                key={ratio}
-                ratio={ratio}
-                isSelected={selectedRatio === ratio}
-                onPress={() => setSelectedRatio(ratio)}
-              />
-            ))}
-          </View>
-        </View>
+        {/* Main Content */}
+        <View className='px-5 pb-32'>
+          {/* Model Selector */}
+          <StudioModelSelector
+            models={models}
+            onSelect={handleModelSelect}
+          />
 
-        {/* 高级设置 */}
-        <View className='section'>
-          <View
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className='advanced-settings'
-          >
-            <View className='settings-header'>
-              <View className='settings-title'>
-                <Icon name='tune' size={20} color='#000000' />
-                <Text>高级设置</Text>
-              </View>
-              <Icon
-                name='expand_more'
-                size={20}
-                color='#000000'
-                className={`expand-icon ${showAdvanced ? 'expanded' : ''}`}
-              />
-            </View>
+          {/* 选择分辨率 */}
+          <ResolutionSelector
+            onSelect={(resolutionId) => {
+              console.log('Selected resolution:', resolutionId)
+            }}
+          />
 
-            {showAdvanced && (
-              <View className='settings-content'>
-                <View className='settings-body'>
-                  {/* 步数滑块 */}
-                  <View className='slider-group'>
-                    <View className='slider-header'>
-                      <Text className='slider-label'>步数</Text>
-                      <Text className='slider-value'>{steps}</Text>
-                    </View>
-                    <input
-                      type='range'
-                      min='10'
-                      max='50'
-                      value={steps}
-                      onChange={(e) => setSteps(Number(e.target.value))}
-                      className='slider-input'
-                    />
-                  </View>
+          {/* Ratio Selector */}
+          <RatioSelector
+            selectedRatio={selectedRatio}
+            onSelect={setSelectedRatio}
+          />
 
-                  {/* CFG滑块 */}
-                  <View className='slider-group'>
-                    <View className='slider-header'>
-                      <Text className='slider-label'>提示词引导 (CFG)</Text>
-                      <Text className='slider-value'>{cfgScale}</Text>
-                    </View>
-                    <input
-                      type='range'
-                      min='1'
-                      max='20'
-                      step='0.5'
-                      value={cfgScale}
-                      onChange={(e) => setCfgScale(Number(e.target.value))}
-                      className='slider-input'
-                    />
-                  </View>
-                </View>
-              </View>
-            )}
-          </View>
+
         </View>
       </ScrollView>
 
-      {/* 底部生成栏 */}
-      <View className='generate-bar'>
-        <View className='generate-content'>
-          {/* 消耗积分 */}
-          <View className='cost-info'>
-            <Text className='cost-label'>预计消耗</Text>
-            <View className='cost-value'>
-              <Icon name='bolt' size={16} color='#FBBF24' filled />
-              <Text>2</Text>
-            </View>
-          </View>
-
-          <View className='divider' />
-
-          {/* 余额 */}
-          <View className='balance-info'>
-            <Text className='cost-label'>余额</Text>
-            <Text className='balance-value'>{mockUser.credits}</Text>
-          </View>
-
-          {/* 立即生成按钮 */}
-          <View className='generate-btn'>
-            <Icon name='auto_awesome' size={20} color='#FFFFFF' />
-            <Text>立即生成</Text>
-          </View>
-        </View>
-      </View>
-    </View>
+      {/* Generate Bar */}
+      <GenerateBar
+        cost={2}
+        balance={1402}
+        onGenerate={handleGenerate}
+        loading={isGenerating}
+      />
+    </CommonWarp>
   )
 }
+
+export default Studio
