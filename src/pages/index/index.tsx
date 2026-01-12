@@ -3,12 +3,19 @@ import { Icon } from '@/components/common/Icon'
 import { mockCategories, mockWorks } from '@/mock/square'
 import { Search, Tabs } from "@taroify/core"
 import { Image, ScrollView, Text, View } from '@tarojs/components'
+import Taro from '@tarojs/taro'
 import { useState } from 'react'
 import './index.css'
 
 export default function Index() {
   const [selectedCategory, setSelectedCategory] = useState(0)
 
+
+  const handleClick = (index: string) => {
+    Taro.navigateTo({
+      url: '/pages/prompt-detail/index?id=' + mockWorks[index].id,
+    })
+  }
   return (
     <View className='page'>
       {/* 黑色圆角头部 */}
@@ -51,7 +58,10 @@ export default function Index() {
           {/* 左列 */}
           <View className='column'>
             {mockWorks.filter((_, i) => i % 2 === 0).map((work) => (
-              <View key={work.id} className='work-card'>
+              <View key={work.id} className='work-card' onClick={() => {
+                handleClick(work.id)
+              }}
+              >
                 <Image src={work.imageUrl} className='work-img' mode='aspectFill' />
                 {work.isVIP && <View className='vip-tag'>VIP</View>}
                 <Text className='work-prompt text-lg'>{work.prompt}</Text>

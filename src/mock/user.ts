@@ -10,6 +10,8 @@ export interface MockUser {
   credits: number
   todayCost: number
   totalWorks: number
+  likes: string
+  favorites: number
 }
 
 export const mockUser: MockUser = {
@@ -20,4 +22,6 @@ export const mockUser: MockUser = {
   credits: 2450,
   todayCost: 120,
   totalWorks: 342,
+  likes: '1.2k',
+  favorites: 856,
 }

@@ -32,7 +32,7 @@ export function BottomNav() {
     {
       label: '我的',
       icon: <ContactOutlined size={20} />,
-      value: "/pages/tasks/index"
+      value: "/pages/profile/index"
     },
   ]
 

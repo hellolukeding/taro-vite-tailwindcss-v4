@@ -15,6 +15,7 @@ const iconMap: Record<string, keyof typeof TaroifyIcons> = {
   expand_more: 'ArrowDown',
   expand_less: 'ArrowUp',
   arrow_back_ios: 'ArrowLeft',
+  arrow_back_ios_new: 'ArrowLeft',
   chevron_right: 'ArrowRight',
   home: 'HomePage',
 
@@ -27,6 +28,7 @@ const iconMap: Record<string, keyof typeof TaroifyIcons> = {
   search: 'Search',
   share: 'Share',
   settings: 'Setting',
+  fullscreen: 'Outline',
 
   // 内容相关
   favorite: 'GoodJob',
@@ -69,6 +71,10 @@ const iconMap: Record<string, keyof typeof TaroifyIcons> = {
   public: 'Globe',
   broken_image: 'PhotoFail',
   check_circle: 'Check',
+
+  // 沟通相关
+  chat_bubble: 'Chat',
+  send: 'Send',
 
   // 其他
   bolt: 'Bolt',
