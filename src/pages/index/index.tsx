@@ -1,25 +1,107 @@
-import { BottomNav } from '@/components/business/BottomNav'
-import { Icon } from '@/components/common/Icon'
-import { mockCategories, mockWorks } from '@/mock/square'
+import { studioApi } from '@/api/studio'
+// 注意：原生 tabBar 已启用，不再需要自定义 BottomNav 组件
+// import { BottomNav } from '@/components/business/BottomNav'
+import { BASE_PAGE_SIZE, BASE_URL } from '@/utils/constants'
 import { Search, Tabs } from "@taroify/core"
+import { LikeOutlined } from '@taroify/icons'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useState } from 'react'
+import useRequest from 'ahooks/lib/useRequest'
+import { useMemo, useState } from 'react'
 import './index.css'
 
 export default function Index() {
   const [selectedCategory, setSelectedCategory] = useState(0)
+  const [promptsList, setPromptsList] = useState<any[]>([])
+  const [hasMore, setHasMore] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [currentTag, setCurrentTag] = useState<string | undefined>(undefined)
 
+  // 使用 useRequest 获取分类列表
+  const { data: categoriesData, loading } = useRequest(() => studioApi.getCategories())
 
-  const handleClick = (index: string) => {
+  // 获取提示词列表
+  const { loading: promptsLoading, run: fetchPrompts } = useRequest(
+    (page: number, tag?: string) => {
+      const params = Object.fromEntries(
+        Object.entries({
+          page,
+          page_size: BASE_PAGE_SIZE,
+          tag,
+        }).filter(([_, value]) => value !== undefined)
+      )
+      return studioApi.getPrompts(params)
+    },
+    {
+      manual: true,
+      onSuccess: (result, params) => {
+        const [page] = params
+        if (page === 1) {
+          // 第一页，替换数据
+          setPromptsList(result?.data ?? [])
+        } else {
+          // 加载更多，追加数据
+          setPromptsList(prev => [...prev, ...(result?.data ?? [])])
+        }
+        setHasMore(result?.has_more ?? false)
+      },
+    }
+  )
+
+  // 初始加载
+  useRequest(() => studioApi.getPrompts({ page: 1, page_size: BASE_PAGE_SIZE }), {
+    onSuccess: (result) => {
+      setPromptsList(result?.data ?? [])
+      setHasMore(result?.has_more ?? false)
+    },
+  })
+
+  // 组合分类数据，添加"全部"选项
+  const categories = useMemo(() => {
+    if (!categoriesData) return ['全部']
+    return ['全部', ...categoriesData]
+  }, [categoriesData])
+
+  // 处理分类切换
+  const handleCategoryChange = (index: number) => {
+    const category = categories[index]
+    setSelectedCategory(index)
+
+    const newTag = category === '全部' ? undefined : category
+    setCurrentPage(1)
+    setCurrentTag(newTag)
+    setPromptsList([])
+
+    // 重新加载第一页
+    fetchPrompts(1, newTag)
+  }
+
+  // 下拉刷新
+  const handleRefresh = () => {
+    setCurrentPage(1)
+    setPromptsList([])
+    fetchPrompts(1, currentTag)
+  }
+
+  // 上拉加载更多
+  const handleLoadMore = () => {
+    if (!hasMore || promptsLoading) return
+    const nextPage = currentPage + 1
+    setCurrentPage(nextPage)
+    fetchPrompts(nextPage, currentTag)
+  }
+
+  const handleClick = (workId: string) => {
     Taro.navigateTo({
-      url: '/pages/prompt-detail/index?id=' + mockWorks[index].id,
+      url: '/packageDetail/pages/prompt-detail/index?id=' + workId,
     })
   }
+
+
   return (
     <View className='page'>
       {/* 黑色圆角头部 */}
-      <View className='header'>
+      <View className='header rounded-b-4xl'>
         {/* 顶部导航 */}
 
 
@@ -41,38 +123,61 @@ export default function Index() {
       </View>
 
       {/* 主内容区域 */}
-      <ScrollView scrollY className='content'>
+      <ScrollView
+        scrollY
+        className='content'
+        refresherEnabled
+        refresherTriggered={promptsLoading && currentPage === 1}
+        onRefresherRefresh={handleRefresh}
+        onScrollToLower={handleLoadMore}
+        lowerThreshold={100}
+      >
         <View className='w-full mb-2'>
-          <Tabs >
-            {mockCategories.map((category, index) => {
-              return (
-                <Tabs.TabPane title={category} key={category}></Tabs.TabPane>
-
-              )
-            })}
-          </Tabs>
+          {loading ? (
+            <View className='flex justify-center p-4'>
+              <Text>加载中...</Text>
+            </View>
+          ) : (
+            <Tabs value={selectedCategory} onChange={handleCategoryChange}>
+              {categories.map((category: string) => {
+                return (
+                  <Tabs.TabPane title={category} key={category}></Tabs.TabPane>
+                )
+              })}
+            </Tabs>
+          )}
         </View>
 
         {/* 瀑布流作品列表 */}
-        <View className='works'>
+        <View className='works pb-20'>
           {/* 左列 */}
           <View className='column'>
-            {mockWorks.filter((_, i) => i % 2 === 0).map((work) => (
+            {promptsList.filter((_, i) => i % 2 === 0).map((work) => (
               <View key={work.id} className='work-card' onClick={() => {
                 handleClick(work.id)
               }}
               >
-                <Image src={work.imageUrl} className='work-img' mode='aspectFill' />
-                {work.isVIP && <View className='vip-tag'>VIP</View>}
-                <Text className='work-prompt text-lg'>{work.prompt}</Text>
+                <Image src={`${BASE_URL}${work.cover_image}`} className='work-img' mode='aspectFill' lazyLoad />
+                <Text className='work-prompt text-lg'>{work.title}</Text>
                 <View className='work-footer'>
                   <View className='work-author'>
-                    <Image src={work.creator.avatar} className='author-avatar' mode='aspectFill' />
-                    <Text className='author-name'>{work.creator.name}</Text>
+                    {work.creator?.avatar_url && (
+                      <Image
+                        src={`${BASE_URL}${work.creator.avatar_url}`}
+                        className='author-avatar'
+                        mode='aspectFill'
+                      />
+                    )}
+                    <Text className='author-name'>{work.creator?.nickname || work.model}</Text>
                   </View>
-                  <View className='work-likes'>
-                    <Icon name='favorite' size={14} color='#F43F5E' />
-                    <Text className='likes-num'>{work.likes}</Text>
+                  <View className='work-stats'>
+                    <View className='work-likes text-lg'>
+                      <LikeOutlined color='#F43F5E' size={16} />
+                      <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
+                    </View>
+                    {work.views_count > 0 && (
+                      <Text className='views-num text-lg'>{work.views_count}</Text>
+                    )}
                   </View>
                 </View>
               </View>
@@ -80,30 +185,57 @@ export default function Index() {
           </View>
           {/* 右列 */}
           <View className='column'>
-            {mockWorks.filter((_, i) => i % 2 === 1).map((work) => (
-              <View key={work.id} className='work-card'>
-                <Image src={work.imageUrl} className='work-img' mode='aspectFill' />
-                {work.isVIP && <View className='vip-tag'>VIP</View>}
-                <Text className='work-prompt'>{work.prompt}</Text>
+            {promptsList.filter((_, i) => i % 2 === 1).map((work) => (
+              <View key={work.id} className='work-card' onClick={() => {
+                handleClick(work.id)
+              }}
+              >
+                <Image src={`${BASE_URL}${work.cover_image}`} className='work-img' mode='aspectFill' lazyLoad />
+                <Text className='work-prompt text-lg'>{work.title}</Text>
                 <View className='work-footer'>
-                  <View className='work-author'>
-                    <Image src={work.creator.avatar} className='author-avatar' mode='aspectFill' />
-                    <Text className='author-name'>{work.creator.name}</Text>
+                  <View className='work-author text-lg'>
+                    {work.creator?.avatar_url && (
+                      <Image
+                        src={`${BASE_URL}${work.creator.avatar_url}`}
+                        className='author-avatar'
+                        mode='aspectFill'
+                      />
+                    )}
+                    <Text className='author-name'>{work.creator?.nickname || work.model}</Text>
                   </View>
-                  <View className='work-likes'>
-                    <Icon name='favorite' size={14} color='#F43F5E' />
-                    <Text className='likes-num'>{work.likes}</Text>
+                  <View className='work-stats'>
+                    <View className='work-likes text-lg'>
+                      <LikeOutlined color='#F43F5E' size={16} />
+                      <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
+                    </View>
+                    {work.views_count > 0 && (
+                      <Text className='views-num text-lg'>{work.views_count}</Text>
+                    )}
                   </View>
                 </View>
               </View>
             ))}
           </View>
         </View>
+
+        {/* 加载更多提示 */}
+        {promptsList.length > 0 && (
+          <View className='flex justify-center p-4'>
+            <Text className='text-gray-500 text-sm'>
+              {promptsLoading && currentPage > 1 ? '加载中...' : hasMore ? '上拉加载更多' : '没有更多了'}
+            </Text>
+          </View>
+        )}
+
+        {/* 空状态 */}
+        {!promptsLoading && promptsList.length === 0 && (
+          <View className='flex flex-col items-center justify-center p-8'>
+            <Text className='text-gray-400'>暂无数据</Text>
+          </View>
+        )}
       </ScrollView>
 
-
-      {/* 底部导航栏 */}
-      <BottomNav />
+      {/* 原生 tabBar 已启用，移除自定义底部导航栏 */}
     </View>
   )
 }

@@ -1,7 +1,8 @@
 import { Navbar } from "@taroify/core";
 import { View } from "@tarojs/components";
 import Taro from "@tarojs/taro";
-import { BottomNav } from "../business/BottomNav";
+// 注意：原生 tabBar 已启用，不再需要自定义 BottomNav 组件
+// import { BottomNav } from "../business/BottomNav";
 
 
 interface CommonWarpProps {
@@ -22,7 +23,7 @@ const CommonWarp: React.FC<CommonWarpProps> = (props) => {
       <View className='w-full  flex-1 overflow-auto'>
         {props.children}
       </View>
-      <BottomNav />
+      {/* 原生 tabBar 已启用，移除自定义 BottomNav */}
     </View>
   );
 };

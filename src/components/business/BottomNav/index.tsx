@@ -11,8 +11,6 @@ export function BottomNav() {
   const [activeTab, setActiveTab] = useState<string>('/pages/index/index')
   const router = useRouter()
 
-  console.log(router)     // 当前路由路径
-  console.log(router.params)   // 路由参数
   const items = [
     {
       label: '首页',
@@ -41,7 +39,9 @@ export function BottomNav() {
       return
     }
     setActiveTab(value as string)
-    Taro.reLaunch({
+    // 使用 switchTab 跳转到 tabBar 页面（原生 tabBar 配置后）
+    // 这将提供零白屏的页面切换体验
+    Taro.switchTab({
       url: value
     })
   }

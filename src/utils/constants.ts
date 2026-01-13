@@ -2,8 +2,13 @@
  * 常量定义
  */
 
+export const BASE_URL = "http://localhost:8000"
+
 // API基础URL
 export const API_BASE_URL = 'http://localhost:8000/api/v1'
+
+
+export const BASE_PAGE_SIZE = 20
 
 // Storage Keys
 export const STORAGE_KEYS = {

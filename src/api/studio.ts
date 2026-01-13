@@ -1,8 +1,8 @@
 /**
  * 创作工作台相关API
  */
-import client from './client'
 import type { ModelInfo, TaskStatus, TaskSubmitParams } from '@/types'
+import client from './client'
 
 export interface RandomPrompt {
   prompt: string
@@ -74,4 +74,46 @@ export const studioApi = {
   async getTaskStatus(taskId: string): Promise<TaskStatus> {
     return client.get(`/miniprogram/studio/task/${taskId}`)
   },
+
+  /**
+   * 获取提示词标签分类列表
+   */
+  async getCategories(): Promise<string[]> {
+    return client.get('/miniprogram/studio/categories', {}, { skipAuth: true })
+  },
+
+  /**
+   * 获取提示词列表
+   */
+  async getPrompts(params?: {
+    tag?: string
+    keyword?: string
+    page?: number
+    page_size?: number
+  }): Promise<{
+    success: boolean
+    data: Array<{
+      id: string
+      title: string
+      cover_image: string | null
+      tags: string[]
+      model: string
+      description: string | null
+      views_count: number
+      likes_count: number
+      favorites_count: number
+      creator: {
+        user_id: string
+        nickname: string | null
+        avatar_url: string | null
+      }
+    }>
+    total: number
+    page: number
+    page_size: number
+    has_more: boolean
+  }> {
+    return client.get('/miniprogram/studio/prompts', params, { skipAuth: true, returnFullResponse: true })
+  },
+
 }

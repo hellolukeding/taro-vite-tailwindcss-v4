@@ -1,0 +1,30 @@
+import { Icon } from '@/components/common/Icon';
+import { Text, View } from "@tarojs/components";
+import Taro from "@tarojs/taro";
+
+interface CommonHeaderProps {
+  title?: string;
+  withBack?: boolean;
+  children?: React.ReactNode;
+}
+
+const CommonHeader: React.FC<CommonHeaderProps> = (props) => {
+  return (
+
+    <View className='bg-black pt-20 pb-8 px-3 rounded-b-4xl shadow-xl relative z-10'>
+      {/* Top Bar */}
+      <View className='flex justify-between items-center mb-6'>
+        <View className='flex items-center gap-2' onClick={() => Taro.navigateBack()}>
+          {props.withBack && <Icon name='arrow_back_ios' size={20} color='white' />}
+          <Text className='text-white text-xl font-semibold tracking-wide'>{props.title}</Text>
+        </View>
+
+      </View>
+
+      {props.children}
+
+    </View>
+  );
+};
+
+export default CommonHeader;

@@ -26,33 +26,42 @@ const Assets: React.FC<AssetsProps> = () => {
   }
 
   return (
-    <CommonWarp title='资产' withHeader>
-      <View className='w-full h-full bg-white'>
+    <CommonWarp title='资产' withHeader={false}>
+      <View className='w-full h-full bg-white '>
+
+        <View className='bg-black pt-20 pb-8 px-3 rounded-b-4xl shadow-xl relative z-10'>
+          {/* Top Bar */}
+          <View className='flex justify-between items-center mb-6'>
+            <View className='flex items-center gap-2' onClick={() => Taro.navigateBack()}>
+              <Icon name='arrow_back_ios' size={20} color='white' />
+              <Text className='text-white text-xl font-semibold tracking-wide'>资产中心</Text>
+            </View>
+
+          </View>
+
+
+        </View>
+
         {/* Header */}
         <View className='sticky top-0 z-50 bg-white border-b border-gray-100'>
 
 
           {/* Tabs */}
           <View className='px-4 py-4'>
-            <View className='flex p-1 bg-gray-100 rounded-xl relative'>
-              <View
-                className={`w-1/2 bg-black rounded-lg shadow-sm absolute top-1 bottom-1 transition-all ${activeTab === 0 ? 'left-1' : 'left-1/2'
-                  }`}
-              />
-              <View
-                onClick={() => setActiveTab(0)}
-                className={`relative z-10 flex-1 py-2 text-sm font-bold text-center rounded-lg transition-colors ${activeTab === 0 ? 'text-white' : 'text-gray-500'
-                  }`}
-              >
-                进行中 ({mockInProgressTasks.length})
-              </View>
-              <View
-                onClick={() => setActiveTab(1)}
-                className={`relative z-10 flex-1 py-2 text-sm font-medium text-center rounded-lg transition-colors ${activeTab === 1 ? 'text-white' : 'text-gray-500'
-                  }`}
-              >
-                已完成
-              </View>
+            <View className='flex p-1 w-full bg-gray-100 rounded-xl relative'>
+              {
+                (["进行中", "已完成"] as const).map((tabTitle, index) => {
+                  return (
+                    <View
+                      key={tabTitle}
+                      className={`flex-1 py-2 text-sm font-bold text-center rounded-lg transition-colors ${activeTab === index ? 'text-white bg-black' : 'text-gray-500'}`}
+                      onClick={() => setActiveTab(index)}
+                    >
+                      <Text>{tabTitle}</Text>
+                    </View>
+                  )
+                })
+              }
             </View>
           </View>
         </View>

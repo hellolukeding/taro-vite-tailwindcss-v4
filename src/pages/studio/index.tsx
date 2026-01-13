@@ -72,7 +72,7 @@ const Studio: React.FC<StudioProps> = (props) => {
     <CommonWarp title='创作工坊' withHeader={false}>
       <ScrollView scrollY className='h-full bg-gray-50'>
         {/* Header Section */}
-        <View className='bg-black pt-20 pb-8 px-3 rounded-b-2xl shadow-xl relative z-10'>
+        <View className='bg-black pt-20 pb-8 px-3 rounded-b-4xl shadow-xl relative z-10'>
           {/* Top Bar */}
           <View className='flex justify-between items-center mb-6'>
             <View className='flex items-center gap-2' onClick={() => Taro.navigateBack()}>

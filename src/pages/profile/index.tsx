@@ -1,11 +1,13 @@
-import { ScrollView, Image, Text, View } from '@tarojs/components'
-import { useState } from 'react'
+import CommonHeader from '@/components/CommonHeader'
 import CommonWarp from '@/components/CommonWarp'
 import { TaskCard } from '@/components/business/TaskCard'
 import { Icon } from '@/components/common/Icon'
 import { mockTasks } from '@/mock/tasks'
 import { mockUser } from '@/mock/user'
+import { Arrow } from '@taroify/icons'
+import { Image, ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import { useState } from 'react'
 
 type TabType = 'all' | 'public' | 'favorites'
 
@@ -25,59 +27,30 @@ const Profile: React.FC<ProfileProps> = () => {
   return (
     <CommonWarp title='我的' withHeader={false}>
       <View className='w-full h-full bg-white flex flex-col'>
-        {/* 顶部栏 */}
-        <View className='flex justify-between items-center px-6 pt-6 pb-2'>
-          <View className='w-8' />
-          <View
-            onClick={() => Taro.navigateTo({ url: '/pages/settings/index' })}
-            className='w-10 h-10 flex items-center justify-center rounded-full active:bg-gray-100'
-          >
-            <Icon name='settings' size={20} />
-          </View>
-        </View>
-
-        <ScrollView scrollY className='flex-1'>
-          {/* 用户信息区 */}
-          <View className='px-6 mb-8 flex items-center gap-5'>
-            {/* 头像 */}
-            <View className='relative'>
-              <View className='w-[84px] h-[84px] rounded-full overflow-hidden border border-gray-100 p-1 bg-white shadow-sm'>
-                <Image
-                  src={mockUser.avatar}
-                  className='w-full h-full rounded-full'
-                  mode='aspectFill'
-                />
-              </View>
-              {/* PRO会员徽章 */}
-              {mockUser.isVIP && (
-                <View className='absolute -bottom-1 -right-1 bg-black px-2 py-0.5 rounded-full border-2 border-white shadow-sm'>
-                  <Text className='text-[10px] font-bold text-white'>PRO会员</Text>
-                </View>
-              )}
+        <CommonHeader title='个人主页' withBack >
+          <View className='w-full flex items-center justify-between'>
+            <View className='rounded-full w-20 h-20 overflow-hidden'>
+              <Image src='https://i.urusai.cc/PlyC9.png' className='w-full h-full object-cover ' />
             </View>
 
-            {/* 用户信息 */}
-            <View className='flex-1'>
-              <View className='flex items-center justify-between'>
-                <View>
-                  <Text className='text-xl font-bold text-gray-900 mb-1'>{mockUser.nickname}</Text>
-                  <View className='flex items-center gap-2'>
-                    <Text className='text-xs text-gray-400 font-mono tracking-wide'>ID: {mockUser.userId}</Text>
-                    <View
-                      onClick={() => {
-                        Taro.setClipboardData({ data: mockUser.userId })
-                        Taro.showToast({ title: '已复制', icon: 'success' })
-                      }}
-                      className='active:opacity-70'
-                    >
-                      <Icon name='content_copy' size={14} />
-                    </View>
-                  </View>
-                </View>
-                <Icon name='chevron_right' size={20} color='#9CA3AF' />
-              </View>
+            <View className='ml-4 flex flex-col justify-center flex-1'>
+              <Text className='text-white text-xl font-semibold tracking-wide'>
+                {mockUser.nickname}
+              </Text>
+              <Text className='text-gray-300 text-sm mt-1'>
+                @{mockUser.userId}
+              </Text>
             </View>
+
+            <Arrow size={20} style={{ color: "#fff" }} />
+
           </View>
+
+        </CommonHeader>
+
+
+        <ScrollView scrollY className='flex-1 mt-2'>
+
 
           {/* 积分卡片 */}
           <View className='px-5 mb-8'>
@@ -95,7 +68,10 @@ const Profile: React.FC<ProfileProps> = () => {
                   </View>
                   <Text className='text-[32px] font-bold text-white tracking-tight leading-none'>{mockUser.credits.toLocaleString()}</Text>
                 </View>
-                <View className='flex items-center gap-1 bg-white text-black px-5 py-2.5 rounded-full shadow-lg active:scale-95 transition-transform'>
+                <View
+                  onClick={() => Taro.navigateTo({ url: '/packageUser/pages/recharge/index' })}
+                  className='flex items-center gap-1 bg-white text-black px-5 py-2.5 rounded-full shadow-lg active:scale-95 transition-transform'
+                >
                   <Icon name='add' size={14} />
                   <Text className='text-xs font-bold'>立即充值</Text>
                 </View>
@@ -127,25 +103,22 @@ const Profile: React.FC<ProfileProps> = () => {
             <View className='flex items-center gap-8'>
               <View
                 onClick={() => setActiveTab('all')}
-                className={`py-3 text-[15px] ${
-                  activeTab === 'all' ? 'font-bold text-black border-b-[3px] border-black' : 'font-medium text-gray-400'
-                }`}
+                className={`py-3 text-[15px] ${activeTab === 'all' ? 'font-bold text-black border-b-[3px] border-black' : 'font-medium text-gray-400'
+                  }`}
               >
                 <Text>全部任务</Text>
               </View>
               <View
                 onClick={() => setActiveTab('public')}
-                className={`py-3 text-[15px] ${
-                  activeTab === 'public' ? 'font-bold text-black border-b-[3px] border-black' : 'font-medium text-gray-400'
-                }`}
+                className={`py-3 text-[15px] ${activeTab === 'public' ? 'font-bold text-black border-b-[3px] border-black' : 'font-medium text-gray-400'
+                  }`}
               >
                 <Text>已公开</Text>
               </View>
               <View
                 onClick={() => setActiveTab('favorites')}
-                className={`py-3 text-[15px] ${
-                  activeTab === 'favorites' ? 'font-bold text-black border-b-[3px] border-black' : 'font-medium text-gray-400'
-                }`}
+                className={`py-3 text-[15px] ${activeTab === 'favorites' ? 'font-bold text-black border-b-[3px] border-black' : 'font-medium text-gray-400'
+                  }`}
               >
                 <Text>我的收藏</Text>
               </View>
@@ -161,7 +134,7 @@ const Profile: React.FC<ProfileProps> = () => {
           </View>
         </ScrollView>
       </View>
-    </CommonWarp>
+    </CommonWarp >
   )
 }
 

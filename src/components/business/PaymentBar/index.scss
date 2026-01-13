@@ -1,0 +1,55 @@
+.payment-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  background: white;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+}
+
+.payment-amount {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.payment-label {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.payment-price {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ec1313;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.payment-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 32px;
+  background: #ec1313;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(236, 19, 19, 0.3);
+  transition: all 0.2s ease;
+}
+
+.payment-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(236, 19, 19, 0.2);
+}
+
+.payment-button-text {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+}

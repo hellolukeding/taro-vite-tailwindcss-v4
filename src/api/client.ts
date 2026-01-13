@@ -13,6 +13,7 @@ interface RequestOptions {
   header?: Record<string, string>
   skipAuth?: boolean
   skipErrorTip?: boolean
+  returnFullResponse?: boolean  // 是否返回完整响应对象（包含success、data等所有字段）
 }
 
 class APIClient {
@@ -45,7 +46,8 @@ class APIClient {
       data,
       header = {},
       skipAuth = false,
-      skipErrorTip = false
+      skipErrorTip = false,
+      returnFullResponse = false
     } = options
 
     // 1. 添加认证Token
@@ -119,7 +121,7 @@ class APIClient {
 
       // 5. 返回业务数据
       if (responseData?.success) {
-        return responseData.data
+        return returnFullResponse ? responseData : responseData.data
       } else {
         const errorMsg = responseData?.error?.message || '请求失败'
         if (!skipErrorTip) {

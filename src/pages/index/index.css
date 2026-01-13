@@ -202,10 +202,26 @@
   color: #6b7280;
 }
 
+.work-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .work-likes {
   display: flex;
   align-items: center;
   gap: 2px;
+}
+
+.stats-num {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.views-num {
+  font-size: 12px;
+  color: #9ca3af;
 }
 
 .likes-num {
@@ -237,4 +253,17 @@
   justify-content: center;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* ==================== 虚拟瀑布流样式 ==================== */
+
+.tabs-container {
+  background: #ffffff;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.waterfall-container {
+  flex: 1;
+  overflow: hidden;
+  background: #ffffff;
 }
