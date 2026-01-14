@@ -1,28 +1,19 @@
 import CommonHeader from '@/components/CommonHeader'
 import CommonWarp from '@/components/CommonWarp'
-import { TaskCard } from '@/components/business/TaskCard'
 import { Icon } from '@/components/common/Icon'
-import { mockTasks } from '@/mock/tasks'
 import { mockUser } from '@/mock/user'
-import { Arrow } from '@taroify/icons'
+import { Add, Arrow, Fire, Warning } from '@taroify/icons'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState } from 'react'
 
-type TabType = 'all' | 'public' | 'favorites'
+
 
 interface ProfileProps { }
 
 const Profile: React.FC<ProfileProps> = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('all')
 
-  // 根据 tab 过滤任务
-  const filteredTasks = mockTasks.filter((task) => {
-    if (activeTab === 'all') return true
-    if (activeTab === 'public') return task.status === 'public'
-    if (activeTab === 'favorites') return task.status === 'private'
-    return true
-  })
+  const [activeTab, setActiveTab] = useState("我的收藏")
 
   return (
     <CommonWarp title='我的' withHeader={false}>
@@ -46,6 +37,23 @@ const Profile: React.FC<ProfileProps> = () => {
 
           </View>
 
+          <View className='w-full text-white flex items-center justify-between mt-6 px-6'>
+            <View className='flex flex-col '>
+              <Text className='text-sm'>{mockUser.totalWorks}</Text>
+              <Text className='text-xs mt-1'>已创作</Text>
+            </View>
+
+
+            <View className='flex flex-col '>
+              <Text className='text-sm'>{mockUser.likes}</Text>
+              <Text className='text-xs mt-1'>收获点赞</Text>
+            </View>
+
+            <View className='flex flex-col '>
+              <Text className='text-sm'>{mockUser.favorites}</Text>
+              <Text className='text-xs mt-1'>收藏</Text>
+            </View>
+          </View>
         </CommonHeader>
 
 
@@ -63,14 +71,15 @@ const Profile: React.FC<ProfileProps> = () => {
               <View className='relative z-10 flex justify-between items-center'>
                 <View>
                   <View className='flex items-center gap-1.5 mb-2 opacity-80'>
-                    <Icon name='bolt' size={16} color='#FBBF24' />
+                    {/* <Icon name='bolt' size={16} color='#FBBF24' /> */}
+                    <Fire size={16} color='#FBBF24' />
                     <Text className='text-gray-300 text-xs font-medium tracking-wide'>当前积分</Text>
                   </View>
                   <Text className='text-[32px] font-bold text-white tracking-tight leading-none'>{mockUser.credits.toLocaleString()}</Text>
                 </View>
                 <View
                   onClick={() => Taro.navigateTo({ url: '/packageUser/pages/recharge/index' })}
-                  className='flex items-center gap-1 bg-white text-black px-5 py-2.5 rounded-full shadow-lg active:scale-95 transition-transform'
+                  className='flex items-center gap-1 bg-white text-black px-5 py-2.5 rounded-4xl shadow-lg active:scale-95 transition-transform'
                 >
                   <Icon name='add' size={14} />
                   <Text className='text-xs font-bold'>立即充值</Text>
@@ -78,60 +87,31 @@ const Profile: React.FC<ProfileProps> = () => {
               </View>
 
               {/* 统计信息 */}
-              <View className='mt-5 pt-4 border-t border-white/10 grid grid-cols-3 gap-2'>
-                <View>
-                  <Text className='text-[11px] text-gray-500 font-medium mb-1'>获赞</Text>
-                  <Text className='text-[15px] font-bold text-white leading-none'>{mockUser.likes}</Text>
+              <View className='mt-5 pt-4 border-t border-white/10 grid  grid-cols-2 gap-2 text-white text-xs '>
+                <View className='flex items-center'>
+                  <Warning className='mr-2' /> 今日消耗： <Text className='font-bold'>{999}</Text>
                 </View>
-                <View>
-                  <Text className='text-[11px] text-gray-500 font-medium mb-1'>收藏</Text>
-                  <Text className='text-[15px] font-bold text-white leading-none'>{mockUser.favorites}</Text>
-                </View>
-                <View>
-                  <Text className='text-[11px] text-gray-500 font-medium mb-1'>累计创作</Text>
-                  <Text className='text-[15px] font-bold text-white leading-none'>
-                    {mockUser.totalWorks}
-                    <Text className='text-[11px] font-normal text-gray-500 ml-0.5'>张</Text>
-                  </Text>
+
+                <View className='flex items-center'>
+                  <Add className='mr-2' /> 累计创作： <Text className='font-bold'>{999}</Text>
                 </View>
               </View>
+
+
             </View>
           </View>
 
-          {/* Tab导航 */}
-          <View className='sticky top-0 bg-white/95 backdrop-blur-md z-30 px-6 border-b border-gray-100 flex items-center justify-between'>
-            <View className='flex items-center gap-8'>
-              <View
-                onClick={() => setActiveTab('all')}
-                className={`py-3 text-[15px] ${activeTab === 'all' ? 'font-bold text-black border-b-[3px] border-black' : 'font-medium text-gray-400'
-                  }`}
-              >
-                <Text>全部任务</Text>
-              </View>
-              <View
-                onClick={() => setActiveTab('public')}
-                className={`py-3 text-[15px] ${activeTab === 'public' ? 'font-bold text-black border-b-[3px] border-black' : 'font-medium text-gray-400'
-                  }`}
-              >
-                <Text>已公开</Text>
-              </View>
-              <View
-                onClick={() => setActiveTab('favorites')}
-                className={`py-3 text-[15px] ${activeTab === 'favorites' ? 'font-bold text-black border-b-[3px] border-black' : 'font-medium text-gray-400'
-                  }`}
-              >
-                <Text>我的收藏</Text>
-              </View>
-            </View>
-            <Icon name='filter_list' size={20} />
+          <View className='w-full px-4' >
+
+            <Text className='font-semibold tracking-wide text-lg'>
+              我的收藏
+            </Text>
+
+            <ScrollView scrollY className='w-full '>
+
+            </ScrollView>
           </View>
 
-          {/* 任务网格 */}
-          <View className='grid grid-cols-2 gap-3 px-4 pb-4'>
-            {filteredTasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
-            ))}
-          </View>
         </ScrollView>
       </View>
     </CommonWarp >

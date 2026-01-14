@@ -1,232 +1,174 @@
-import { ScrollView, Text, View } from '@tarojs/components'
-import { useState } from 'react'
-import CommonWarp from '@/components/CommonWarp'
-import { Icon } from '@/components/common/Icon'
-import RechargeOption from '@/components/business/RechargeOption'
-import VIPCard from '@/components/business/VIPCard'
-import PaymentBar from '@/components/business/PaymentBar'
-import { paymentApi } from '@/api/payment'
-import Taro from '@tarojs/taro'
-import './index.scss'
+import { paymentApi } from "@/api";
+import CommonWarp from "@/components/CommonWarp";
+import { Button, Field, Input, RollingText } from "@taroify/core";
+import { Arrow, Award, BrushOutlined, Completed, Diamond, Hot, MedalOutlined, VipCard } from "@taroify/icons";
+import { Text, View } from "@tarojs/components";
+import useRequest from "ahooks/lib/useRequest";
+import "./index.scss";
 
-interface RechargePackage {
-  id: string
-  credits: number
-  price: number
-  originalPrice?: number
-  isHot?: boolean
-}
+interface RechargeProps { }
 
-const Recharge: React.FC = () => {
-  const [selectedPackage, setSelectedPackage] = useState<string>('500')
-  const [balance, setBalance] = useState(1250)
-  const [loading, setLoading] = useState(false)
-  const [agreedToTerms, setAgreedToTerms] = useState(false)
+const Recharge: React.FC<RechargeProps> = (props) => {
 
-  // Mock data - replace with API call
-  const packages: RechargePackage[] = [
-    { id: '100', credits: 100, price: 9.9 },
-    { id: '500', credits: 500, price: 39.9, originalPrice: 49.9, isHot: true },
-    { id: '1000', credits: 1000, price: 69.9 }
-  ]
+  const { data: packages, loading: pkgLoading } = useRequest(() => paymentApi.getPackages())
 
-  const vipBenefits = [
-    '每日免费领 20 积分',
-    '专属高级模型使用权',
-    '无限速生图，排队优先'
-  ]
-
-  const selectedPrice = packages.find((p) => p.id === selectedPackage)?.price || 0
-
-  const handlePayment = async () => {
-    if (!agreedToTerms) {
-      Taro.showToast({
-        title: '请先同意用户协议',
-        icon: 'none'
-      })
-      return
-    }
-
-    try {
-      setLoading(true)
-
-      // Create order via API
-      const order = await paymentApi.createOrder({
-        package_id: selectedPackage,
-        quantity: 1
-      })
-
-      // Call WeChat pay
-      await Taro.requestPayment({
-        ...order.payment_params,
-        success: () => {
-          Taro.showToast({
-            title: '充值成功',
-            icon: 'success'
-          })
-          // Navigate back or refresh
-          setTimeout(() => {
-            Taro.navigateBack()
-          }, 1500)
-        },
-        fail: (err) => {
-          if (err.errMsg.includes('cancel')) {
-            Taro.showToast({
-              title: '已取消支付',
-              icon: 'none'
-            })
-          } else {
-            Taro.showToast({
-              title: '支付失败',
-              icon: 'error'
-            })
-          }
-        }
-      })
-    } catch (error) {
-      console.error('Payment error:', error)
-      Taro.showToast({
-        title: '创建订单失败',
-        icon: 'error'
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleVIPActivate = () => {
-    Taro.showToast({
-      title: 'VIP功能即将上线',
-      icon: 'none'
-    })
-  }
 
   return (
-    <CommonWarp title='积分充值' withHeader={false}>
-      <View className='recharge-page'>
-        {/* Header */}
-        <View className='recharge-header'>
-          <View
-            onClick={() => Taro.navigateBack()}
-            className='header-icon'
-          >
-            <Icon name='arrow_back_ios' size={20} />
-          </View>
-          <Text className='header-title'>积分充值</Text>
-          <View
-            onClick={() => {
-              // Refresh balance
-              Taro.showToast({ title: '刷新成功', icon: 'success' })
-            }}
-            className='header-icon'
-          >
-            <Icon name='refresh' size={20} />
+    <CommonWarp title='充值' withHeader className='px-4 pb-40'>
+
+      <View className='w-full h-40 rounded-xl mt-4 relative overflow-hidden shadow-2xl bg-black text-white'>
+
+
+
+
+        {/* 内容层 */}
+        <View className='relative z-10 flex flex-col items-center justify-center h-full bg-black'>
+          <RollingText className='my-rolling-text' height={54} startNum={12345} targetNum={54321} />
+          <View className='mt-4 font-semibold text-lg'>
+            <MedalOutlined />
+            <Text className='ml-2'>当前积分余额</Text>
           </View>
         </View>
+      </View>
 
-        <ScrollView scrollY className='recharge-content'>
-          {/* Balance Card */}
-          <View className='balance-card'>
-            {/* Background decoration */}
-            <View className='balance-card-bg'>
-              <View className='balance-glow balance-glow-1' />
-              <View className='balance-glow balance-glow-2' />
-            </View>
-
-            <View className='balance-card-content'>
-              <View className='balance-info'>
-                <View className='balance-label'>
-                  <Icon name='bolt' size={16} color='#FBBF24' />
-                  <Text className='balance-label-text'>当前积分</Text>
-                </View>
-                <Text className='balance-amount'>{balance.toLocaleString()}</Text>
-              </View>
-
-              {/* Stats */}
-              <View className='balance-stats'>
-                <View className='balance-stat-item'>
-                  <Text className='balance-stat-label'>获赞</Text>
-                  <Text className='balance-stat-value'>128</Text>
-                </View>
-                <View className='balance-stat-item'>
-                  <Text className='balance-stat-label'>收藏</Text>
-                  <Text className='balance-stat-value'>56</Text>
-                </View>
-                <View className='balance-stat-item'>
-                  <Text className='balance-stat-label'>累计创作</Text>
-                  <Text className='balance-stat-value'>
-                    24<Text className='balance-stat-unit'>张</Text>
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Recharge Options */}
-          <View className='recharge-section'>
-            <View className='recharge-section-header'>
-              <Text className='section-title'>选择充值套餐</Text>
-            </View>
-            <View className='recharge-options'>
-              {packages.map((pkg) => (
-                <RechargeOption
-                  key={pkg.id}
-                  credits={pkg.credits}
-                  price={pkg.price}
-                  originalPrice={pkg.originalPrice}
-                  isHot={pkg.isHot}
-                  isSelected={selectedPackage === pkg.id}
-                  onSelect={() => setSelectedPackage(pkg.id)}
-                />
-              ))}
-            </View>
-          </View>
-
-          {/* VIP Card */}
-          <View className='recharge-section'>
-            <VIPCard
-              price={29.9}
-              originalPrice={49.9}
-              benefits={vipBenefits}
-              onActivate={handleVIPActivate}
-            />
-          </View>
-
-          {/* Coupon/Redeem Code */}
-          <View className='recharge-section'>
-            <View className='redeem-code'>
-              <Text className='redeem-text'>兑换码/优惠券</Text>
-              <Icon name='chevron_right' size={18} color='#9CA3AF' />
-            </View>
-          </View>
-
-          {/* Terms Checkbox */}
-          <View className='recharge-section'>
-            <View className='terms-checkbox'>
-              <View
-                className={`checkbox ${agreedToTerms ? 'checkbox-checked' : ''}`}
-                onClick={() => setAgreedToTerms(!agreedToTerms)}
+      <View className='mt-4 w-full overflow-auto whitespace-nowrap py-2' >
+        {
+          (packages ?? []).map((pkg) => {
+            if (pkg.is_vip) return null;
+            return (
+              <View key={pkg.id}
+                className='w-30 h-40 mr-4 rounded-xl p-3 inline-flex  flex-col  items-center justify-center shadow-lg relative
+              bg-black text-white active:scale-95 transition-transform
+              '
               >
-                {agreedToTerms && <Icon name='check' size={12} />}
+
+                <View className='absolute bottom-2 left-2 text-xs'>
+                  {pkg.name}
+                </View>
+                {pkg.is_hot &&
+                  <View className='absolute top-1 right-1 rotate-45' >
+
+                    <Hot size={30} color='#f00' />
+                  </View>
+                }
+
+
+                <Text className='text-2xl'>
+                  {pkg.credits} 积分
+                </Text>
+                <Text className='font-semibold text-2xl mt-2'>
+                  ￥{pkg.price}
+                </Text>
+                <Text className='line-through opacity-85 mt-2'>
+                  ￥{pkg.original_price}
+                </Text>
               </View>
-              <Text className='terms-text'>
-                我已阅读并同意
-                <Text className='terms-link'>《用户服务协议》</Text>
-                和
-                <Text className='terms-link'>《隐私政策》</Text>
-              </Text>
-            </View>
-          </View>
+            )
+          })
+        }
+      </View>
 
-          {/* Bottom Spacer for Payment Bar */}
-          <View style={{ height: '100px' }} />
-        </ScrollView>
 
-        {/* Payment Bar */}
-        <PaymentBar amount={selectedPrice} onPayment={handlePayment} loading={loading} />
+      <View className='w-full mt-4 rounded-xl overflow-hidden shadow-2xl'>
+        <Field align='center' label='邀请码'>
+          <Input placeholder='输入邀请码' />
+          <Button variant='text' color='primary' icon={<Arrow />} />
+        </Field>
+      </View>
+
+      <View className='w-full mt-4 flex items-center'>
+
+        <VipCard size={30} />
+        <Text className='text-xl font-semibold ml-2'>
+          VIP专区
+        </Text>
+      </View>
+
+      <View className='w-full mt-4 space-y-4'>
+        {
+          pkgLoading ? (
+            <Text>加载中...</Text>
+          ) : (
+            packages?.map((pkg, index) => {
+              if (!pkg.is_vip) return null;
+              return (
+                <View key={pkg.id} className='w-full h-50 rounded-2xl shadow-2xl relative overflow-hidden vip-card'>
+                  {/* 动态渐变背景 */}
+                  <View className={`absolute inset-0 bg-linear-to-br vip-gradient-${index % 3}`} />
+                  {/* 装饰光晕 */}
+                  {/* <View className='absolute -top-20 -right-20 w-60 h-60 bg-white/10 rounded-full blur-3xl' /> */}
+                  {/* <View className='absolute -bottom-20 -left-20 w-60 h-60 bg-white/10 rounded-full blur-3xl' /> */}
+                  {/* 内容层 */}
+                  <View className='relative text-white z-10 flex flex-col items-start justify-start h-full p-6'>
+                    <View className='text-xl font-semibold flex items-center'>
+                      <VipCard size={30} />
+                      <Text className='ml-2'>
+                        会员权益
+                      </Text>
+                    </View>
+                    <Text className='text-xs'>{pkg.description}</Text>
+
+                    <View className='w-full flex flex-col mt-4 text-sm'>
+                      {
+                        list.map((item, idx) => (
+                          <View key={idx} className='flex items-center mt-2'>
+                            {item.icon}
+                            <Text className='ml-2'>{item.description}</Text>
+                          </View>
+                        ))
+                      }
+
+
+                    </View>
+
+                    <View className='absolute bottom-2 right-2 flex flex-col justify-end items-end'>
+                      <Text className='text-3xl font-semibold'>{`¥${pkg.price}`}</Text>
+                      <Text className='line-through opacity-85'>{`¥${pkg.original_price}`}</Text>
+                    </View>
+                  </View>
+
+                </View>
+              )
+            })
+          )
+        }
+      </View>
+
+      {/* 结算 */}
+      <View className='w-screen z-50 fixed bottom-0 left-0 h-30  flex bg-white items-center justify-between px-6 py-4 shadow-t-lg'>
+
+        <View className='flex flex-col'>
+          <Text className='text-2xl font-semibold'>{`¥ ${999}`}</Text>
+          <Text className='text-xs'>应付金额</Text>
+        </View>
+
+        <Button className='w-40' style={{
+          backgroundColor: "#000",
+          color: "#fff",
+        }} icon={<BrushOutlined color='#fff' />}
+        >
+          去支付
+        </Button>
       </View>
     </CommonWarp>
-  )
-}
+  );
+};
 
-export default Recharge
+export default Recharge;
+
+
+const list = [
+  {
+    icon: <Award />,
+    description: "每日免费领取20积分",
+
+  },
+  {
+    icon: <Diamond />,
+    description: "专属高级模型使用权",
+  },
+  {
+    icon: <Completed />,
+    description: "无限速创作，排队优先",
+  }
+]

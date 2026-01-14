@@ -102,18 +102,14 @@ export default function Index() {
     <View className='page'>
       {/* 黑色圆角头部 */}
       <View className='header rounded-b-4xl'>
-        {/* 顶部导航 */}
+        <View className='flex items-center justify-between'>
+          <Image src='https://i.urusai.cc/EOn68.png' className='h-20 w-20' />
 
-
-        {/* 搜索框
-        <View className='search-box'>
-          <Icon name='search' size={20} color='#6B7280' className='search-icon' />
-          <Input
-            className='search-field'
-            placeholder='搜索提示词、风格、创作者...'
-          />
-        </View> */}
-
+          <View className='text-white flex-1 flex flex-col ml-4 text-xl font-semibold'>
+            <Text className='text-2xl mb-2'>Hi,</Text>
+            <Text>准备好用文字&quot;画&quot;画了吗?</Text>
+          </View>
+        </View>
         <Search
           className='search-bar-black'
           shape='rounded'
