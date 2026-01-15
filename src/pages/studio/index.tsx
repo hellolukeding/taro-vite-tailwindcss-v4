@@ -10,12 +10,14 @@ import { mockModels, mockPromptExamples, type MockModel } from '@/mock/studio'
 import { ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 
 type ImageRatio = 'auto' | '1:1' | '3:4' | '4:3' | '16:9' | '9:16' | '21:9' | '3:2' | '2:3' | '5:4' | '4:5'
 
 interface StudioProps { }
 
 const Studio: React.FC<StudioProps> = (props) => {
+  const { requireLogin } = useAuth()
   const [prompt, setPrompt] = useState('')
   const [models, setModels] = useState<MockModel[]>(mockModels)
   const [selectedRatio, setSelectedRatio] = useState<ImageRatio>('auto')
@@ -23,16 +25,20 @@ const Studio: React.FC<StudioProps> = (props) => {
   const [cfg, setCfg] = useState(7.5)
   const [isGenerating, setIsGenerating] = useState(false)
 
-  // Handle model selection
+  // Handle model selection (需要登录)
   const handleModelSelect = (modelId: string) => {
+    if (!requireLogin()) return
+
     setModels(prev => prev.map(model => ({
       ...model,
       isSelected: model.id === modelId
     })))
   }
 
-  // Handle translate
+  // Handle translate (需要登录)
   const handleTranslate = () => {
+    if (!requireLogin()) return
+
     if (!prompt.trim()) {
       Taro.showToast({ title: '请输入提示词', icon: 'none' })
       return
@@ -47,8 +53,10 @@ const Studio: React.FC<StudioProps> = (props) => {
     setPrompt(mockPromptExamples[randomIndex])
   }
 
-  // Handle generate
+  // Handle generate (需要登录)
   const handleGenerate = () => {
+    if (!requireLogin()) return
+
     if (!prompt.trim()) {
       Taro.showToast({ title: '请输入提示词', icon: 'none' })
       return
@@ -66,6 +74,13 @@ const Studio: React.FC<StudioProps> = (props) => {
       setIsGenerating(false)
       Taro.showToast({ title: '生成功能开发中', icon: 'none' })
     }, 2000)
+  }
+
+  // Handle resolution selection (需要登录)
+  const handleResolutionSelect = (resolutionId: string) => {
+    if (!requireLogin()) return
+
+    console.log('Selected resolution:', resolutionId)
   }
 
   return (
@@ -104,9 +119,7 @@ const Studio: React.FC<StudioProps> = (props) => {
 
           {/* 选择分辨率 */}
           <ResolutionSelector
-            onSelect={(resolutionId) => {
-              console.log('Selected resolution:', resolutionId)
-            }}
+            onSelect={handleResolutionSelect}
           />
 
           {/* Ratio Selector */}

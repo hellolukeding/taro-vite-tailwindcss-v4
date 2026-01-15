@@ -8,12 +8,21 @@ import { SocialActionBar } from '@/components/business/SocialActionBar'
 import { mockPromptDetail } from '@/mock/promptDetail'
 import { ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import { useEffect } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 
 interface PromptDetailProps {
   id?: string
 }
 
 const PromptDetail: React.FC<PromptDetailProps> = () => {
+  const { requireLoginRedirect } = useAuth()
+
+  useEffect(() => {
+    // 页面加载时检查登录,未登录直接跳转
+    requireLoginRedirect()
+  }, [])
+
   const data = mockPromptDetail
 
   const handleBack = () => {

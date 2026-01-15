@@ -1,0 +1,10 @@
+.logo-icon-wrapper {
+  @apply w-full h-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    @apply w-full h-full;
+  }
+}

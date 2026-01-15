@@ -1,19 +1,42 @@
 import CommonHeader from '@/components/CommonHeader'
 import CommonWarp from '@/components/CommonWarp'
+import { EmptyState } from '@/components/EmptyState'
 import { Icon } from '@/components/common/Icon'
 import { mockUser } from '@/mock/user'
 import { Add, Arrow, Fire, Warning } from '@taroify/icons'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useState } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 
 
 
 interface ProfileProps { }
 
 const Profile: React.FC<ProfileProps> = () => {
-
+  const { isLogin, loading } = useAuth()
   const [activeTab, setActiveTab] = useState("我的收藏")
+
+  // 处理登录按钮点击
+  const handleLogin = () => {
+    Taro.navigateTo({
+      url: '/packageUser/pages/login/index'
+    })
+  }
+
+  // 未登录显示空状态
+  if (!loading && !isLogin) {
+    return <EmptyState type='profile' onLogin={handleLogin} />
+  }
+
+  // 加载中
+  if (loading) {
+    return (
+      <View className='w-full h-full flex items-center justify-center'>
+        <Text>加载中...</Text>
+      </View>
+    )
+  }
 
   return (
     <CommonWarp title='我的' withHeader={false}>

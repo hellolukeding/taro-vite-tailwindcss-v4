@@ -1,17 +1,41 @@
 import CommonWarp from '@/components/CommonWarp'
 import { InProgressTaskCard } from '@/components/business/InProgressTaskCard'
 import { TaskCard } from '@/components/business/TaskCard'
+import { EmptyState } from '@/components/EmptyState'
 import { Icon } from '@/components/common/Icon'
 import { mockInProgressTasks } from '@/mock/inProgressTasks'
 import { mockTasks } from '@/mock/tasks'
 import { ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 
 interface AssetsProps { }
 
 const Assets: React.FC<AssetsProps> = () => {
+  const { isLogin, loading } = useAuth()
   const [activeTab, setActiveTab] = useState(0)
+
+  // 处理登录按钮点击
+  const handleLogin = () => {
+    Taro.navigateTo({
+      url: '/packageUser/pages/login/index'
+    })
+  }
+
+  // 未登录显示空状态
+  if (!loading && !isLogin) {
+    return <EmptyState type='assets' onLogin={handleLogin} />
+  }
+
+  // 加载中
+  if (loading) {
+    return (
+      <View className='w-full h-full flex items-center justify-center'>
+        <Text>加载中...</Text>
+      </View>
+    )
+  }
 
   const handleCancelTask = (_id: string) => {
     Taro.showModal({

@@ -4,11 +4,20 @@ import { Button, Field, Input, RollingText } from "@taroify/core";
 import { Arrow, Award, BrushOutlined, Completed, Diamond, Hot, MedalOutlined, VipCard } from "@taroify/icons";
 import { Text, View } from "@tarojs/components";
 import useRequest from "ahooks/lib/useRequest";
+import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import "./index.scss";
 
 interface RechargeProps { }
 
 const Recharge: React.FC<RechargeProps> = (props) => {
+  const { requireLoginRedirect } = useAuth()
+
+  useEffect(() => {
+    // 检查登录状态
+    requireLoginRedirect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const { data: packages, loading: pkgLoading } = useRequest(() => paymentApi.getPackages())
 

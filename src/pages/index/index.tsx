@@ -8,9 +8,11 @@ import { Image, ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import useRequest from 'ahooks/lib/useRequest'
 import { useMemo, useState } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 import './index.css'
 
 export default function Index() {
+  const { requireLogin } = useAuth()
   const [selectedCategory, setSelectedCategory] = useState(0)
   const [promptsList, setPromptsList] = useState<any[]>([])
   const [hasMore, setHasMore] = useState(true)
@@ -92,6 +94,9 @@ export default function Index() {
   }
 
   const handleClick = (workId: string) => {
+    // 查看详情需要登录
+    if (!requireLogin()) return
+
     Taro.navigateTo({
       url: '/packageDetail/pages/prompt-detail/index?id=' + workId,
     })

@@ -4,12 +4,21 @@ import { Icon } from '@/components/common/Icon'
 import { mockTasks } from '@/mock/tasks'
 import { mockUser } from '@/mock/user'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 import './index.css'
 
 type TabType = 'all' | 'public' | 'favorites'
 
 export default function TasksPage() {
+  const { requireLoginRedirect } = useAuth()
+
+  useEffect(() => {
+    // 检查登录状态
+    requireLoginRedirect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const [activeTab, setActiveTab] = useState<TabType>('all')
 
   return (

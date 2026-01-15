@@ -1,51 +1,180 @@
-/* 登录页面样式 */
-page {
-  background: linear-gradient(135deg, #ff6666 0%, #ff9966 100%);
+/* ==================== 页面容器 ==================== */
+.login-page {
+  width: 100%;
   min-height: 100vh;
+  background-color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  padding: 0 32px;
+  padding-top: 60px;
 }
 
-/* 玻璃拟态效果 */
-.backdrop-blur {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+/* ==================== 返回按钮 ==================== */
+.back-button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
 }
 
-/* 动画效果 */
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+.back-button:active {
+  background-color: #F3F4F6;
+  border-radius: 9999px;
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+/* ==================== Logo区域 ==================== */
+.logo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 120px;
+  margin-bottom: 80px;
 }
 
-/* 按钮悬停效果 */
-.hover\:bg-opacity-90:hover {
-  background-opacity: 0.9;
+.logo-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* 输入框焦点样式 */
-input:focus {
-  outline: none;
-  border-color: #ff6666;
-  box-shadow: 0 0 0 2px rgba(255, 102, 102, 0.2);
+.brand-name {
+  color: #000000;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
 }
 
-/* 滚动条隐藏 */
-::-webkit-scrollbar {
-  display: none;
+.slogan {
+  color: #4B5563;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0;
 }
 
-/* 渐变文字 */
-.gradient-text {
-  background: linear-gradient(135deg, #ff6666 0%, #ff9966 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* ==================== 协议区域 ==================== */
+.agreement-section {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  padding: 0 4px;
+}
+
+.agreement-section .checkbox {
+  flex-shrink: 0;
+  margin-right: 8px;
+  margin-top: 2px;
+}
+
+.agreement-text {
+  color: #4B5563;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  flex: 1;
+}
+
+.agreement-text .link {
+  color: #000000;
+  text-decoration: underline;
+  text-decoration-color: #000000;
+}
+
+/* ==================== 按钮区域 ==================== */
+.button-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 311px;
+  margin: 0 auto;
+}
+
+.primary-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  background-color: #000000;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  transition: opacity 0.2s;
+}
+
+.primary-button:active {
+  opacity: 0.8;
+}
+
+.primary-button.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.secondary-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  background-color: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.secondary-button:active {
+  background-color: #F5F5F5;
+}
+
+.secondary-button.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.button-text {
+  color: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.primary-button .button-text {
+  color: #FFFFFF;
+}
+
+.secondary-button .button-text {
+  color: #000000;
+}
+
+/* ==================== 底部链接 ==================== */
+.footer-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40px;
+  padding-bottom: 40px;
+}
+
+.verification-link {
+  color: #9CA3AF;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  text-decoration: underline;
+  text-decoration-color: #CCCCCC;
+}
+
+.verification-link:active {
+  color: #4B5563;
 }

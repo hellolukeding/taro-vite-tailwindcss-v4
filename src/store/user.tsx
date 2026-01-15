@@ -15,7 +15,7 @@ interface UserContextType {
   refreshUserInfo: () => Promise<void>
 }
 
-const UserContext = createContext<UserContextType | undefined>(undefined)
+export const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
