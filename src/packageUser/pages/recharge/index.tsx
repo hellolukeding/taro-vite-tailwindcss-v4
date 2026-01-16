@@ -3,15 +3,21 @@ import CommonWarp from "@/components/CommonWarp";
 import { Button, Field, Input, RollingText } from "@taroify/core";
 import { Arrow, Award, BrushOutlined, Completed, Diamond, Hot, MedalOutlined, VipCard } from "@taroify/icons";
 import { Text, View } from "@tarojs/components";
+import Taro from "@tarojs/taro";
 import useRequest from "ahooks/lib/useRequest";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useUser } from "@/store";
+import type { Package } from "@/types";
 import "./index.scss";
 
 interface RechargeProps { }
 
 const Recharge: React.FC<RechargeProps> = (props) => {
   const { requireLoginRedirect } = useAuth()
+  const { userInfo, refreshUserInfo } = useUser()
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     // 检查登录状态
@@ -20,6 +26,75 @@ const Recharge: React.FC<RechargeProps> = (props) => {
   }, [])
 
   const { data: packages, loading: pkgLoading } = useRequest(() => paymentApi.getPackages())
+
+  // 选择套餐
+  const handleSelectPackage = (pkg: Package) => {
+    setSelectedPackage(pkg)
+  }
+
+  // 发起支付
+  const handlePay = async () => {
+    if (!selectedPackage) {
+      Taro.showToast({ title: '请选择充值套餐', icon: 'none' })
+      return
+    }
+
+    setLoading(true)
+    try {
+      // Step 1: 创建订单
+      const { order_id, payment_params } = await paymentApi.createOrder({
+        package_id: selectedPackage.package_id,
+        quantity: 1
+      })
+
+      // Step 2: 调起微信支付
+      await Taro.requestPayment({
+        timeStamp: payment_params.timeStamp,
+        nonceStr: payment_params.nonceStr,
+        package: payment_params.package,
+        signType: payment_params.signType as any,
+        paySign: payment_params.paySign
+      })
+
+      // Step 3: 验证支付结果
+      await verifyPayment(order_id)
+    } catch (error: any) {
+      console.error('Payment error:', error)
+
+      // 处理支付取消
+      if (error.errMsg?.includes('cancel')) {
+        Taro.showToast({ title: '支付已取消', icon: 'none' })
+      } else {
+        Taro.showToast({ title: '支付失败', icon: 'none' })
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 验证支付结果
+  const verifyPayment = async (orderId: string) => {
+    try {
+      const result = await paymentApi.getOrderStatus(orderId)
+
+      if (result.status === 'paid') {
+        Taro.showToast({ title: '充值成功!', icon: 'success' })
+
+        // 刷新用户信息
+        await refreshUserInfo()
+
+        // 延迟返回
+        setTimeout(() => {
+          Taro.navigateBack()
+        }, 1500)
+      } else {
+        Taro.showToast({ title: '支付确认中，请稍后', icon: 'none' })
+      }
+    } catch (error) {
+      console.error('Verify payment error:', error)
+      Taro.showToast({ title: '确认支付状态失败', icon: 'none' })
+    }
+  }
 
 
   return (
@@ -32,7 +107,7 @@ const Recharge: React.FC<RechargeProps> = (props) => {
 
         {/* 内容层 */}
         <View className='relative z-10 flex flex-col items-center justify-center h-full bg-black'>
-          <RollingText className='my-rolling-text' height={54} startNum={12345} targetNum={54321} />
+          <RollingText className='my-rolling-text' height={54} startNum={0} targetNum={userInfo?.credits || 0} />
           <View className='mt-4 font-semibold text-lg'>
             <MedalOutlined />
             <Text className='ml-2'>当前积分余额</Text>
@@ -44,11 +119,14 @@ const Recharge: React.FC<RechargeProps> = (props) => {
         {
           (packages ?? []).map((pkg) => {
             if (pkg.is_vip) return null;
+            const isSelected = selectedPackage?.package_id === pkg.package_id
             return (
-              <View key={pkg.id}
-                className='w-30 h-40 mr-4 rounded-xl p-3 inline-flex  flex-col  items-center justify-center shadow-lg relative
-              bg-black text-white active:scale-95 transition-transform
-              '
+              <View
+                key={pkg.id}
+                onClick={() => handleSelectPackage(pkg)}
+                className={`w-30 h-40 mr-4 rounded-xl p-3 inline-flex flex-col items-center justify-center shadow-lg relative
+              transition-transform ${isSelected ? 'ring-4 ring-blue-500 scale-105' : 'bg-black text-white active:scale-95'}
+              `}
               >
 
                 <View className='absolute bottom-2 left-2 text-xs'>
@@ -100,8 +178,13 @@ const Recharge: React.FC<RechargeProps> = (props) => {
           ) : (
             packages?.map((pkg, index) => {
               if (!pkg.is_vip) return null;
+              const isSelected = selectedPackage?.package_id === pkg.package_id
               return (
-                <View key={pkg.id} className='w-full h-50 rounded-2xl shadow-2xl relative overflow-hidden vip-card'>
+                <View
+                  key={pkg.id}
+                  onClick={() => handleSelectPackage(pkg)}
+                  className={`w-full h-50 rounded-2xl shadow-2xl relative overflow-hidden vip-card transition-all ${isSelected ? 'ring-4 ring-blue-500 scale-105' : ''}`}
+                >
                   {/* 动态渐变背景 */}
                   <View className={`absolute inset-0 bg-linear-to-br vip-gradient-${index % 3}`} />
                   {/* 装饰光晕 */}
@@ -144,19 +227,25 @@ const Recharge: React.FC<RechargeProps> = (props) => {
       </View>
 
       {/* 结算 */}
-      <View className='w-screen z-50 fixed bottom-0 left-0 h-30  flex bg-white items-center justify-between px-6 py-4 shadow-t-lg'>
+      <View className='w-screen z-50 fixed bottom-0 left-0 h-30 flex bg-white items-center justify-between px-6 py-4 shadow-t-lg'>
 
         <View className='flex flex-col'>
-          <Text className='text-2xl font-semibold'>{`¥ ${999}`}</Text>
+          <Text className='text-2xl font-semibold'>{`¥ ${selectedPackage?.price || 0}`}</Text>
           <Text className='text-xs'>应付金额</Text>
         </View>
 
-        <Button className='w-40' style={{
-          backgroundColor: "#000",
-          color: "#fff",
-        }} icon={<BrushOutlined color='#fff' />}
+        <Button
+          className='w-40'
+          style={{
+            backgroundColor: "#000",
+            color: "#fff",
+          }}
+          icon={<BrushOutlined color='#fff' />}
+          onClick={handlePay}
+          loading={loading}
+          disabled={!selectedPackage || loading}
         >
-          去支付
+          {loading ? '支付中...' : '去支付'}
         </Button>
       </View>
     </CommonWarp>

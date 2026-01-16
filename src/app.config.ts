@@ -53,6 +53,7 @@ export default defineAppConfig({
         'pages/login/index',
         'pages/result/index',
         'pages/recharge/index',
+        'pages/agreement/index',
       ]
     },
     {

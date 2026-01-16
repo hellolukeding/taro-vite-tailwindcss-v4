@@ -5,6 +5,7 @@ import Taro from '@tarojs/taro'
 import { API_BASE_URL } from '@/utils/constants'
 import { getAuthToken, removeAuthToken, setAuthToken } from '@/utils/storage'
 import type { ApiResponse } from '@/types'
+import { authApi } from './auth'
 
 interface RequestOptions {
   url: string
@@ -143,9 +144,24 @@ class APIClient {
    * 刷新Token
    */
   private async refreshToken(): Promise<void> {
-    // TODO: 实现Token刷新逻辑
-    // 暂时直接抛出错误,让用户重新登录
-    throw new Error('Token refresh not implemented')
+    try {
+      const oldToken = await getAuthToken()
+      if (!oldToken) {
+        throw new Error('No token to refresh')
+      }
+
+      // 调用刷新接口
+      const { token } = await authApi.refreshToken(oldToken)
+
+      // 保存新Token
+      await setAuthToken(token)
+
+      // 通知所有等待的请求
+      this.onTokenRefreshed(token)
+    } catch (error) {
+      console.error('Token refresh failed:', error)
+      throw error
+    }
   }
 
   /**

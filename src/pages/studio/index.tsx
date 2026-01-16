@@ -6,11 +6,14 @@ import { RatioSelector } from '@/components/business/RatioSelector'
 import ResolutionSelector from '@/components/business/ResolutionSelector'
 import { StudioModelSelector } from '@/components/business/StudioModelSelector'
 import { Icon } from '@/components/common/Icon'
-import { mockModels, mockPromptExamples, type MockModel } from '@/mock/studio'
+import { mockPromptExamples, type MockModel } from '@/mock/studio'
 import { ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { studioApi } from '@/api'
+import { useUser } from '@/store'
+import type { ModelInfo } from '@/types'
 
 type ImageRatio = 'auto' | '1:1' | '3:4' | '4:3' | '16:9' | '9:16' | '21:9' | '3:2' | '2:3' | '5:4' | '4:5'
 
@@ -18,12 +21,94 @@ interface StudioProps { }
 
 const Studio: React.FC<StudioProps> = (props) => {
   const { requireLogin } = useAuth()
+  const { userInfo } = useUser()
   const [prompt, setPrompt] = useState('')
-  const [models, setModels] = useState<MockModel[]>(mockModels)
+  const [models, setModels] = useState<MockModel[]>([])
   const [selectedRatio, setSelectedRatio] = useState<ImageRatio>('auto')
   const [steps, setSteps] = useState(30)
   const [cfg, setCfg] = useState(7.5)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [estimatedCost, setEstimatedCost] = useState(0)
+  const [userCredits, setUserCredits] = useState(0)
+
+  // 加载模型列表
+  useEffect(() => {
+    loadModels()
+  }, [])
+
+  // 当prompt、模型、比例变化时重新估算成本
+  useEffect(() => {
+    if (prompt && models.find(m => m.isSelected)) {
+      estimateCost()
+    }
+  }, [prompt, selectedRatio, steps])
+
+  const loadModels = async () => {
+    try {
+      const modelInfos: ModelInfo[] = await studioApi.getModels(true)
+      const formattedModels: MockModel[] = modelInfos.map(model => ({
+        id: model.model_id,
+        name: model.name,
+        imageUrl: model.icon,
+        isVIP: model.is_vip,
+        isSelected: false,
+      }))
+      setModels(formattedModels)
+      // 默认选择第一个模型
+      if (formattedModels.length > 0) {
+        handleModelSelect(formattedModels[0].id)
+      }
+    } catch (error) {
+      console.error('Load models error:', error)
+      Taro.showToast({ title: '加载模型失败', icon: 'none' })
+    }
+  }
+
+  // 获取分辨率（辅助函数）
+  const getResolutionFromRatio = (ratio: ImageRatio): [number, number] => {
+    const resolutionMap: Record<ImageRatio, [number, number]> = {
+      'auto': [1024, 1024],
+      '1:1': [1024, 1024],
+      '3:4': [768, 1024],
+      '4:3': [1024, 768],
+      '16:9': [1344, 768],
+      '9:16': [768, 1344],
+      '21:9': [1536, 640],
+      '3:2': [1152, 768],
+      '2:3': [768, 1152],
+      '5:4': [960, 1152],
+      '4:5': [1152, 960],
+    }
+    return resolutionMap[ratio] || [1024, 1024]
+  }
+
+  // 成本估算
+  const estimateCost = async () => {
+    try {
+      const selectedModel = models.find(m => m.isSelected)
+      if (!selectedModel) return
+
+      const [width, height] = getResolutionFromRatio(selectedRatio)
+
+      const result = await studioApi.estimate({
+        model_id: selectedModel.id,
+        prompt: prompt,
+        parameters: { width, height, steps }
+      })
+
+      setEstimatedCost(result.estimated_cost)
+      setUserCredits(result.user_credits)
+
+      if (!result.can_afford) {
+        Taro.showToast({
+          title: `积分不足，需要${result.estimated_cost}积分`,
+          icon: 'none'
+        })
+      }
+    } catch (error) {
+      console.error('Estimate error:', error)
+    }
+  }
 
   // Handle model selection (需要登录)
   const handleModelSelect = (modelId: string) => {
@@ -36,25 +121,44 @@ const Studio: React.FC<StudioProps> = (props) => {
   }
 
   // Handle translate (需要登录)
-  const handleTranslate = () => {
+  const handleTranslate = async () => {
     if (!requireLogin()) return
 
     if (!prompt.trim()) {
       Taro.showToast({ title: '请输入提示词', icon: 'none' })
       return
     }
-    // TODO: Implement translation API
-    Taro.showToast({ title: '翻译功能开发中', icon: 'none' })
+
+    try {
+      const result = await studioApi.translate(prompt)
+      Taro.showModal({
+        title: '翻译结果',
+        content: `译文: ${result.translated}`,
+        success: (res) => {
+          if (res.confirm) setPrompt(result.translated)
+        }
+      })
+    } catch (error) {
+      console.error('Translate error:', error)
+      Taro.showToast({ title: '翻译失败', icon: 'none' })
+    }
   }
 
   // Handle random prompt
-  const handleRandom = () => {
-    const randomIndex = Math.floor(Math.random() * mockPromptExamples.length)
-    setPrompt(mockPromptExamples[randomIndex])
+  const handleRandom = async () => {
+    try {
+      const result = await studioApi.getRandomPrompt()
+      setPrompt(result.prompt)
+    } catch (error) {
+      console.error('Random prompt error:', error)
+      // 如果API失败，使用本地示例
+      const randomIndex = Math.floor(Math.random() * mockPromptExamples.length)
+      setPrompt(mockPromptExamples[randomIndex])
+    }
   }
 
   // Handle generate (需要登录)
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!requireLogin()) return
 
     if (!prompt.trim()) {
@@ -68,12 +172,42 @@ const Studio: React.FC<StudioProps> = (props) => {
       return
     }
 
+    // 检查积分是否足够
+    if (estimatedCost > userCredits) {
+      Taro.showModal({
+        title: '积分不足',
+        content: '您的积分不足，是否前往充值？',
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({ url: '/packageUser/pages/recharge/index' })
+          }
+        }
+      })
+      return
+    }
+
     setIsGenerating(true)
-    // TODO: Implement generation API
-    setTimeout(() => {
+    try {
+      const [width, height] = getResolutionFromRatio(selectedRatio)
+
+      const result = await studioApi.submitTask({
+        model_id: selectedModel.id,
+        prompt: prompt,
+        parameters: { width, height, steps, cfg_scale: cfg }
+      })
+
+      Taro.redirectTo({
+        url: `/pages/result/index?taskId=${result.task_id}`
+      })
+    } catch (error: any) {
+      console.error('Submit task error:', error)
+      Taro.showToast({
+        title: error.message || '提交失败',
+        icon: 'none'
+      })
+    } finally {
       setIsGenerating(false)
-      Taro.showToast({ title: '生成功能开发中', icon: 'none' })
-    }, 2000)
+    }
   }
 
   // Handle resolution selection (需要登录)
@@ -134,8 +268,8 @@ const Studio: React.FC<StudioProps> = (props) => {
 
       {/* Generate Bar */}
       <GenerateBar
-        cost={2}
-        balance={1402}
+        cost={estimatedCost}
+        balance={userCredits}
         onGenerate={handleGenerate}
         loading={isGenerating}
       />

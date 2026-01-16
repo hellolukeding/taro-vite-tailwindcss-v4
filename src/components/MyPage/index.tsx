@@ -80,7 +80,7 @@ const MyPage: React.FC = () => {
           Taro.removeStorageSync('userInfo')
           Taro.showToast({ title: '已退出', icon: 'success' })
           setTimeout(() => {
-            Taro.redirectTo({ url: '/pages/login/index' })
+            Taro.redirectTo({ url: '/packageUser/pages/login/index' })
           }, 1000)
         }
       }

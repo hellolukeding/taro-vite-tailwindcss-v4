@@ -1,0 +1,8 @@
+.agreement-content, .privacy-content {
+  min-height: 100%;
+}
+
+.agreement-content text,
+.privacy-content text {
+  display: block;
+}

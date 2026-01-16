@@ -2,12 +2,26 @@ import CommonHeader from '@/components/CommonHeader'
 import CommonWarp from '@/components/CommonWarp'
 import { EmptyState } from '@/components/EmptyState'
 import { Icon } from '@/components/common/Icon'
-import { mockUser } from '@/mock/user'
 import { Add, Arrow, Fire, Warning } from '@taroify/icons'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
-import Taro from '@tarojs/taro'
-import { useState } from 'react'
+import Taro, { useDidShow } from '@tarojs/taro'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { useUser } from '@/store'
+
+/**
+ * TODO: 后端需要实现的统计接口
+ * GET /api/user/stats
+ *
+ * Response:
+ * {
+ *   total_works: number,      // 总创作数
+ *   total_likes: number,      // 获赞总数
+ *   total_favorites: number,  // 收藏总数
+ *   today_consumed: number,   // 今日消耗积分
+ *   total_created: number     // 累计创作数
+ * }
+ */
 
 
 
@@ -15,7 +29,47 @@ interface ProfileProps { }
 
 const Profile: React.FC<ProfileProps> = () => {
   const { isLogin, loading } = useAuth()
+  const { userInfo } = useUser()
   const [activeTab, setActiveTab] = useState("我的收藏")
+  const [stats, setStats] = useState({
+    totalWorks: 0,
+    likes: 0,
+    favorites: 0,
+    todayConsumed: userInfo?.vipInfo?.today_used || 0,
+    totalCreated: 0
+  })
+
+  // 当 userInfo 更新时同步更新今日消耗
+  useEffect(() => {
+    if (userInfo?.vipInfo) {
+      setStats(prev => ({
+        ...prev,
+        todayConsumed: userInfo.vipInfo.today_used
+      }))
+    }
+  }, [userInfo])
+
+  // 刷新统计数据
+  const loadUserStats = async () => {
+    // 当前后端暂无统计API，使用默认值
+    // TODO: 等待后端实现 /api/user/stats 接口
+    // const stats = await userApi.getStats()
+    // setStats(stats)
+
+    // 临时方案：使用 vipInfo 中的今日消耗
+    if (userInfo?.vipInfo) {
+      setStats(prev => ({
+        ...prev,
+        todayConsumed: userInfo.vipInfo.today_used
+      }))
+    }
+  }
+
+  useDidShow(() => {
+    if (isLogin) {
+      loadUserStats()
+    }
+  })
 
   // 处理登录按钮点击
   const handleLogin = () => {
@@ -44,15 +98,18 @@ const Profile: React.FC<ProfileProps> = () => {
         <CommonHeader title='个人主页' withBack >
           <View className='w-full flex items-center justify-between'>
             <View className='rounded-full w-20 h-20 overflow-hidden'>
-              <Image src='https://i.urusai.cc/PlyC9.png' className='w-full h-full object-cover ' />
+              <Image
+                src={userInfo?.avatarUrl || 'https://i.urusai.cc/PlyC9.png'}
+                className='w-full h-full object-cover '
+              />
             </View>
 
             <View className='ml-4 flex flex-col justify-center flex-1'>
               <Text className='text-white text-xl font-semibold tracking-wide'>
-                {mockUser.nickname}
+                {userInfo?.nickname || '用户'}
               </Text>
               <Text className='text-gray-300 text-sm mt-1'>
-                @{mockUser.userId}
+                @{userInfo?.userId || 'ID'}
               </Text>
             </View>
 
@@ -62,18 +119,18 @@ const Profile: React.FC<ProfileProps> = () => {
 
           <View className='w-full text-white flex items-center justify-between mt-6 px-6'>
             <View className='flex flex-col '>
-              <Text className='text-sm'>{mockUser.totalWorks}</Text>
+              <Text className='text-sm'>{stats.totalWorks > 0 ? stats.totalWorks : '-'}</Text>
               <Text className='text-xs mt-1'>已创作</Text>
             </View>
 
 
             <View className='flex flex-col '>
-              <Text className='text-sm'>{mockUser.likes}</Text>
+              <Text className='text-sm'>{stats.likes > 0 ? stats.likes : '-'}</Text>
               <Text className='text-xs mt-1'>收获点赞</Text>
             </View>
 
             <View className='flex flex-col '>
-              <Text className='text-sm'>{mockUser.favorites}</Text>
+              <Text className='text-sm'>{stats.favorites > 0 ? stats.favorites : '-'}</Text>
               <Text className='text-xs mt-1'>收藏</Text>
             </View>
           </View>
@@ -94,11 +151,17 @@ const Profile: React.FC<ProfileProps> = () => {
               <View className='relative z-10 flex justify-between items-center'>
                 <View>
                   <View className='flex items-center gap-1.5 mb-2 opacity-80'>
-                    {/* <Icon name='bolt' size={16} color='#FBBF24' /> */}
                     <Fire size={16} color='#FBBF24' />
                     <Text className='text-gray-300 text-xs font-medium tracking-wide'>当前积分</Text>
                   </View>
-                  <Text className='text-[32px] font-bold text-white tracking-tight leading-none'>{mockUser.credits.toLocaleString()}</Text>
+                  <Text className='text-[32px] font-bold text-white tracking-tight leading-none'>
+                    {(userInfo?.credits || 0).toLocaleString()}
+                  </Text>
+                  {userInfo?.vipInfo?.is_vip && (
+                    <View className='mt-2 px-2 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-full'>
+                      <Text className='text-xs text-yellow-300'>VIP会员</Text>
+                    </View>
+                  )}
                 </View>
                 <View
                   onClick={() => Taro.navigateTo({ url: '/packageUser/pages/recharge/index' })}
@@ -110,13 +173,13 @@ const Profile: React.FC<ProfileProps> = () => {
               </View>
 
               {/* 统计信息 */}
-              <View className='mt-5 pt-4 border-t border-white/10 grid  grid-cols-2 gap-2 text-white text-xs '>
+              <View className='mt-5 pt-4 border-t border-white/10 grid grid-cols-2 gap-2 text-white text-xs'>
                 <View className='flex items-center'>
-                  <Warning className='mr-2' /> 今日消耗： <Text className='font-bold'>{999}</Text>
+                  <Warning className='mr-2' /> 今日消耗：<Text className='font-bold'>{stats.todayConsumed}</Text>
                 </View>
 
                 <View className='flex items-center'>
-                  <Add className='mr-2' /> 累计创作： <Text className='font-bold'>{999}</Text>
+                  <Add className='mr-2' /> 累计创作：<Text className='font-bold'>{stats.totalCreated > 0 ? stats.totalCreated : '-'}</Text>
                 </View>
               </View>
 

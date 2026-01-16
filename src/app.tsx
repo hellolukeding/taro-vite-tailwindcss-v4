@@ -14,7 +14,9 @@ function App({ children }: PropsWithChildren<any>) {
 
   return (
     <UserProvider>
-    { children }
+      <TaskPollingProvider>
+        { children }
+      </TaskPollingProvider>
     </UserProvider>
   )
 }

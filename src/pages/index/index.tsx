@@ -7,7 +7,7 @@ import { LikeOutlined } from '@taroify/icons'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import useRequest from 'ahooks/lib/useRequest'
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import './index.css'
 
@@ -18,6 +18,8 @@ export default function Index() {
   const [hasMore, setHasMore] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [currentTag, setCurrentTag] = useState<string | undefined>(undefined)
+  const [searchKeyword, setSearchKeyword] = useState("")
+  const [isSearching, setIsSearching] = useState(false)
 
   // 使用 useRequest 获取分类列表
   const { data: categoriesData, loading } = useRequest(() => studioApi.getCategories())
@@ -30,6 +32,7 @@ export default function Index() {
           page,
           page_size: BASE_PAGE_SIZE,
           tag,
+          keyword: searchKeyword || undefined,
         }).filter(([_, value]) => value !== undefined)
       )
       return studioApi.getPrompts(params)
@@ -49,6 +52,39 @@ export default function Index() {
       },
     }
   )
+
+  // 搜索处理
+  const handleSearch = useCallback(() => {
+    if (!searchKeyword.trim()) {
+      // 清空搜索，显示全部
+      setCurrentTag(undefined)
+      setCurrentPage(1)
+      setPromptsList([])
+      fetchPrompts(1, undefined)
+      return
+    }
+
+    setIsSearching(true)
+    setCurrentPage(1)
+    setPromptsList([])
+    fetchPrompts(1, currentTag)
+  }, [searchKeyword, currentTag, fetchPrompts])
+
+  // 搜索防抖
+  useEffect(() => {
+    if (searchKeyword.trim()) {
+      // 延迟搜索，避免频繁请求
+      const timer = setTimeout(() => {
+        handleSearch()
+      }, 500)
+
+      return () => clearTimeout(timer)
+    } else if (isSearching) {
+      // 清空搜索关键词时，恢复列表
+      setIsSearching(false)
+      fetchPrompts(1, currentTag)
+    }
+  }, [searchKeyword, isSearching, currentTag, fetchPrompts, handleSearch])
 
   // 初始加载
   useRequest(() => studioApi.getPrompts({ page: 1, page_size: BASE_PAGE_SIZE }), {
@@ -119,6 +155,13 @@ export default function Index() {
           className='search-bar-black'
           shape='rounded'
           placeholder='请输入搜索关键词'
+          value={searchKeyword}
+          onChange={(e) => setSearchKeyword(e.detail.value)}
+          onSearch={handleSearch}
+          onClear={() => {
+            setSearchKeyword("")
+            setIsSearching(false)
+          }}
           clearable
         />
       </View>
@@ -148,6 +191,24 @@ export default function Index() {
             </Tabs>
           )}
         </View>
+
+        {/* 搜索状态提示 */}
+        {isSearching && (
+          <View className='px-4 py-2 bg-blue-50 flex items-center justify-between'>
+            <Text className='text-sm text-gray-600'>
+              搜索结果: &quot;{searchKeyword}&quot;
+            </Text>
+            <Text
+              className='text-sm text-blue-500'
+              onClick={() => {
+                setSearchKeyword("")
+                setIsSearching(false)
+              }}
+            >
+              清空
+            </Text>
+          </View>
+        )}
 
         {/* 瀑布流作品列表 */}
         <View className='works pb-20'>
