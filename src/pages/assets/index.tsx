@@ -1,15 +1,15 @@
+import { assetsApi } from '@/api'
 import CommonWarp from '@/components/CommonWarp'
+import { EmptyState } from '@/components/EmptyState'
 import { InProgressTaskCard } from '@/components/business/InProgressTaskCard'
 import { TaskCard } from '@/components/business/TaskCard'
-import { EmptyState } from '@/components/EmptyState'
 import { Icon } from '@/components/common/Icon'
+import { useAuth } from '@/hooks/useAuth'
 import type { MockTask } from '@/mock/tasks'
+import type { TaskItem } from '@/types'
 import { ScrollView, Text, View } from '@tarojs/components'
 import Taro, { usePullDownRefresh, useReachBottom } from '@tarojs/taro'
-import { useEffect, useState, useCallback } from 'react'
-import { useAuth } from '@/hooks/useAuth'
-import { assetsApi } from '@/api'
-import type { TaskItem } from '@/types'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface AssetsProps { }
 
@@ -19,22 +19,38 @@ const Assets: React.FC<AssetsProps> = () => {
   const [tasks, setTasks] = useState<TaskItem[]>([])
   const [loadingTasks, setLoadingTasks] = useState(false)
   const [hasMore, setHasMore] = useState(true)
+  const tasksRef = useRef<TaskItem[]>([])
+  const loadingRef = useRef(false)
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    tasksRef.current = tasks
+  }, [tasks])
 
   // 加载任务列表
   const loadTasks = useCallback(async (loadMore = false) => {
-    if (loadingTasks) return
+    if (loadingRef.current) return
 
+    // 未登录时直接设置空数据
+    if (!isLogin) {
+      setTasks([])
+      setHasMore(false)
+      return
+    }
+
+    loadingRef.current = true
     setLoadingTasks(true)
     try {
       const status = activeTab === 0 ? 'pending' : 'success'
+      const currentTasksLength = tasksRef.current.length
       const result = await assetsApi.getTasks({
         status,
         limit: 20,
-        offset: loadMore ? tasks.length : 0
+        offset: loadMore ? currentTasksLength : 0
       })
 
       if (loadMore) {
-        setTasks([...tasks, ...result.items])
+        setTasks(prevTasks => [...prevTasks, ...result.items])
       } else {
         setTasks(result.items)
       }
@@ -43,16 +59,15 @@ const Assets: React.FC<AssetsProps> = () => {
       console.error('Load tasks error:', error)
       Taro.showToast({ title: '加载失败', icon: 'none' })
     } finally {
+      loadingRef.current = false
       setLoadingTasks(false)
     }
-  }, [activeTab, tasks, loadingTasks])
+  }, [activeTab, isLogin])
 
-  // 切换标签时重新加载
+  // 切换标签时重新加载（未登录时API会返回空数据或错误，在loadTasks中处理）
   useEffect(() => {
-    if (isLogin) {
-      loadTasks(false)
-    }
-  }, [activeTab, isLogin, loadTasks])
+    loadTasks(false)
+  }, [activeTab, loadTasks])
 
   // 下拉刷新
   usePullDownRefresh(() => {
@@ -77,6 +92,22 @@ const Assets: React.FC<AssetsProps> = () => {
 
   // 发布/取消发布
   const handleTogglePublish = async (taskId: string, isPublic: boolean) => {
+    // 检查登录状态
+    if (!isLogin) {
+      Taro.showModal({
+        title: '提示',
+        content: '请先登录后进行操作',
+        confirmText: '去登录',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({ url: '/packageUser/pages/login/index' })
+          }
+        }
+      })
+      return
+    }
+
     try {
       if (isPublic) {
         await assetsApi.unpublishTask(taskId)
@@ -94,6 +125,22 @@ const Assets: React.FC<AssetsProps> = () => {
 
   // 删除任务
   const handleDeleteTask = async (taskId: string) => {
+    // 检查登录状态
+    if (!isLogin) {
+      Taro.showModal({
+        title: '提示',
+        content: '请先登录后进行操作',
+        confirmText: '去登录',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({ url: '/packageUser/pages/login/index' })
+          }
+        }
+      })
+      return
+    }
+
     Taro.showModal({
       title: '确认删除',
       content: '删除后无法恢复，确定要删除吗？',
@@ -114,6 +161,22 @@ const Assets: React.FC<AssetsProps> = () => {
 
   // 取消任务
   const handleCancelTask = (_id: string) => {
+    // 检查登录状态
+    if (!isLogin) {
+      Taro.showModal({
+        title: '提示',
+        content: '请先登录后进行操作',
+        confirmText: '去登录',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({ url: '/packageUser/pages/login/index' })
+          }
+        }
+      })
+      return
+    }
+
     Taro.showModal({
       title: '确认取消',
       content: '确定要取消这个任务吗？',
@@ -154,11 +217,6 @@ const Assets: React.FC<AssetsProps> = () => {
       status,
       likes: 0, // API 返回的数据中没有 likes
     }
-  }
-
-  // 未登录显示空状态
-  if (!loading && !isLogin) {
-    return <EmptyState type='assets' onLogin={handleLogin} />
   }
 
   // 加载中

@@ -51,6 +51,18 @@ const Profile: React.FC<ProfileProps> = () => {
 
   // 刷新统计数据
   const loadUserStats = async () => {
+    // 未登录时使用默认值
+    if (!isLogin) {
+      setStats({
+        totalWorks: 0,
+        likes: 0,
+        favorites: 0,
+        todayConsumed: 0,
+        totalCreated: 0
+      })
+      return
+    }
+
     // 当前后端暂无统计API，使用默认值
     // TODO: 等待后端实现 /api/user/stats 接口
     // const stats = await userApi.getStats()
@@ -66,9 +78,7 @@ const Profile: React.FC<ProfileProps> = () => {
   }
 
   useDidShow(() => {
-    if (isLogin) {
-      loadUserStats()
-    }
+    loadUserStats()
   })
 
   // 处理登录按钮点击
@@ -76,11 +86,6 @@ const Profile: React.FC<ProfileProps> = () => {
     Taro.navigateTo({
       url: '/packageUser/pages/login/index'
     })
-  }
-
-  // 未登录显示空状态
-  if (!loading && !isLogin) {
-    return <EmptyState type='profile' onLogin={handleLogin} />
   }
 
   // 加载中
@@ -96,7 +101,7 @@ const Profile: React.FC<ProfileProps> = () => {
     <CommonWarp title='我的' withHeader={false}>
       <View className='w-full h-full bg-white flex flex-col'>
         <CommonHeader title='个人主页' withBack >
-          <View className='w-full flex items-center justify-between'>
+          <View className='w-full flex items-center justify-between' onClick={() => Taro.navigateTo({ url: '/pages/user-detail/index' })}>
             <View className='rounded-full w-20 h-20 overflow-hidden'>
               <Image
                 src={userInfo?.avatarUrl || 'https://i.urusai.cc/PlyC9.png'}
@@ -106,10 +111,10 @@ const Profile: React.FC<ProfileProps> = () => {
 
             <View className='ml-4 flex flex-col justify-center flex-1'>
               <Text className='text-white text-xl font-semibold tracking-wide'>
-                {userInfo?.nickname || '用户'}
+                {userInfo?.nickname || '未登录'}
               </Text>
               <Text className='text-gray-300 text-sm mt-1'>
-                @{userInfo?.userId || 'ID'}
+                @{userInfo?.userId || '---'}
               </Text>
             </View>
 
@@ -164,7 +169,25 @@ const Profile: React.FC<ProfileProps> = () => {
                   )}
                 </View>
                 <View
-                  onClick={() => Taro.navigateTo({ url: '/packageUser/pages/recharge/index' })}
+                  onClick={() => {
+                    // 检查登录状态
+                    if (!isLogin) {
+                      Taro.showModal({
+                        title: '提示',
+                        content: '请先登录后充值',
+                        confirmText: '去登录',
+                        cancelText: '取消',
+                        success: (res) => {
+                          if (res.confirm) {
+                            Taro.navigateTo({ url: '/packageUser/pages/login/index' })
+                          }
+                        }
+                      })
+                      return
+                    }
+
+                    Taro.navigateTo({ url: '/packageUser/pages/recharge/index' })
+                  }}
                   className='flex items-center gap-1 bg-white text-black px-5 py-2.5 rounded-4xl shadow-lg active:scale-95 transition-transform'
                 >
                   <Icon name='add' size={14} />

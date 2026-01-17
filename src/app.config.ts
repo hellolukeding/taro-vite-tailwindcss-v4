@@ -4,6 +4,8 @@ export default defineAppConfig({
     'pages/studio/index',
     'pages/assets/index',
     'pages/profile/index',
+    'pages/user-detail/index',
+    'pages/profile-edit/index',
   ],
   // 原生 tabBar 配置 - 提供零白屏的页面切换体验
   tabBar: {

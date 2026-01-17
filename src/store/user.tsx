@@ -45,11 +45,18 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     // 保存用户信息到状态
     const userData: UserInfo = {
       userId: result.user_info.user_id,
-      nickname: result.user_info.nickname,
-      avatarUrl: result.user_info.avatar_url,
+      nickname: result.user_info.nickname || '用户',
+      avatarUrl: result.user_info.avatar_url || null,
+      gender: result.user_info.gender || null,
+      birthday: result.user_info.birthday || null,
+      industry: result.user_info.industry || null,
+      tags: result.user_info.tags || null,
       role: result.user_info.role,
+      status: result.user_info.status,
       credits: result.user_info.credits,
       vipInfo: result.user_info.vip_info,
+      inviteCode: result.user_info.invite_code || undefined,
+      createdAt: result.user_info.created_at || undefined,
     }
     setUserInfo(userData)
   }

@@ -23,7 +23,7 @@ const ResolutionSelector: React.FC<ResolutionSelectorProps> = (props) => {
       <View className='flex justify-between items-end mb-5 px-1'>
         <Text className='text-lg font-bold flex items-center gap-2'>
           <View className='w-1.5 h-6 bg-black rounded-full'></View>
-          选择模型
+          选择分辨率
         </Text>
         {/* <Text className='text-xs font-bold text-black border-b-2 border-black pb-0.5'>
           查看全部

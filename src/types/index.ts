@@ -14,12 +14,18 @@ export interface VIPInfo {
 
 export interface UserInfo {
   userId: string
-  nickname: string
-  avatarUrl: string
+  nickname: string | null
+  avatarUrl: string | null
+  gender?: string | null  // "0":未知, "1":男, "2":女
+  birthday?: string | null  // YYYY-MM-DD
+  industry?: string | null
+  tags?: string[] | null
   role: number // 0:普通, 1:VIP, 9:管理员
+  status: number // 1:正常, 0:封禁, 2:风控中
   credits: number
   vipInfo: VIPInfo
   inviteCode?: string
+  createdAt?: string | null
 }
 
 // ============ 作品相关 ============
@@ -38,6 +44,7 @@ export interface WorkItem {
   aspect_ratio: string
   likes_count: number
   is_liked: boolean
+  is_favorited: boolean  // 是否已收藏
   is_vip: boolean
   created_at: string
 }

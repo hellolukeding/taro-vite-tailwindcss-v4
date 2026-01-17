@@ -33,13 +33,34 @@ export const studioApi = {
 
   /**
    * 提示词翻译
+   * @param prompt 待翻译文本
+   * @param source 源语言: auto=自动检测, zh=中文, en=英文, ja=日文
+   * @param target 目标语言: zh=中文, en=英文, ja=日文
+   * @param withSuggestions 是否返回优化建议
    */
-  async translate(prompt: string): Promise<{
-    original: string
-    translated: string
-    suggestions: string[]
+  async translate(
+    prompt: string,
+    source: string = 'auto',
+    target: string = 'en',
+    withSuggestions: boolean = false
+  ): Promise<{
+    success: boolean
+    original_text: string
+    translated_text: string
+    source_language: string
+    target_language: string
+    suggestions?: Array<{
+      type: string
+      label: string
+      prompt: string
+    }>
   }> {
-    return client.post('/miniprogram/studio/translate', { prompt })
+    return client.post('/miniprogram/studio/translate', {
+      prompt,
+      source,
+      target,
+      with_suggestions: withSuggestions
+    })
   },
 
   /**

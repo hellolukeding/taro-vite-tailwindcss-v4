@@ -15,11 +15,18 @@ export interface LoginResponse {
   is_new_user: boolean
   user_info: {
     user_id: string
-    nickname: string
-    avatar_url: string
+    nickname: string | null
+    avatar_url: string | null
+    gender?: string | null
+    birthday?: string | null
+    industry?: string | null
+    tags?: string[] | null
     role: number
+    status: number
     credits: number
     vip_info: VIPInfo
+    invite_code?: string
+    created_at?: string | null
   }
 }
 
@@ -68,4 +75,23 @@ export const authApi = {
   async getUserProfile(): Promise<UserInfo> {
     return client.get('/miniprogram/user/profile')
   },
+
+  /**
+   * 更新用户资料
+   */
+  async updateProfile(params: UpdateProfileParams): Promise<UserInfo> {
+    const result = await client.put<{ user_info: UserInfo }>(
+      '/miniprogram/user/profile',
+      params
+    )
+    return result.user_info
+  },
+}
+
+export interface UpdateProfileParams {
+  nickname?: string
+  avatar_url?: string
+  gender?: string  // "0": 未知, "1": 男, "2": 女
+  birthday?: string  // YYYY-MM-DD
+  industry?: string
 }

@@ -26,7 +26,13 @@ const Login: React.FC<LoginProps> = (props) => {
     const token = Taro.getStorageSync("token")
     if (token) {
       const redirectUrl = (redirect as string) || "/pages/index/index"
-      Taro.redirectTo({ url: redirectUrl })
+      // 判断是否为 tabBar 页面
+      const isTabBar = redirectUrl.startsWith("/pages/")
+      if (isTabBar) {
+        Taro.switchTab({ url: redirectUrl })
+      } else {
+        Taro.redirectTo({ url: redirectUrl })
+      }
     }
   })
 
@@ -52,7 +58,13 @@ const Login: React.FC<LoginProps> = (props) => {
 
       setTimeout(() => {
         const redirect = (router.params.redirect as string) || "/pages/index/index"
-        Taro.redirectTo({ url: redirect })
+        // 判断是否为 tabBar 页面
+        const isTabBar = redirect.startsWith("/pages/")
+        if (isTabBar) {
+          Taro.switchTab({ url: redirect })
+        } else {
+          Taro.redirectTo({ url: redirect })
+        }
       }, 1500)
     } catch (error: any) {
       console.error("Login error:", error)

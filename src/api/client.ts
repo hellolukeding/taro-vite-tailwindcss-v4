@@ -1,10 +1,9 @@
 /**
  * HTTP客户端封装
  */
-import Taro from '@tarojs/taro'
 import { API_BASE_URL } from '@/utils/constants'
 import { getAuthToken, removeAuthToken, setAuthToken } from '@/utils/storage'
-import type { ApiResponse } from '@/types'
+import Taro from '@tarojs/taro'
 import { authApi } from './auth'
 
 interface RequestOptions {
@@ -54,8 +53,11 @@ class APIClient {
     // 1. 添加认证Token
     if (!skipAuth) {
       const token = await getAuthToken()
+      console.log('[API Request] URL:', url, 'Has Token:', !!token)
       if (token) {
         header['Authorization'] = `Bearer ${token}`
+      } else {
+        console.warn('[API Request] No token found, user might not be logged in')
       }
     }
 
@@ -121,10 +123,14 @@ class APIClient {
       }
 
       // 5. 返回业务数据
+      // 兼容直接返回数据对象的情况(后端未包装success字段)
       if (responseData?.success) {
         return returnFullResponse ? responseData : responseData.data
+      } else if (responseData?.token || responseData?.user_info) {
+        // 特殊处理登录接口: 如果没有success字段但包含关键登录信息，视为成功
+        return returnFullResponse ? { success: true, data: responseData } : responseData
       } else {
-        const errorMsg = responseData?.error?.message || '请求失败'
+        const errorMsg = responseData?.error?.message || responseData?.detail || '请求失败'
         if (!skipErrorTip) {
           Taro.showToast({
             title: errorMsg,

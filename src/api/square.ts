@@ -49,4 +49,16 @@ export const squareApi = {
   async getCategories(): Promise<Category[]> {
     return client.get('/miniprogram/square/categories')
   },
+
+  /**
+   * 收藏/取消收藏作品
+   */
+  async toggleFavorite(taskId: string): Promise<{
+    task_id: string
+    is_favorited: boolean
+    action: 'favorited' | 'unfavorited'
+    favorites_count: number
+  }> {
+    return client.post(`/miniprogram/square/work/${taskId}/favorite`)
+  },
 }
