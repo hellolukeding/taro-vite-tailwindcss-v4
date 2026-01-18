@@ -63,7 +63,7 @@ export default defineAppConfig({
       pages: [
         'pages/prompt-detail/index',
       ],
-      independent: true // 独立分包
+      // independent: true // 移除独立分包配置以恢复样式继承
     }
   ],
   // 预加载规则 - 首页预加载详情页

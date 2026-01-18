@@ -1,5 +1,9 @@
 /**
  * Mock Prompt Detail 数据
+ *
+ * ⚠️ 注意：这些是仅用于开发和演示的Mock数据
+ * 生产环境应该从后端API获取真实数据
+ * 不要在生产代码中直接使用这些Mock数据作为默认值
  */
 
 export interface MockComment {
@@ -23,6 +27,8 @@ export interface MockPromptDetail {
   sampler: string
   likes: number
   bookmarks: number
+  liked: boolean
+  bookmarked: boolean
   comments: MockComment[]
 }
 
@@ -38,6 +44,8 @@ export const mockPromptDetail: MockPromptDetail = {
   sampler: 'Euler a (Karras)',
   likes: 1200,
   bookmarks: 300,
+  liked: false,
+  bookmarked: false,
   comments: [
     {
       id: '1',

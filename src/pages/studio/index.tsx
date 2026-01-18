@@ -54,10 +54,7 @@ const Studio: React.FC<StudioProps> = (props) => {
         isSelected: false,
       }))
       setModels(formattedModels)
-      // 默认选择第一个模型
-      if (formattedModels.length > 0) {
-        handleModelSelect(formattedModels[0].id)
-      }
+      // 不再自动选择模型，让用户主动选择
     } catch (error) {
       console.error('Load models error:', error)
       Taro.showToast({ title: '加载模型失败', icon: 'none' })

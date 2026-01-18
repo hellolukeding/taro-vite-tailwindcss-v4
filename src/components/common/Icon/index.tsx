@@ -14,10 +14,12 @@ const iconMap: Record<string, keyof typeof TaroifyIcons> = {
   // 导航相关
   expand_more: 'ArrowDown',
   expand_less: 'ArrowUp',
+  arrow_back: 'ArrowLeft',
   arrow_back_ios: 'ArrowLeft',
   arrow_back_ios_new: 'ArrowLeft',
   chevron_right: 'ArrowRight',
   home: 'HomePage',
+  more_horiz: 'Koubei',
 
   // 操作相关
   add: 'Add',
@@ -70,7 +72,9 @@ const iconMap: Record<string, keyof typeof TaroifyIcons> = {
   lock_open: 'Unlock',
   public: 'Globe',
   broken_image: 'PhotoFail',
+  image_not_supported: 'PhotoFail',
   check_circle: 'Check',
+  fullscreen: 'Exterior',
 
   // 沟通相关
   chat_bubble: 'Chat',

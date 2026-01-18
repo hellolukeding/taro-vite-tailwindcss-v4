@@ -1,0 +1,29 @@
+.safe-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  background-color: #f3f4f6;
+}
+
+.safe-image-loading,
+.safe-image-error {
+  z-index: 1;
+}
+
+.safe-image {
+  display: block;
+  object-fit: cover;
+}
+
+/* 加载动画 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

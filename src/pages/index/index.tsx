@@ -1,7 +1,8 @@
 import { studioApi } from '@/api/studio'
 // 注意：原生 tabBar 已启用，不再需要自定义 BottomNav 组件
 // import { BottomNav } from '@/components/business/BottomNav'
-import { BASE_PAGE_SIZE, BASE_URL } from '@/utils/constants'
+import { BASE_PAGE_SIZE } from '@/utils/constants'
+import { normalizeUrl } from '@/utils/url'
 import { Search, Tabs } from "@taroify/core"
 import { LikeOutlined } from '@taroify/icons'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
@@ -219,13 +220,13 @@ export default function Index() {
                 handleClick(work.id)
               }}
               >
-                <Image src={`${BASE_URL}${work.cover_image}`} className='work-img' mode='aspectFill' lazyLoad />
+                <Image src={normalizeUrl(work.cover_image)} className='work-img' mode='aspectFill' lazyLoad />
                 <Text className='work-prompt text-lg'>{work.title}</Text>
                 <View className='work-footer'>
                   <View className='work-author'>
                     {work.creator?.avatar_url && (
                       <Image
-                        src={`${BASE_URL}${work.creator.avatar_url}`}
+                        src={normalizeUrl(work.creator?.avatar_url)}
                         className='author-avatar'
                         mode='aspectFill'
                       />
@@ -252,13 +253,13 @@ export default function Index() {
                 handleClick(work.id)
               }}
               >
-                <Image src={`${BASE_URL}${work.cover_image}`} className='work-img' mode='aspectFill' lazyLoad />
+                <Image src={normalizeUrl(work.cover_image)} className='work-img' mode='aspectFill' lazyLoad />
                 <Text className='work-prompt text-lg'>{work.title}</Text>
                 <View className='work-footer'>
                   <View className='work-author text-lg'>
                     {work.creator?.avatar_url && (
                       <Image
-                        src={`${BASE_URL}${work.creator.avatar_url}`}
+                        src={normalizeUrl(work.creator?.avatar_url)}
                         className='author-avatar'
                         mode='aspectFill'
                       />

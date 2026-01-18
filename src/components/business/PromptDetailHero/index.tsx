@@ -1,35 +1,165 @@
-import { Image, View, Button } from '@tarojs/components'
-import { Icon } from '@/components/common/Icon'
+import { Icon } from "@/components/common/Icon";
+import { Button } from "@taroify/core";
+import { MoreOutlined } from "@taroify/icons";
+import { Image, Text, View } from "@tarojs/components";
+import Taro from "@tarojs/taro";
+import { useEffect, useState } from "react";
 
 interface PromptDetailHeroProps {
-  imageUrl: string
-  onFullscreen?: () => void
+  imageUrl: string;
+  onFullscreen?: () => void;
 }
 
-export function PromptDetailHero({ imageUrl, onFullscreen }: PromptDetailHeroProps) {
-  return (
-    <View className='w-full relative bg-gray-800'>
-      <View className='w-full aspect-[4/5] bg-gray-800 relative overflow-hidden'>
-        {/* Main Image */}
-        <Image
-          src={imageUrl}
-          className='w-full h-full'
-          mode='aspectFill'
-        />
+export function PromptDetailHero({
+  imageUrl,
+  onFullscreen,
+}: PromptDetailHeroProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [showLoading, setShowLoading] = useState(true);
 
-        {/* Fullscreen Button */}
-        {onFullscreen && (
-          <View className='absolute top-4 right-4'>
+  // 监控 imageUrl 变化
+  useEffect(() => {
+    console.log("[PromptDetailHero] imageUrl 变化:", imageUrl);
+
+    // 重置状态
+    if (imageUrl) {
+      setImageLoaded(false);
+      setImageError(false);
+      setShowLoading(true);
+
+      // 延迟500ms后隐藏加载骨架（给图片加载一些时间）
+      const timer = setTimeout(() => {
+        console.log("[PromptDetailHero] 延迟隐藏加载骨架");
+        setShowLoading(false);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [imageUrl]);
+
+  const handleBack = () => {
+    Taro.navigateBack();
+  };
+
+  const handleMore = () => {
+    Taro.showActionSheet({
+      itemList: ["保存图片", "分享", "举报"],
+      success: async (res) => {
+        if (res.tapIndex === 0) {
+          // 保存图片
+          try {
+            await Taro.downloadFile({
+              url: imageUrl,
+              success: (res) => {
+                Taro.saveImageToPhotosAlbum({
+                  filePath: res.tempFilePath,
+                  success: () =>
+                    Taro.showToast({ title: "已保存", icon: "success" }),
+                  fail: () =>
+                    Taro.showToast({ title: "保存失败", icon: "none" }),
+                });
+              },
+            });
+          } catch (e) {
+            Taro.showToast({ title: "下载失败", icon: "none" });
+          }
+        }
+      },
+    });
+  };
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+    setShowLoading(false);
+  };
+
+  const handleImageError = () => {
+    setImageError(true);
+    setShowLoading(false);
+  };
+
+  return (
+    <View className="w-full relative bg-gray-900 min-h-60">
+      <View
+        className="w-full bg-gray-900 relative overflow-hidden shadow-2xl"
+        style={{
+          height: "120vw",
+          maxHeight: "600px",
+          borderBottomLeftRadius: "2rem",
+          borderBottomRightRadius: "2rem",
+        }}
+      >
+        {/* 加载骨架 */}
+        {showLoading && (
+          <View className="absolute inset-0 z-10 bg-gray-800 animate-pulse flex items-center justify-center">
+            <Icon name="photo" size={48} color="#374151" />
+          </View>
+        )}
+
+        {/* 错误状态 */}
+        {(imageError || !imageUrl) && !showLoading && (
+          <View className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-800 gap-3">
+            <Icon name="image_not_supported" size={48} color="#9ca3af" />
+            <Text className="text-gray-400 text-sm">
+              {!imageUrl ? "暂无图片" : "图片加载失败"}
+            </Text>
+          </View>
+        )}
+
+        {/* 主图 - 使用 style 确保高度正确 */}
+        {imageUrl && !imageError && (
+          <Image
+            key={imageUrl}
+            src={imageUrl}
+            className="absolute inset-0"
+            style={{
+              width: "100%",
+              height: "100%",
+              opacity: imageLoaded ? 1 : 0,
+              transition: "opacity 500ms ease-in-out",
+            }}
+            mode="aspectFill"
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+            showMenuByLongpress
+          />
+        )}
+
+        {/* 顶部半透明悬浮导航 */}
+        {!imageError && (
+          <View className="absolute bottom-0 right-0  z-50 flex items-center justify-between p-4 pt-12 bg-gradient-to-b from-black/50 to-transparent pointer-events-none">
+            <Button
+              onClick={handleMore}
+              variant="text"
+              icon={<MoreOutlined size={20} color="#fff" />}
+            />
+          </View>
+        )}
+
+        {/* 全屏按钮 */}
+        {/* {onFullscreen && !imageError && (
+          <View className="absolute bottom-6 right-6">
             <Button
               onClick={onFullscreen}
-              className='bg-black/40 backdrop-blur-md !p-2 rounded-full border border-white/10'
-              style={{ padding: '8px' }}
+              className="bg-black/50 backdrop-blur-md p-2.5 rounded-full border border-white/20 transition-all duration-300 hover:bg-black/70"
+              style={{
+                padding: "10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
-              <Icon name='fullscreen' size={20} color='white' />
+              <Icon name="fullscreen" size={20} color="white" />
             </Button>
           </View>
+        )} */}
+
+        {/* 底部渐变遮罩 */}
+        {!imageError && imageLoaded && (
+          <View className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white/20 to-transparent" />
         )}
       </View>
     </View>
-  )
+  );
 }

@@ -1,5 +1,9 @@
 /**
  * Mock任务数据
+ *
+ * ⚠️ 注意：这些是仅用于开发和演示的Mock数据
+ * 生产环境应该从后端API获取真实数据
+ * 不要在生产代码中直接使用这些Mock数据作为默认值
  */
 
 export type TaskStatus = 'private' | 'public' | 'failed' | 'processing'

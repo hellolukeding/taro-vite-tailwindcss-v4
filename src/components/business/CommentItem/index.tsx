@@ -1,5 +1,4 @@
-import { View, Text } from '@tarojs/components'
-import { Button, Image } from '@taroify/core'
+import { View, Text, Image } from '@tarojs/components'
 import { Icon } from '@/components/common/Icon'
 
 interface CommentItemProps {
@@ -22,50 +21,26 @@ export function CommentItem({
   onReply,
 }: CommentItemProps) {
   return (
-    <View className='flex gap-3'>
-      {/* Avatar */}
+    <View className='flex gap-4'>
       <View className='shrink-0'>
-        <Image
-          src={avatar}
-          shape='circle'
-          className='w-10 h-10'
+        <View
+          className='w-10 h-10 rounded-full bg-gray-200 bg-cover bg-center'
+          style={{ backgroundImage: `url(${avatar})` }}
         />
       </View>
 
-      {/* Content */}
-      <View className='flex flex-col gap-1.5 flex-1'>
-        {/* Header */}
-        <View className='flex justify-between items-start'>
-          <Text className='text-sm font-bold text-gray-900'>{username}</Text>
-          <Text className='text-xs text-gray-400'>{time}</Text>
+      <View className='flex-1 space-y-1'>
+        <View className='flex justify-between items-center'>
+          <Text className='text-sm font-bold text-slate-900'>{username}</Text>
+          <Text className='text-xs text-slate-400'>{time}</Text>
         </View>
-
-        {/* Message */}
-        <Text className='text-sm text-gray-700 leading-relaxed'>{content}</Text>
-
-        {/* Actions */}
-        <View className='flex items-center gap-5 mt-1'>
-          <Button
-            onClick={onLike}
-            variant='text'
-            size='mini'
-            className='p-0! flex items-center gap-1.5'
-          >
-            <Icon name='favorite' size={18} color='#9ca3af' />
-            <Text className='text-xs font-medium text-gray-400'>{likes}</Text>
-          </Button>
-
-          {onReply && (
-            <Button
-              onClick={onReply}
-              variant='text'
-              size='mini'
-              className='p-0! flex items-center gap-1.5'
-            >
-              <Icon name='chat_bubble' size={18} color='#9ca3af' />
-              <Text className='text-xs font-medium text-gray-400'>Reply</Text>
-            </Button>
-          )}
+        <Text className='text-sm text-slate-600 leading-relaxed'>{content}</Text>
+        <View className='flex items-center gap-4 pt-1'>
+          <Text className='text-slate-400 text-xs font-medium'>Reply</Text>
+          <View className='flex items-center gap-1 text-slate-400 hover:text-red-500 transition-colors'>
+            <Icon name='favorite' size={14} />
+            <Text className='text-xs font-medium'>{likes}</Text>
+          </View>
         </View>
       </View>
     </View>

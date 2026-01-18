@@ -9,8 +9,8 @@ interface GenerateBarProps {
 }
 
 export function GenerateBar({
-  cost = 2,
-  balance = 1402,
+  cost,
+  balance,
   onGenerate,
   loading = false,
 }: GenerateBarProps) {
@@ -27,7 +27,9 @@ export function GenerateBar({
           <Text className='text-[10px] font-bold uppercase text-gray-400'>预计消耗</Text>
           <View className='flex items-center gap-1'>
             <Icon name='bolt' size={16} />
-            <Text className='font-bold text-lg text-black'>{cost}</Text>
+            <Text className='font-bold text-lg text-black'>
+              {cost !== undefined ? cost : '--'}
+            </Text>
           </View>
         </View>
 
@@ -37,7 +39,9 @@ export function GenerateBar({
         {/* Balance */}
         <View className='flex flex-col mr-auto'>
           <Text className='text-[10px] font-bold uppercase text-gray-400'>余额</Text>
-          <Text className='font-bold text-sm text-black'>{balance.toLocaleString()}</Text>
+          <Text className='font-bold text-sm text-black'>
+            {balance !== undefined ? balance.toLocaleString() : '--'}
+          </Text>
         </View>
 
         {/* Generate Button */}
