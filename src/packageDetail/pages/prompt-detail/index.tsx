@@ -1,14 +1,16 @@
 import CommonHeader from "@/components/CommonHeader";
 import CommonWarp from "@/components/CommonWarp";
 import { CommentItem } from "@/components/business/CommentItem";
+import { CommentInputBar } from "@/components/business/CommentInputBar";
 import { PromptDetailHero } from "@/components/business/PromptDetailHero";
 import { useAuth } from "@/hooks/useAuth";
 import * as promptApi from "@/services/promptApi";
 import { normalizeUrl } from "@/utils/url";
-import { Button, Toast } from "@taroify/core";
+import { Button } from "@taroify/core";
 import { ScrollView, Text, View } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "@/utils/toast";
 
 interface PromptDetailProps {
   id?: string;
@@ -50,6 +52,8 @@ interface PromptDetailState {
   data: PromptDetailData | null;
   liking: boolean;
   bookmarking: boolean;
+  comments: Comment[];
+  commentsLoading: boolean;
 }
 
 const PromptDetail: React.FC<PromptDetailProps> = (props) => {
@@ -63,6 +67,8 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
     data: null,
     liking: false,
     bookmarking: false,
+    comments: [],
+    commentsLoading: false,
   });
 
   const [promptExpanded, setPromptExpanded] = useState(false);
@@ -103,17 +109,14 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
     if (!taskId) return;
 
     try {
-      await promptApi.shareWork(taskId);
-      // 触发小程序分享
+      // 不调用后端接口，直接触发小程序分享菜单
       Taro.showShareMenu({
         withShareTicket: true,
       });
+      toast.success("请点击右上角分享");
     } catch (err) {
       console.error("分享失败:", err);
-      Taro.showToast({
-        title: "分享失败",
-        icon: "error",
-      });
+      toast.error("分享失败");
     }
   }, [taskId]);
 
@@ -128,25 +131,28 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
     setState((prev) => ({ ...prev, liking: true }));
 
     try {
-      const result = await promptApi.toggleLikeWork(taskId);
+      // 根据当前状态调用不同接口
+      const result = state.data.liked
+        ? await promptApi.unlikePrompt(taskId)
+        : await promptApi.likePrompt(taskId);
 
-      // 更新状态
+      // 更新状态（手动反转 liked，因为后端不返回）
       setState((prev) => ({
         ...prev,
         liking: false,
         data: prev.data
           ? {
-            ...prev.data,
-            liked: result.is_liked,
-            likes: result.likes_count,
-          }
+              ...prev.data,
+              liked: !prev.data.liked,
+              likes: result.likes_count,
+            }
           : null,
       }));
     } catch (err) {
       console.error("点赞失败:", err);
       setState((prev) => ({ ...prev, liking: false }));
     }
-  }, [taskId, state.liking, state.data, requireLoginRedirect]);
+  }, [taskId, state.data?.liked, state.liking, requireLoginRedirect]);
 
   // 收藏处理
   const handleBookmark = useCallback(async () => {
@@ -159,30 +165,33 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
     setState((prev) => ({ ...prev, bookmarking: true }));
 
     try {
-      const result = await promptApi.toggleFavoriteWork(taskId);
+      // 根据当前状态调用不同接口
+      const result = state.data.bookmarked
+        ? await promptApi.unfavoritePrompt(taskId)
+        : await promptApi.favoritePrompt(taskId);
 
-      // 更新状态
+      // 更新状态（手动反转 bookmarked，因为后端不返回）
       setState((prev) => ({
         ...prev,
         bookmarking: false,
         data: prev.data
           ? {
-            ...prev.data,
-            bookmarked: result.is_favorited,
-            bookmarks: result.favorites_count,
-          }
+              ...prev.data,
+              bookmarked: !prev.data.bookmarked,
+              bookmarks: result.favorites_count,
+            }
           : null,
       }));
     } catch (err) {
       console.error("收藏失败:", err);
       setState((prev) => ({ ...prev, bookmarking: false }));
     }
-  }, [taskId, state.bookmarking, state.data, requireLoginRedirect]);
+  }, [taskId, state.data?.bookmarked, state.bookmarking, requireLoginRedirect]);
 
   const handleFollow = useCallback(async () => {
     const isLogin = await requireLoginRedirect();
     if (!isLogin) return;
-    Toast.success("关注成功");
+    toast.success("关注成功");
   }, [requireLoginRedirect]);
 
   const handleCopyPrompt = useCallback(() => {
@@ -191,7 +200,7 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
     Taro.setClipboardData({
       data: state.data.prompt,
       success: () => {
-        Toast.success("复制成功");
+        toast.success("复制成功");
       },
     });
   }, [state.data?.prompt]);
@@ -199,8 +208,48 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
   const handleCreateSimilar = useCallback(async () => {
     const isLogin = await requireLoginRedirect();
     if (!isLogin) return;
-    Toast.success("即将跳转到创作页面");
+    toast.success("即将跳转到创作页面");
   }, [requireLoginRedirect]);
+
+  // 加载评论列表
+  const loadComments = useCallback(async () => {
+    if (!taskId) return;
+
+    setState((prev) => ({ ...prev, commentsLoading: true }));
+
+    try {
+      const result = await promptApi.getComments("prompt", taskId);
+      setState((prev) => ({
+        ...prev,
+        comments: result.items || [],
+        commentsLoading: false,
+      }));
+    } catch (err) {
+      console.error("加载评论失败:", err);
+      setState((prev) => ({ ...prev, commentsLoading: false }));
+    }
+  }, [taskId]);
+
+  // 提交评论
+  const handleSubmitComment = useCallback(
+    async (content: string) => {
+      if (!taskId) return;
+
+      const isLogin = await requireLoginRedirect();
+      if (!isLogin) return;
+
+      try {
+        await promptApi.createComment("prompt", taskId, content);
+        // 重新加载评论列表
+        await loadComments();
+        toast.success("评论成功");
+      } catch (err) {
+        console.error("评论失败:", err);
+        toast.error("评论失败");
+      }
+    },
+    [taskId, loadComments, requireLoginRedirect]
+  );
 
   // 数据加载函数 - 提升到顶层以便重试按钮调用
   const loadDetail = useCallback(async () => {
@@ -264,6 +313,13 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
   useEffect(() => {
     loadDetail();
   }, [loadDetail]);
+
+  // 加载评论
+  useEffect(() => {
+    if (taskId) {
+      loadComments();
+    }
+  }, [taskId, loadComments]);
 
   if (state.loading) {
     return (
@@ -504,11 +560,11 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
             <View className="flex flex-col gap-6 pb-30">
               <View className="flex items-center justify-between">
                 <Text className="text-lg font-bold text-slate-900">
-                  评论 ({state.data.comments.length})
+                  评论 ({state.comments.length})
                 </Text>
               </View>
 
-              {state.data.comments.length === 0 ? (
+              {state.comments.length === 0 ? (
                 <View className="flex flex-col items-center justify-center py-16">
                   <Text className="text-5xl mb-3">💬</Text>
                   <Text className="text-slate-900 text-base font-semibold mb-2">
@@ -520,7 +576,7 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
                 </View>
               ) : (
                 <View className="flex flex-col space-y-6">
-                  {state.data.comments.map((comment) => (
+                  {state.comments.map((comment) => (
                     <CommentItem
                       key={comment.id}
                       avatar={comment.avatar}
@@ -536,20 +592,10 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
           </View>
         </ScrollView>
 
-        <View className="fixed bottom-0 w-full bg-white/90 backdrop-blur-xl border-t border-gray-100 p-3 pb-8 z-40">
-          <View className="flex items-center gap-3 max-w-2xl mx-auto">
-            <View className="flex-1 h-12 px-4 bg-gray-100 rounded-full flex items-center">
-              <Text className="text-slate-400 text-sm">说点什么...</Text>
-            </View>
-            <Button
-              shape="round"
-              className="h-12 px-6 font-bold shadow-lg"
-              onClick={handleCreateSimilar}
-            >
-              做同款
-            </Button>
-          </View>
-        </View>
+        <CommentInputBar
+          placeholder="说点什么..."
+          onSubmit={handleSubmitComment}
+        />
       </View>
     </CommonWarp>
   );

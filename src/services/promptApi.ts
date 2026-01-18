@@ -38,9 +38,42 @@ export async function getWorkDetail(taskId: string) {
 }
 
 /**
- * 点赞/取消点赞作品
- * @param taskId 作品ID
- * @returns { is_liked: boolean, likes_count: number }
+ * 点赞提示词
+ * @param promptId 提示词ID
+ * @returns { likes_count: number }
+ */
+export async function likePrompt(promptId: string) {
+  const token = Taro.getStorageSync("token");
+  const response = await Taro.request({
+    url: `${BASE_URL}/studio/prompts/${promptId}/like`,
+    method: "POST",
+    header: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data.data;
+}
+
+/**
+ * 取消点赞提示词
+ * @param promptId 提示词ID
+ * @returns { likes_count: number }
+ */
+export async function unlikePrompt(promptId: string) {
+  const token = Taro.getStorageSync("token");
+  const response = await Taro.request({
+    url: `${BASE_URL}/studio/prompts/${promptId}/like`,
+    method: "DELETE",
+    header: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data.data;
+}
+
+/**
+ * 点赞/取消点赞作品（已废弃，请使用 likePrompt/unlikePrompt）
+ * @deprecated 使用 likePrompt/unlikePrompt 替代
  */
 export async function toggleLikeWork(taskId: string) {
   const token = Taro.getStorageSync("token");
@@ -55,14 +88,14 @@ export async function toggleLikeWork(taskId: string) {
 }
 
 /**
- * 收藏/取消收藏作品
- * @param taskId 作品ID
- * @returns { is_favorited: boolean, favorites_count: number }
+ * 收藏提示词
+ * @param promptId 提示词ID
+ * @returns { favorites_count: number }
  */
-export async function toggleFavoriteWork(taskId: string) {
+export async function favoritePrompt(promptId: string) {
   const token = Taro.getStorageSync("token");
   const response = await Taro.request({
-    url: `${BASE_URL}/square/work/${taskId}/favorite`,
+    url: `${BASE_URL}/studio/prompts/${promptId}/favorite`,
     method: "POST",
     header: {
       Authorization: `Bearer ${token}`,
@@ -72,18 +105,56 @@ export async function toggleFavoriteWork(taskId: string) {
 }
 
 /**
+ * 取消收藏提示词
+ * @param promptId 提示词ID
+ * @returns { favorites_count: number }
+ */
+export async function unfavoritePrompt(promptId: string) {
+  const token = Taro.getStorageSync("token");
+  const response = await Taro.request({
+    url: `${BASE_URL}/studio/prompts/${promptId}/favorite`,
+    method: "DELETE",
+    header: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data.data;
+}
+
+/**
+ * 收藏/取消收藏作品（已废弃，请使用 favoritePrompt/unfavoritePrompt）
+ * @deprecated 使用 favoritePrompt/unfavoritePrompt 替代
+ */
+export async function toggleFavoriteWork(taskId: string) {
+  const token = Taro.getStorageSync("token");
+  const response = await Taro.request({
+    url: `${BASE_URL}/studio/prompts/${taskId}/favorite`,
+    method: "POST",
+    header: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+}
+
+/**
  * 获取评论列表
  * @param taskId 作品ID
  * @param limit 每页数量
  * @param offset 偏移量
  * @returns { total: number, items: Array }
  */
-export async function getComments(taskId: string, limit = 20, offset = 0) {
+export async function getComments(
+  targetType: "task" | "prompt",
+  targetId: string,
+  limit = 20,
+  offset = 0
+) {
   const token = Taro.getStorageSync("token");
   const response = await Taro.request({
     url: `${BASE_URL}/comments`,
     method: "GET",
-    data: { task_id: taskId, limit, offset },
+    data: { target_type: targetType, target_id: targetId, limit, offset },
     header: {
       Authorization: token ? `Bearer ${token}` : "",
     },
@@ -93,21 +164,24 @@ export async function getComments(taskId: string, limit = 20, offset = 0) {
 
 /**
  * 发表评论
- * @param taskId 作品ID
+ * @param targetType 目标类型 (task 或 prompt)
+ * @param targetId 目标ID (任务ID或提示词ID)
  * @param content 评论内容
  * @param parentId 父评论ID（可选，用于回复）
  */
 export async function createComment(
-  taskId: string,
+  targetType: "task" | "prompt",
+  targetId: string,
   content: string,
-  parentId?: string,
+  parentId?: string
 ) {
   const token = Taro.getStorageSync("token");
   const response = await Taro.request({
     url: `${BASE_URL}/comments`,
     method: "POST",
     data: {
-      task_id: taskId,
+      target_type: targetType,
+      target_id: targetId,
       content: content,
       parent_id: parentId,
     },
@@ -144,6 +218,7 @@ export async function shareWork(taskId: string) {
   const response = await Taro.request({
     url: `${BASE_URL}/square/work/${taskId}/share`,
     method: "POST",
+    data: {}, // 传递空对象，后端需要请求体
     header: {
       Authorization: `Bearer ${token}`,
     },

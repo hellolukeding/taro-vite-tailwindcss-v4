@@ -62,9 +62,17 @@ class APIClient {
     }
 
     try {
-      // 2. 发起请求
+      // 2. 构建完整URL，确保格式正确
+      let fullUrl = `${this.baseURL}${url}`
+
+      // 移除可能出现的双斜杠问题（避免 https://...//api/...）
+      fullUrl = fullUrl.replace(/([^:])\/\//g, '$1/')
+
+      console.log('[API Request] Full URL:', fullUrl)
+
+      // 3. 发起请求
       const response = await Taro.request({
-        url: `${this.baseURL}${url}`,
+        url: fullUrl,
         method,
         data,
         header: {
