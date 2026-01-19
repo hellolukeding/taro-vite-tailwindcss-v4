@@ -1,6 +1,7 @@
+import { API_BASE_URL } from "@/utils/constants";
 import Taro from "@tarojs/taro";
 
-const BASE_URL = "http://localhost:8000/api/v1/miniprogram";
+const BASE_URL = `${API_BASE_URL}/miniprogram`;
 
 /**
  * 获取提示词详情
@@ -148,7 +149,7 @@ export async function getComments(
   targetType: "task" | "prompt",
   targetId: string,
   limit = 20,
-  offset = 0
+  offset = 0,
 ) {
   const token = Taro.getStorageSync("token");
   const response = await Taro.request({
@@ -173,7 +174,7 @@ export async function createComment(
   targetType: "task" | "prompt",
   targetId: string,
   content: string,
-  parentId?: string
+  parentId?: string,
 ) {
   const token = Taro.getStorageSync("token");
   const response = await Taro.request({

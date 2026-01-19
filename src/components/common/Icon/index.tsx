@@ -1,130 +1,119 @@
-import * as TaroifyIcons from '@taroify/icons'
-import { View } from '@tarojs/components'
-import { CSSProperties } from 'react'
+import { View, Text } from "@tarojs/components";
+import { CSSProperties } from "react";
 
 interface IconProps {
-  name: string
-  size?: number
-  color?: string
-  className?: string
+  name: string;
+  size?: number;
+  color?: string;
+  className?: string;
 }
 
-// 图标名称映射到 Taroify 图标组件
-const iconMap: Record<string, keyof typeof TaroifyIcons> = {
+// 使用 emoji 和 Unicode 符号替代图标库
+const iconSymbols: Record<string, string> = {
   // 导航相关
-  expand_more: 'ArrowDown',
-  expand_less: 'ArrowUp',
-  arrow_back: 'ArrowLeft',
-  arrow_back_ios: 'ArrowLeft',
-  arrow_back_ios_new: 'ArrowLeft',
-  chevron_right: 'ArrowRight',
-  home: 'HomePage',
-  more_horiz: 'Koubei',
+  expand_more: "▼",
+  expand_less: "▲",
+  arrow_back: "←",
+  arrow_back_ios: "←",
+  arrow_back_ios_new: "←",
+  chevron_right: "→",
+  home: "⌂",
+  more_horiz: "⋯",
 
   // 操作相关
-  add: 'Add',
-  close: 'Cross',
-  check: 'Success',
-  delete: 'Delete',
-  edit: 'Edit',
-  search: 'Search',
-  share: 'Share',
-  settings: 'Setting',
-  fullscreen: 'Outline',
+  add: "+",
+  close: "×",
+  check: "✓",
+  delete: "🗑",
+  edit: "✎",
+  search: "🔍",
+  share: "↗",
+  settings: "⚙",
+  fullscreen: "⛶",
 
   // 内容相关
-  favorite: 'GoodJob',
-  bookmark: 'Like',
-  thumb_up: 'GoodJob',
-  notifications: 'Bell',
-  info: 'Info',
-  warning: 'Warning',
+  favorite: "♥",
+  bookmark: "★",
+  thumb_up: "👍",
+  notifications: "🔔",
+  info: "ℹ",
+  warning: "⚠",
 
   // 文件相关
-  file: 'Folder',
-  image: 'Photo',
-  video: 'Video',
-  download: 'Down',
-  upload: 'Up',
+  file: "📄",
+  image: "🖼",
+  video: "🎬",
+  camera: "📷",
+  download: "⬇",
+  upload: "⬆",
 
   // 编辑相关
-  copy: 'Copy',
-  cut: 'Cut',
-  paste: 'Paste',
-  content_copy: 'Copy',
-  edit_note: 'Edit',
+  copy: "📋",
+  cut: "✂",
+  paste: "📋",
 
   // 用户相关
-  user: 'User',
-  users: 'Friends',
-  person: 'User',
-  account_circle: 'User',
+  user: "👤",
+  users: "👥",
+  person: "👤",
+  account_circle: "👤",
 
   // 媒体控制
-  play_arrow: 'Play',
-  pause: 'Pause',
-  stop: 'Stop',
-  skip_next: 'Speed',
-  skip_previous: 'Rewind',
+  play_arrow: "▶",
+  pause: "⏸",
+  stop: "⏹",
 
   // 状态相关
-  lock: 'Lock',
-  lock_open: 'Unlock',
-  public: 'Globe',
-  broken_image: 'PhotoFail',
-  image_not_supported: 'PhotoFail',
-  check_circle: 'Check',
-  fullscreen: 'Exterior',
+  lock: "🔒",
+  lock_open: "🔓",
+  public: "🌐",
+  broken_image: "🖼",
+  image_not_supported: "🖼",
 
   // 沟通相关
-  chat_bubble: 'Chat',
-  send: 'Send',
+  chat_bubble: "💬",
+  send: "➤",
 
   // 其他
-  bolt: 'Bolt',
-  casino: 'Shuffle',
-  translate: 'Chat',
-  filter_list: 'Filter',
-  history: 'Clock',
-  tune: 'Setting',
-  auto_awesome: 'Star',
-  location_on: 'Location',
-  calendar_today: 'Calendar',
-  access_time: 'Clock',
-  phone: 'Phone',
-  mail: 'Chat',
-  link: 'Link',
-  visibility: 'Eye',
-  visibility_off: 'ClosedEye',
-  keyboard_arrow_down: 'ArrowDown',
-  keyboard_arrow_up: 'ArrowUp',
-  keyboard_arrow_left: 'ArrowLeft',
-  keyboard_arrow_right: 'ArrowRight',
-}
+  location_on: "📍",
+  calendar_today: "📅",
+  phone: "📞",
+  mail: "✉",
+  visibility: "👁",
+  visibility_off: "🚫",
+  keyboard_arrow_down: "↓",
+  keyboard_arrow_up: "↑",
+  keyboard_arrow_left: "←",
+  keyboard_arrow_right: "→",
+
+  // 新增图标
+  gender: "⚥",
+  briefcase: "💼",
+  chevron_left: "←",
+};
 
 export function Icon({
   name,
   size = 24,
-  color = '#000000',
-  className = '',
+  color = "#000000",
+  className = "",
 }: IconProps) {
-  // 获取对应的 Taroify 图标组件名称
-  const taroifyIconName = iconMap[name] || name
-
-  // 动态获取图标组件
-  const TaroifyIcon = TaroifyIcons[taroifyIconName as keyof typeof TaroifyIcons] as React.ComponentType<{ className?: string; style?: CSSProperties }>
+  // 获取对应的符号
+  const symbol = iconSymbols[name];
 
   const style: CSSProperties = {
     fontSize: `${size}px`,
     color,
-    display: 'inline-block',
-  }
+    display: "inline-block",
+    lineHeight: "1",
+  };
 
-  if (!TaroifyIcon) {
-    // 如果找不到对应的图标，显示文本占位
-    console.warn(`Icon "${name}" not found in Taroify icons`)
-    return <View className={className} style={style}>?</View>
-  }
+  // 如果找不到对应的符号，显示问号
+  const displaySymbol = symbol || "?";
 
-  return <TaroifyIcon className={className} style={style} />
+  return (
+    <View className={className} style={style}>
+      <Text>{displaySymbol}</Text>
+    </View>
+  );
 }

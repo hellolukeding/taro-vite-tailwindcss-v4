@@ -1,6 +1,5 @@
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@taroify/core";
-import { MoreOutlined } from "@taroify/icons";
 import { Image, Text, View } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { useEffect, useState } from "react";
@@ -128,12 +127,19 @@ export function PromptDetailHero({
 
         {/* 顶部半透明悬浮导航 */}
         {!imageError && (
-          <View className="absolute bottom-0 right-0  z-50 flex items-center justify-between p-4 pt-12 bg-gradient-to-b from-black/50 to-transparent pointer-events-none">
+          <View className="absolute bottom-0 right-0 z-50 p-4">
             <Button
               onClick={handleMore}
-              variant="text"
-              icon={<MoreOutlined size={20} color="#fff" />}
-            />
+              className="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center"
+              style={{
+                padding: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text className="text-white text-xl">⋯</Text>
+            </Button>
           </View>
         )}
 

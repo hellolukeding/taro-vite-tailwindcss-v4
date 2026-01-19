@@ -4,7 +4,7 @@ import { studioApi } from '@/api/studio'
 import { BASE_PAGE_SIZE } from '@/utils/constants'
 import { normalizeUrl } from '@/utils/url'
 import { Search, Tabs } from "@taroify/core"
-import { LikeOutlined } from '@taroify/icons'
+import { Icon } from '@/components/common/Icon'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import useRequest from 'ahooks/lib/useRequest'
@@ -235,7 +235,7 @@ export default function Index() {
                   </View>
                   <View className='work-stats'>
                     <View className='work-likes text-lg'>
-                      <LikeOutlined color='#F43F5E' size={16} />
+                      <Icon name="thumb_up" size={16} color="#F43F5E" />
                       <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
                     </View>
                     {work.views_count > 0 && (
@@ -268,7 +268,7 @@ export default function Index() {
                   </View>
                   <View className='work-stats'>
                     <View className='work-likes text-lg'>
-                      <LikeOutlined color='#F43F5E' size={16} />
+                      <Icon name="thumb_up" size={16} color="#F43F5E" />
                       <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
                     </View>
                     {work.views_count > 0 && (

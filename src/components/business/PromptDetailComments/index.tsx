@@ -16,7 +16,7 @@ interface PromptDetailCommentsProps {
 
 export function PromptDetailComments({ comments }: PromptDetailCommentsProps) {
   return (
-    <View className="flex flex-col gap-6 pb-48">
+    <View className="flex flex-col gap-6 pb-40">
       <View className="flex items-center justify-between">
         <Text className="text-lg font-bold text-slate-900">
           评论 ({comments.length})

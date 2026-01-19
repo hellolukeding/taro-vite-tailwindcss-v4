@@ -1,7 +1,6 @@
 import CommonHeader from "@/components/CommonHeader";
 import CommonWarp from "@/components/CommonWarp";
 import CommentInputBar from "@/components/business/CommentInputBar";
-import { PromptDetailActions } from "@/components/business/PromptDetailActions";
 import { PromptDetailComments } from "@/components/business/PromptDetailComments";
 import { PromptDetailContent } from "@/components/business/PromptDetailContent";
 import { PromptDetailHeader } from "@/components/business/PromptDetailHeader";
@@ -9,6 +8,7 @@ import { PromptDetailHero } from "@/components/business/PromptDetailHero";
 import { PromptDetailParameters } from "@/components/business/PromptDetailParameters";
 import { useAuth } from "@/hooks/useAuth";
 import * as promptApi from "@/services/promptApi";
+import { mapCommentListFromApi } from "@/utils/commentMapper";
 import { toast } from "@/utils/toast";
 import { normalizeUrl } from "@/utils/url";
 import { ScrollView, Text, View } from "@tarojs/components";
@@ -57,6 +57,7 @@ interface PromptDetailState {
   bookmarking: boolean;
   comments: Comment[];
   commentsLoading: boolean;
+  submittingComment: boolean;
 }
 
 const PromptDetail: React.FC<PromptDetailProps> = (props) => {
@@ -72,6 +73,7 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
     bookmarking: false,
     comments: [],
     commentsLoading: false,
+    submittingComment: false,
   });
 
   // 获取路由参数
@@ -220,9 +222,10 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
 
     try {
       const result = await promptApi.getComments("prompt", taskId);
+      const mappedComments = mapCommentListFromApi(result.items || []);
       setState((prev) => ({
         ...prev,
-        comments: result.items || [],
+        comments: mappedComments,
         commentsLoading: false,
       }));
     } catch (err) {
@@ -239,6 +242,8 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
       const isLogin = await requireLoginRedirect();
       if (!isLogin) return;
 
+      setState((prev) => ({ ...prev, submittingComment: true }));
+
       try {
         await promptApi.createComment("prompt", taskId, content);
         // 重新加载评论列表
@@ -247,6 +252,8 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
       } catch (err) {
         console.error("评论失败:", err);
         toast.error("评论失败");
+      } finally {
+        setState((prev) => ({ ...prev, submittingComment: false }));
       }
     },
     [taskId, loadComments, requireLoginRedirect],
@@ -429,7 +436,7 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
             />
 
             {/* 点赞、收藏、分享操作栏 */}
-            <PromptDetailActions
+            {/* <PromptDetailActions
               liked={state.data.liked}
               likes={state.data.likes}
               bookmarked={state.data.bookmarked}
@@ -437,7 +444,7 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
               onLike={handleLike}
               onBookmark={handleBookmark}
               onShare={handleShare}
-            />
+            /> */}
 
             {/* 参数展示 */}
             <PromptDetailParameters
@@ -463,7 +470,9 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
           onLike={handleLike}
           onBookmark={handleBookmark}
           onShare={handleShare}
-          comments={0}
+          comments={state.comments.length}
+          onCommentSubmit={handleSubmitComment}
+          loading={state.submittingComment}
         />
       </View>
     </CommonWarp>
