@@ -1,16 +1,19 @@
 import CommonHeader from "@/components/CommonHeader";
 import CommonWarp from "@/components/CommonWarp";
-import { CommentItem } from "@/components/business/CommentItem";
-import { CommentInputBar } from "@/components/business/CommentInputBar";
+import CommentInputBar from "@/components/business/CommentInputBar";
+import { PromptDetailActions } from "@/components/business/PromptDetailActions";
+import { PromptDetailComments } from "@/components/business/PromptDetailComments";
+import { PromptDetailContent } from "@/components/business/PromptDetailContent";
+import { PromptDetailHeader } from "@/components/business/PromptDetailHeader";
 import { PromptDetailHero } from "@/components/business/PromptDetailHero";
+import { PromptDetailParameters } from "@/components/business/PromptDetailParameters";
 import { useAuth } from "@/hooks/useAuth";
 import * as promptApi from "@/services/promptApi";
+import { toast } from "@/utils/toast";
 import { normalizeUrl } from "@/utils/url";
-import { Button } from "@taroify/core";
 import { ScrollView, Text, View } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "@/utils/toast";
 
 interface PromptDetailProps {
   id?: string;
@@ -32,7 +35,7 @@ interface PromptDetailData {
   username: string;
   followers: number;
   title: string;
-  prompt: string;
+  prompts: string[];
   promptParams: string;
   model: string;
   ratio: string;
@@ -70,8 +73,6 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
     comments: [],
     commentsLoading: false,
   });
-
-  const [promptExpanded, setPromptExpanded] = useState(false);
 
   // 获取路由参数
   useEffect(() => {
@@ -142,10 +143,10 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
         liking: false,
         data: prev.data
           ? {
-              ...prev.data,
-              liked: !prev.data.liked,
-              likes: result.likes_count,
-            }
+            ...prev.data,
+            liked: !prev.data.liked,
+            likes: result.likes_count,
+          }
           : null,
       }));
     } catch (err) {
@@ -176,10 +177,10 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
         bookmarking: false,
         data: prev.data
           ? {
-              ...prev.data,
-              bookmarked: !prev.data.bookmarked,
-              bookmarks: result.favorites_count,
-            }
+            ...prev.data,
+            bookmarked: !prev.data.bookmarked,
+            bookmarks: result.favorites_count,
+          }
           : null,
       }));
     } catch (err) {
@@ -194,16 +195,16 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
     toast.success("关注成功");
   }, [requireLoginRedirect]);
 
-  const handleCopyPrompt = useCallback(() => {
-    if (!state.data?.prompt) return;
+  const handleCopyPrompt = useCallback((prompt: string) => {
+    if (!prompt) return;
 
     Taro.setClipboardData({
-      data: state.data.prompt,
+      data: prompt,
       success: () => {
         toast.success("复制成功");
       },
     });
-  }, [state.data?.prompt]);
+  }, []);
 
   const handleCreateSimilar = useCallback(async () => {
     const isLogin = await requireLoginRedirect();
@@ -248,7 +249,7 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
         toast.error("评论失败");
       }
     },
-    [taskId, loadComments, requireLoginRedirect]
+    [taskId, loadComments, requireLoginRedirect],
   );
 
   // 数据加载函数 - 提升到顶层以便重试按钮调用
@@ -274,10 +275,10 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
         username: detail?.user_nickname || "Unknown",
         followers: 0, // 后端暂未提供
         title: detail?.title || "Untitled",
-        // prompts 是数组，取第一个元素
-        prompt: Array.isArray(detail?.prompts)
-          ? detail?.prompts[0]
-          : detail?.prompts?.zh || detail?.prompts?.en || "",
+        // prompts 是数组，保存完整数组
+        prompts: Array.isArray(detail?.prompts)
+          ? detail?.prompts
+          : [detail?.prompts?.zh || detail?.prompts?.en || ""].filter(Boolean),
         promptParams: "",
         model: detail?.model || "Unknown",
         ratio: "1:1", // 提示词可能没有比例信息
@@ -403,7 +404,7 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
 
   return (
     <CommonWarp title="" withHeader={false}>
-      <View className="w-full h-full bg-white">
+      <View className="w-full bg-white flex flex-col h-screen relative">
         <CommonHeader title="提示词详情" withBack>
           <PromptDetailHero
             imageUrl={state.data.imageUrl}
@@ -412,189 +413,57 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
         </CommonHeader>
         <ScrollView scrollY className="flex-1">
           <View className="px-5 pt-6 flex flex-col gap-8">
-            <View className="flex flex-col gap-4">
-              <View className="flex items-center justify-between">
-                <View className="flex items-center gap-3">
-                  <View
-                    className="w-11 h-11 rounded-full bg-gray-200 bg-cover bg-center border border-gray-100"
-                    style={{ backgroundImage: `url(${state.data.avatar})` }}
-                  />
-                  <View className="flex flex-col">
-                    <Text className="text-sm font-bold text-slate-900 leading-none mb-1">
-                      {state.data.username}
-                    </Text>
-                    <Text className="text-[11px] text-slate-500 font-medium">
-                      {state.data.followers} followers
-                    </Text>
-                  </View>
-                </View>
-                <Button
-                  size="small"
-                  shape="round"
-                  className="px-5 py-2"
-                  onClick={handleFollow}
-                >
-                  关注
-                </Button>
-              </View>
-              <Text className="text-2xl font-bold text-slate-900 leading-tight mt-1">
-                {state.data.title}
-              </Text>
-            </View>
+            {/* 用户信息和标题 */}
+            <PromptDetailHeader
+              avatar={state.data.avatar}
+              username={state.data.username}
+              followers={state.data.followers}
+              title={state.data.title}
+              onFollow={handleFollow}
+            />
 
-            <View className="relative">
-              <View className="bg-gray-50 dark:bg-surface-dark/50 rounded-2xl p-5 border border-gray-100 dark:border-white/5 transition-all">
-                <View
-                  className="flex items-center justify-between mb-2"
-                  onClick={() => setPromptExpanded(!promptExpanded)}
-                >
-                  <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    Prompt
-                  </Text>
-                  <View className="flex items-center gap-2 text-slate-900">
-                    <Text className="text-xs font-medium">
-                      {promptExpanded ? "收起" : "展开"}
-                    </Text>
-                    <Text
-                      className={`text-lg transform transition-transform ${promptExpanded ? "rotate-180" : ""}`}
-                    >
-                      ▼
-                    </Text>
-                  </View>
-                </View>
-                <Text
-                  className={`text-slate-600 text-base font-normal leading-relaxed font-body ${!promptExpanded ? "line-clamp-3" : ""}`}
-                >
-                  {state.data.prompt}
-                </Text>
-                {!promptExpanded && (
-                  <View className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none" />
-                )}
-                {promptExpanded && (
-                  <View className="pt-3 mt-3 border-t border-black/5 flex justify-end">
-                    <Button
-                      size="mini"
-                      shape="round"
-                      className="px-3 py-1.5"
-                      onClick={handleCopyPrompt}
-                    >
-                      复制
-                    </Button>
-                  </View>
-                )}
-              </View>
-            </View>
+            {/* Prompt 内容 */}
+            <PromptDetailContent
+              prompts={state.data.prompts}
+              onCopy={handleCopyPrompt}
+            />
 
-            <View className="flex justify-center w-full -mx-2">
-              <View className="flex items-center gap-6 px-8 py-3 bg-white border border-gray-100 rounded-full shadow-lg z-10">
-                <View
-                  className="flex flex-col items-center gap-1 w-12"
-                  onClick={handleLike}
-                >
-                  <Text
-                    className={`text-2xl ${state.data.liked ? "text-red-500" : "text-slate-400"}`}
-                  >
-                    {state.data.liked ? "♥" : "♡"}
-                  </Text>
-                  <Text className="text-[10px] font-bold text-slate-500">
-                    {state.data.likes}
-                  </Text>
-                </View>
-                <View className="w-px h-8 bg-gray-200" />
-                <View
-                  className="flex flex-col items-center gap-1 w-12"
-                  onClick={handleBookmark}
-                >
-                  <Text
-                    className={`text-2xl ${state.data.bookmarked ? "text-yellow-500" : "text-slate-400"}`}
-                  >
-                    {state.data.bookmarked ? "★" : "☆"}
-                  </Text>
-                  <Text className="text-[10px] font-bold text-slate-500">
-                    {state.data.bookmarks}
-                  </Text>
-                </View>
-                <View className="w-px h-8 bg-gray-200" />
-                <View
-                  className="flex flex-col items-center gap-1 w-12"
-                  onClick={handleShare}
-                >
-                  <Text className="text-2xl text-slate-400">↗</Text>
-                  <Text className="text-[10px] font-bold text-slate-500">
-                    Share
-                  </Text>
-                </View>
-              </View>
-            </View>
+            {/* 点赞、收藏、分享操作栏 */}
+            <PromptDetailActions
+              liked={state.data.liked}
+              likes={state.data.likes}
+              bookmarked={state.data.bookmarked}
+              bookmarks={state.data.bookmarks}
+              onLike={handleLike}
+              onBookmark={handleBookmark}
+              onShare={handleShare}
+            />
 
-            <View className="flex flex-col gap-3">
-              <Text className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                Parameters
-              </Text>
-              <View className="flex flex-wrap gap-2">
-                <View className="px-4 py-2 rounded-full border border-gray-200 bg-transparent text-xs font-medium text-slate-600 flex items-center gap-1">
-                  <Text className="text-slate-400">Model:</Text>{" "}
-                  {state.data.model}
-                </View>
-                <View className="px-4 py-2 rounded-full border border-gray-200 bg-transparent text-xs font-medium text-slate-600 flex items-center gap-1">
-                  <Text className="text-slate-400">Ratio:</Text>{" "}
-                  {state.data.ratio}
-                </View>
-                <View className="px-4 py-2 rounded-full border border-gray-200 bg-transparent text-xs font-medium text-slate-600 flex items-center gap-1">
-                  <Text className="text-slate-400">Steps:</Text>{" "}
-                  {state.data.steps}
-                </View>
-                <View className="px-4 py-2 rounded-full border border-gray-200 bg-transparent text-xs font-medium text-slate-600 flex items-center gap-1">
-                  <Text className="text-slate-400">Seed:</Text>{" "}
-                  {state.data.seed}
-                </View>
-                <View className="px-4 py-2 rounded-full border border-gray-200 bg-transparent text-xs font-medium text-slate-600 flex items-center gap-1">
-                  <Text className="text-slate-400">Sampler:</Text>{" "}
-                  {state.data.sampler}
-                </View>
-              </View>
-            </View>
+            {/* 参数展示 */}
+            <PromptDetailParameters
+              model={state.data.model}
+              ratio={state.data.ratio}
+              steps={state.data.steps}
+              seed={state.data.seed}
+              sampler={state.data.sampler}
+            />
 
             <View className="h-px w-full bg-gray-100 my-2" />
 
-            <View className="flex flex-col gap-6 pb-30">
-              <View className="flex items-center justify-between">
-                <Text className="text-lg font-bold text-slate-900">
-                  评论 ({state.comments.length})
-                </Text>
-              </View>
-
-              {state.comments.length === 0 ? (
-                <View className="flex flex-col items-center justify-center py-16">
-                  <Text className="text-5xl mb-3">💬</Text>
-                  <Text className="text-slate-900 text-base font-semibold mb-2">
-                    暂无评论
-                  </Text>
-                  <Text className="text-slate-500 text-sm">
-                    快来发表第一条评论吧
-                  </Text>
-                </View>
-              ) : (
-                <View className="flex flex-col space-y-6">
-                  {state.comments.map((comment) => (
-                    <CommentItem
-                      key={comment.id}
-                      avatar={comment.avatar}
-                      username={comment.username}
-                      time={comment.time}
-                      content={comment.content}
-                      likes={comment.likes}
-                    />
-                  ))}
-                </View>
-              )}
-            </View>
+            {/* 评论列表 */}
+            <PromptDetailComments comments={state.comments} />
           </View>
         </ScrollView>
 
         <CommentInputBar
-          placeholder="说点什么..."
-          onSubmit={handleSubmitComment}
+          liked={state.data.liked}
+          likes={state.data.likes}
+          bookmarked={state.data.bookmarked}
+          bookmarks={state.data.bookmarks}
+          onLike={handleLike}
+          onBookmark={handleBookmark}
+          onShare={handleShare}
+          comments={0}
         />
       </View>
     </CommonWarp>

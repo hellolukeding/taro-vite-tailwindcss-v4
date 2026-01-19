@@ -1,68 +1,64 @@
-import { View, Text } from '@tarojs/components'
-import { useState } from 'react'
-import { Button, Field, Toast } from '@taroify/core'
-import { Icon } from '@/components/common/Icon'
+import {
+  ChatOutlined,
+  Like,
+  LikeOutlined,
+  Star,
+  StarOutlined,
+} from "@taroify/icons";
+import { Input, Text, View } from "@tarojs/components";
 
 interface CommentInputBarProps {
-  placeholder?: string
-  onSubmit?: (text: string) => void
+  liked: boolean;
+  likes: number;
+  bookmarked: boolean;
+  bookmarks: number;
+  comments: number;
+  onLike: () => void;
+  onBookmark: () => void;
+  onShare: () => void;
 }
 
-export function CommentInputBar({
-  placeholder = '说点什么...',
-  onSubmit,
-}: CommentInputBarProps) {
-  const [value, setValue] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-
-  const handleSubmit = async () => {
-    if (!value.trim()) {
-      Toast.show({ message: '请输入评论内容', type: 'fail' })
-      return
-    }
-
-    setSubmitting(true)
-    try {
-      await onSubmit?.(value)
-      setValue('')
-      Toast.show({ message: '评论已提交', type: 'success' })
-    } catch (error) {
-      Toast.show({ message: '评论失败', type: 'fail' })
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
+const CommentInputBar: React.FC<CommentInputBarProps> = (props) => {
   return (
-    <View className='fixed bottom-0 w-full bg-white/95 backdrop-blur-lg border-t border-gray-200 p-3 pb-8 z-40'>
-      <View className='flex items-center gap-3'>
-        <View className='flex-1 relative'>
-          <Field
-            value={value}
-            onChange={setValue}
-            placeholder={placeholder}
-            maxLength={500}
-            className='bg-white border border-gray-300 rounded-full px-4'
-            style={{ borderRadius: '9999px' }}
-          />
-          {/* 字数统计 */}
-          {value.length > 0 && (
-            <Text className='text-xs text-gray-400 absolute right-4 top-1/2 -translate-y-1/2'>
-              {value.length}/500
-            </Text>
+    <View className="w-full flex items-center justify-between px-4 h-28 pb-2 fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white">
+      <View
+        className=" h-full flex items-center justify-center "
+        style={{ width: "50%" }}
+      >
+        <Input
+          type="text"
+          placeholder="说点什么"
+          focus
+          className="w-full border border-gray-200 text-sm h-8 rounded-full px-2"
+        />
+      </View>
+      <View
+        className=" h-full grid grid-cols-3 items-center justify-center"
+        style={{ width: "50%" }}
+      >
+        <View className="flex items-center justify-center">
+          {props.liked ? (
+            <Like color="#f00" size={25} />
+          ) : (
+            <LikeOutlined size={25} />
           )}
+          <Text className="ml-2 text-sm">{props.likes}</Text>
         </View>
-        <Button
-          onClick={handleSubmit}
-          color='black'
-          shape='round'
-          loading={submitting}
-          disabled={!value.trim() || submitting}
-          className='w-11! h-11!'
-        >
-          <Icon name='send' size={20} color='white' />
-        </Button>
+        <View className="flex items-center justify-center">
+          {props.bookmarked ? (
+            <Star color="#e2b53d" size={25} />
+          ) : (
+            <StarOutlined size={25} />
+          )}
+          <Text className="ml-2 text-sm">{props.bookmarks}</Text>
+        </View>
+        <View className="flex items-center justify-center">
+          <ChatOutlined size={25} />
+          <Text className="ml-2 text-sm">{props.comments}</Text>
+        </View>
       </View>
     </View>
-  )
-}
+  );
+};
+
+export default CommentInputBar;
