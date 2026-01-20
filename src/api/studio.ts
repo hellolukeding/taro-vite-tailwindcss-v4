@@ -3,9 +3,10 @@
  */
 import type { ModelInfo, TaskStatus, TaskSubmitParams } from "@/types";
 import Taro from "@tarojs/taro";
+import { API_BASE_URL } from "@/utils/constants";
 import client from "./client";
 
-const BASE_URL = process.env.TARO_APP_API_URL || "http://localhost:8000/api/v1";
+const BASE_URL = API_BASE_URL;
 
 export interface RandomPrompt {
   prompt: string;

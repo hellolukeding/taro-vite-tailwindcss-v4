@@ -7,7 +7,7 @@
 // 2. 微信开发者工具已勾选"不校验合法域名"
 // 3. 如果图片无法显示，检查隧道是否正常工作
 export const BASE_URL =
-  "https://copper-information-millions-resolved.trycloudflare.com";
+  "https://stripes-pattern-tuesday-truth.trycloudflare.com";
 
 // 如果不使用Cloudflare隧道，改用本地地址（仅在开发工具中使用）：
 // export const BASE_URL = "http://127.0.0.1:8000";

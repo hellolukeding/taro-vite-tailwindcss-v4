@@ -1,9 +1,7 @@
 import { Uploader } from "@taroify/core"
 import { getAuthToken } from "@/utils/storage"
 import { studioApi } from "@/api/studio"
-import { Button } from "@taroify/core"
-import { Image, Text, View } from "@tarojs/components"
-import { PhotoOutlined } from "@taroify/icons"
+import { Text, View } from "@tarojs/components"
 import Taro from "@tarojs/taro"
 import { useState } from "react"
 import type { Uploader as TaroUploader } from "@taroify/core"
@@ -23,7 +21,7 @@ const ImgUploader: React.FC<ImgUploaderProps> = ({
   const files = value
 
   // 处理选择图片并上传
-  async function handleSelectImage() {
+  async function handleUpload() {
     if (uploading) return
 
     if (files.length >= maxCount) {
@@ -53,6 +51,18 @@ const ImgUploader: React.FC<ImgUploaderProps> = ({
         return
       }
 
+      // 创建带上传状态的文件对象
+      const uploadingFiles = res.tempFilePaths.map((filePath) => ({
+        type: "image" as const,
+        url: filePath,
+        status: "uploading" as const,
+        message: "上传中...",
+      }))
+
+      // 先添加显示上传中的状态
+      const newFiles = [...files, ...uploadingFiles]
+      onChange?.(newFiles)
+
       // 逐个上传图片到服务器
       const uploadPromises = res.tempFilePaths.map(async (filePath, index) => {
         try {
@@ -67,39 +77,44 @@ const ImgUploader: React.FC<ImgUploaderProps> = ({
               name: result.data.filename || `image_${Date.now()}_${index}`,
             }
           } else {
-            console.error("Upload failed:", result.message)
-            return null
+            return {
+              type: "image" as const,
+              url: filePath,
+              status: "failed" as const,
+              message: result.message || "上传失败",
+            }
           }
         } catch (error: any) {
-          console.error("Upload error:", error)
-          return null
+          return {
+            type: "image" as const,
+            url: filePath,
+            status: "failed" as const,
+            message: error.message || "上传失败",
+          }
         }
       })
 
       const uploadedFiles = await Promise.all(uploadPromises)
 
-      // 过滤掉上传失败的文件
-      const successfulFiles = uploadedFiles.filter(f => f !== null) as TaroUploader.File[]
-
       Taro.hideLoading()
 
-      // 更新文件列表
-      if (successfulFiles.length > 0) {
-        const newFiles = [...files, ...successfulFiles]
-        onChange?.(newFiles)
+      // 更新文件列表 - 替换上传中的文件为最终状态
+      const finalFiles = [
+        ...files,
+        ...uploadedFiles
+      ]
+      onChange?.(finalFiles)
 
+      // 统计成功数量
+      const successCount = uploadedFiles.filter(f => f.status === "completed").length
+      if (successCount > 0) {
         Taro.showToast({
-          title: `成功上传${successfulFiles.length}张图片`,
+          title: `成功上传${successCount}张图片`,
           icon: "success"
-        })
-      } else {
-        Taro.showToast({
-          title: "上传失败，请重试",
-          icon: "none"
         })
       }
     } catch (error: any) {
-      console.error("Select image error:", error)
+      console.error("Upload error:", error)
       // 用户取消选择图片时不显示错误
       if (error.errMsg && !error.errMsg.includes("cancel")) {
         Taro.showToast({
@@ -111,13 +126,6 @@ const ImgUploader: React.FC<ImgUploaderProps> = ({
       setUploading(false)
       Taro.hideLoading()
     }
-  }
-
-  // 处理删除图片
-  function handleDelete(index: number) {
-    const newFiles = [...files]
-    newFiles.splice(index, 1)
-    onChange?.(newFiles)
   }
 
   return (
@@ -137,42 +145,14 @@ const ImgUploader: React.FC<ImgUploaderProps> = ({
         上传后，AI将参考图片内容进行创作
       </View>
 
-      {/* 图片预览区域 */}
-      {files.length > 0 && (
-        <View className='flex flex-wrap gap-2 mb-3'>
-          {files.map((file, index) => (
-            <View key={index} className='relative w-20 h-20 rounded-lg overflow-hidden'>
-              <Image
-                src={file.url}
-                className='w-full h-full'
-                mode='aspectFill'
-              />
-              {!uploading && (
-                <View
-                  className='absolute top-0 right-0 bg-red-500 text-white w-5 h-5 flex items-center justify-center rounded-bl'
-                  onClick={() => handleDelete(index)}
-                >
-                  <Text className='text-white text-xs'>×</Text>
-                </View>
-              )}
-            </View>
-          ))}
-        </View>
-      )}
-
-      {/* 上传按钮 */}
-      {files.length < maxCount && (
-        <Button
-          icon={<PhotoOutlined />}
-          size='small'
-          color='primary'
-          disabled={uploading}
-          onClick={handleSelectImage}
-          className='w-full'
-        >
-          {uploading ? '上传中...' : '选择图片'}
-        </Button>
-      )}
+      <Uploader
+        value={files}
+        multiple
+        maxFiles={maxCount}
+        onUpload={handleUpload}
+        onChange={onChange}
+        disabled={uploading}
+      />
     </View>
   )
 }
