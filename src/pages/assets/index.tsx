@@ -7,9 +7,10 @@ import { useAuth } from "@/hooks/useAuth";
 import type { MockTask } from "@/mock/tasks";
 import type { TaskItem } from "@/types";
 import { ArrowLeft } from "@taroify/icons";
-import { ScrollView, Text, View } from "@tarojs/components";
-import Taro, { usePullDownRefresh, useReachBottom } from "@tarojs/taro";
+import { Image, ScrollView, Text, View } from "@tarojs/components";
+import Taro, { useDidHide, useDidShow, usePullDownRefresh, useReachBottom } from "@tarojs/taro";
 import { useCallback, useEffect, useRef, useState } from "react";
+import "./index.css";
 
 interface AssetsProps { }
 
@@ -22,10 +23,77 @@ const Assets: React.FC<AssetsProps> = () => {
   const tasksRef = useRef<TaskItem[]>([]);
   const loadingRef = useRef(false);
 
+  // Smart polling state
+  const pollingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pollCountRef = useRef(0);
+  const maxPolls = 30; // Stop after 30 polls (about 5 minutes)
+  const isTabActiveRef = useRef(true);
+
   // Keep ref in sync with state
   useEffect(() => {
     tasksRef.current = tasks;
   }, [tasks]);
+
+  // Smart polling function with exponential backoff
+  const startPolling = useCallback(() => {
+    // Only poll for "in progress" tab (activeTab === 0)
+    if (activeTab !== 0 || !isTabActiveRef.current) {
+      stopPolling();
+      return;
+    }
+
+    // Clear existing timer
+    if (pollingTimerRef.current) {
+      clearInterval(pollingTimerRef.current);
+    }
+
+    // Check if there are active tasks
+    const hasActiveTasks = tasksRef.current.some(t =>
+      [0, 1, 2].includes(t.status) // pending, processing, uploading
+    );
+
+    if (!hasActiveTasks) {
+      console.log('[Assets] No active tasks, stopping polling');
+      stopPolling();
+      return;
+    }
+
+    // Calculate poll interval with exponential backoff: 3s → 5s → 10s
+    const getPollInterval = () => {
+      const count = pollCountRef.current;
+      if (count < 5) return 3000;      // First 5 polls: 3s
+      if (count < 10) return 5000;     // Next 5 polls: 5s
+      return 10000;                    // After that: 10s
+    };
+
+    pollingTimerRef.current = setInterval(() => {
+      pollCountRef.current++;
+
+      // Stop after max polls
+      if (pollCountRef.current >= maxPolls) {
+        console.log('[Assets] Max polls reached, stopping');
+        stopPolling();
+        return;
+      }
+
+      console.log(`[Assets] Polling... (${pollCountRef.current}/${maxPolls})`);
+
+      // Refresh task list silently (no loading indicator)
+      loadTasks(false);
+    }, getPollInterval());
+
+    console.log(`[Assets] Polling started: ${getPollInterval() / 1000}s interval`);
+  }, [activeTab, loadTasks]);
+
+  // Stop polling function
+  const stopPolling = useCallback(() => {
+    if (pollingTimerRef.current) {
+      clearInterval(pollingTimerRef.current);
+      pollingTimerRef.current = null;
+      pollCountRef.current = 0;
+      console.log('[Assets] Polling stopped');
+    }
+  }, []);
 
   // 加载任务列表
   const loadTasks = useCallback(
@@ -67,10 +135,41 @@ const Assets: React.FC<AssetsProps> = () => {
     [activeTab, isLogin],
   );
 
-  // 切换标签时重新加载（未登录时API会返回空数据或错误，在loadTasks中处理）
+  // 切换标签时重新加载并控制轮询
   useEffect(() => {
     loadTasks(false);
-  }, [activeTab, loadTasks]);
+
+    // Start polling for "in progress" tab (activeTab === 0)
+    if (activeTab === 0 && isLogin) {
+      startPolling();
+    } else {
+      stopPolling();
+    }
+  }, [activeTab, isLogin, loadTasks, startPolling, stopPolling]);
+
+  // Pause polling when page is hidden
+  useDidHide(() => {
+    console.log('[Assets] Page hidden, pausing polling');
+    isTabActiveRef.current = false;
+    stopPolling();
+  });
+
+  // Resume polling when page is shown
+  useDidShow(() => {
+    console.log('[Assets] Page shown, resuming polling');
+    isTabActiveRef.current = true;
+    if (activeTab === 0 && isLogin) {
+      startPolling();
+    }
+  });
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      console.log('[Assets] Component unmounting, cleaning up polling');
+      stopPolling();
+    };
+  }, [stopPolling]);
 
   // 下拉刷新
   usePullDownRefresh(() => {
@@ -191,6 +290,30 @@ const Assets: React.FC<AssetsProps> = () => {
     });
   };
 
+  // 点击任务查看详情
+  const handleTaskClick = (task: TaskItem) => {
+    // 检查登录状态
+    if (!isLogin) {
+      Taro.showModal({
+        title: "提示",
+        content: "请先登录后进行操作",
+        confirmText: "去登录",
+        cancelText: "取消",
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({ url: "/packageUser/pages/login/index" });
+          }
+        },
+      });
+      return;
+    }
+
+    // 跳转到任务详情页面，传递任务ID
+    Taro.navigateTo({
+      url: `/packageTask/pages/task-detail/index?taskId=${task.task_id}`,
+    });
+  };
+
   // 转换 TaskItem 到 MockTask 格式
   const transformToMockTask = (task: TaskItem): MockTask => {
     const time = (() => {
@@ -279,56 +402,108 @@ const Assets: React.FC<AssetsProps> = () => {
                   <Text>暂无进行中的任务</Text>
                 </View>
               ) : (
-                tasks.map((task) => (
-                  <InProgressTaskCard
-                    key={task.task_id}
-                    id={task.task_id}
-                    title={
-                      task.prompt.length > 30
-                        ? task.prompt.substring(0, 30) + "..."
-                        : task.prompt
-                    }
-                    description={task.model_name}
-                    progress={0}
-                    status="queued"
-                    onCancel={handleCancelTask}
-                  />
-                ))
+                tasks.map((task) => {
+                  // 根据任务状态确定卡片状态
+                  // status: 0=pending(排队中), 1=processing(处理中), 2=uploading(上传中), 4=failed(失败), 5=violation(违规)
+                  const isQueued = task.status === 0;
+                  const isFailed = task.status === 4 || task.status === 5;
+                  const cardStatus = isQueued ? 'queued' : (isFailed ? 'failed' : 'progress');
+
+                  return (
+                    <InProgressTaskCard
+                      key={task.task_id}
+                      id={task.task_id}
+                      title={
+                        task.prompt.length > 30
+                          ? task.prompt.substring(0, 30) + "..."
+                          : task.prompt
+                      }
+                      description={task.model_name}
+                      progress={task.progress || 0}
+                      status={cardStatus}
+                      errorMessage={task.error_message || undefined}
+                      onCancel={handleCancelTask}
+                    />
+                  );
+                })
               )}
             </View>
           ) : (
-            <View className="px-4 py-4 space-y-4">
-              <View className="flex items-center justify-between px-1 pt-2 border-t border-gray-100">
-                <Text className="text-xl font-bold">已完成</Text>
-                <View className="text-xs font-medium text-gray-500 flex items-center gap-0.5">
-                  <Text>批量管理</Text>
-                  <Icon name="checklist" size={14} />
-                </View>
-              </View>
-
-              <View className="grid grid-cols-2 gap-4">
-                {tasks.length === 0 && !loadingTasks ? (
-                  <View className="col-span-2 text-center py-8 text-gray-400">
-                    <Text>暂无已完成的任务</Text>
-                  </View>
-                ) : (
-                  tasks.map((task) => {
+            <View className="px-4 py-4">
+              {/* 瀑布流作品列表 */}
+              <View className='works'>
+                {/* 左列 */}
+                <View className='column'>
+                  {tasks.filter((_, i) => i % 2 === 0).map((task) => {
                     const mockTask = transformToMockTask(task);
                     return (
-                      <View key={task.task_id} className="relative">
-                        <TaskCard task={mockTask} />
-                        {/* 添加长按删除功能 */}
-                        <View
-                          className="absolute top-0 right-0 bg-red-500 text-white w-6 h-6 flex items-center justify-center rounded-full z-10"
-                          onClick={() => handleDeleteTask(task.task_id)}
-                        >
-                          <Text className="text-xs">×</Text>
+                      <View key={task.task_id} className='work-card' onClick={() => {
+                        handleTaskClick(task);
+                      }}>
+                        <Image
+                          src={task.thumbnail_url || task.image_url || ''}
+                          className='work-img'
+                          mode='aspectFill'
+                          lazyLoad
+                        />
+                        <Text className='work-prompt text-lg'>
+                          {task.prompt.length > 50 ? task.prompt.substring(0, 50) + '...' : task.prompt}
+                        </Text>
+                        <View className='work-footer'>
+                          <View className='work-author'>
+                            <Text className='author-name'>{task.model_name || task.model_id}</Text>
+                          </View>
+                          <View className='work-stats'>
+                            <View className='work-likes text-lg'>
+                              <Icon name="schedule" size={16} color="#9CA3AF" />
+                              <Text className='stats-num ml-1'>{mockTask.time}</Text>
+                            </View>
+                          </View>
                         </View>
                       </View>
                     );
-                  })
-                )}
+                  })}
+                </View>
+                {/* 右列 */}
+                <View className='column'>
+                  {tasks.filter((_, i) => i % 2 === 1).map((task) => {
+                    const mockTask = transformToMockTask(task);
+                    return (
+                      <View key={task.task_id} className='work-card' onClick={() => {
+                        handleTaskClick(task);
+                      }}>
+                        <Image
+                          src={task.thumbnail_url || task.image_url || ''}
+                          className='work-img'
+                          mode='aspectFill'
+                          lazyLoad
+                        />
+                        <Text className='work-prompt text-lg'>
+                          {task.prompt.length > 50 ? task.prompt.substring(0, 50) + '...' : task.prompt}
+                        </Text>
+                        <View className='work-footer'>
+                          <View className='work-author'>
+                            <Text className='author-name'>{task.model_name || task.model_id}</Text>
+                          </View>
+                          <View className='work-stats'>
+                            <View className='work-likes text-lg'>
+                              <Icon name="schedule" size={16} color="#9CA3AF" />
+                              <Text className='stats-num ml-1'>{mockTask.time}</Text>
+                            </View>
+                          </View>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
               </View>
+
+              {/* 空状态 */}
+              {tasks.length === 0 && !loadingTasks && (
+                <View className="text-center py-8 text-gray-400">
+                  <Text>暂无已完成的任务</Text>
+                </View>
+              )}
             </View>
           )}
         </ScrollView>

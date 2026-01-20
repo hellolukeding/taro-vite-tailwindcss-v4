@@ -6,7 +6,8 @@ interface InProgressTaskProps {
   title: string
   description: string
   progress?: number // 0-100, undefined means queued
-  status: 'progress' | 'queued'
+  status: 'progress' | 'queued' | 'failed'
+  errorMessage?: string // 失败错误信息
   onCancel?: (id: string) => void
 }
 
@@ -16,6 +17,7 @@ export function InProgressTaskCard({
   description,
   progress,
   status,
+  errorMessage,
   onCancel,
 }: InProgressTaskProps) {
   return (
@@ -30,6 +32,10 @@ export function InProgressTaskCard({
                 <Icon name='refresh' size={24} color='#9CA3AF' />
               </View>
             </>
+          ) : status === 'failed' ? (
+            <View className='w-full h-full flex items-center justify-center bg-red-50'>
+              <Icon name='error_outline' size={24} color='#EF4444' />
+            </View>
           ) : (
             <View className='w-full h-full flex items-center justify-center'>
               <Icon name='hourglass_empty' size={24} color='#D1D5DB' />
@@ -48,6 +54,8 @@ export function InProgressTaskCard({
                 <Text className='text-xs font-bold font-mono text-black'>
                   {progress}%
                 </Text>
+              ) : status === 'failed' ? (
+                <Text className='text-xs font-bold text-red-500'>生成失败</Text>
               ) : (
                 <Text className='text-xs font-bold text-gray-400'>排队中</Text>
               )}
@@ -55,6 +63,11 @@ export function InProgressTaskCard({
             <Text className='text-xs text-gray-500' numberOfLines={1}>
               {description}
             </Text>
+            {status === 'failed' && errorMessage && (
+              <Text className='text-xs text-red-500 mt-1' numberOfLines={2}>
+                {errorMessage}
+              </Text>
+            )}
           </View>
 
           {/* Progress Bar */}
@@ -64,6 +77,8 @@ export function InProgressTaskCard({
                 className='h-full bg-black rounded-full'
                 style={{ width: `${progress}%` }}
               />
+            ) : status === 'failed' ? (
+              <View className='w-full h-full bg-red-500 rounded-full' />
             ) : (
               <View className='w-1/3 h-full bg-gray-300 rounded-full animate-pulse' />
             )}
@@ -73,13 +88,24 @@ export function InProgressTaskCard({
 
       {/* Actions */}
       <View className='flex items-center justify-end gap-2'>
-        <View
-          onClick={() => onCancel?.(id)}
-          className='px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-medium flex items-center gap-1 active:bg-gray-50'
-        >
-          <Icon name='close' size={14} />
-          <Text>取消任务</Text>
-        </View>
+        {status !== 'failed' && (
+          <View
+            onClick={() => onCancel?.(id)}
+            className='px-4 py-1.5 rounded-lg border border-gray-200 text-xs font-medium flex items-center gap-1 active:bg-gray-50'
+          >
+            <Icon name='close' size={14} />
+            <Text>取消任务</Text>
+          </View>
+        )}
+        {status === 'failed' && (
+          <View
+            onClick={() => onCancel?.(id)}
+            className='px-4 py-1.5 rounded-lg border border-red-200 bg-red-50 text-xs font-medium flex items-center gap-1 active:bg-red-100'
+          >
+            <Icon name='delete' size={14} />
+            <Text className='text-red-600'>删除任务</Text>
+          </View>
+        )}
       </View>
     </View>
   )

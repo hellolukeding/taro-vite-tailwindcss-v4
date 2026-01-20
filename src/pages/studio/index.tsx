@@ -212,9 +212,27 @@ const Studio: React.FC<StudioProps> = (props) => {
         image_urls: imageUrls.length > 0 ? imageUrls : undefined,
       });
 
-      Taro.redirectTo({
-        url: `/pages/result/index?taskId=${result.task_id}`,
+      // 显示提交成功的提示
+      // client已经自动解包了data，所以result直接就是task数据
+      console.log('Submit task result:', result);
+
+      Taro.showToast({
+        title: result.message || "任务已提交",
+        icon: "success",
+        duration: 1500,
       });
+
+      // 清空表单
+      setPrompt("");
+      setUploadedImages([]);
+      setEstimatedCost(0);
+
+      // 延迟跳转到资产页面，让用户看到提示
+      setTimeout(() => {
+        Taro.redirectTo({
+          url: `/pages/assets/index`,
+        });
+      }, 500);
     } catch (error: any) {
       console.error("Submit task error:", error);
       Taro.showToast({

@@ -112,6 +112,7 @@ export interface TaskItem {
   thumbnail_url: string | null
   status: number
   status_text: string
+  progress?: number // 任务进度 0-100
   publish_status: number
   publish_status_text: string
   created_at: string

@@ -1,3 +1,13 @@
 @import "weapp-tailwindcss";
 
 @config "../tailwind.config.js";
+
+/* 霓虹灯跑马灯动画 */
+@keyframes neon-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
