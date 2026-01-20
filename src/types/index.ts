@@ -93,6 +93,7 @@ export interface TaskSubmitParams {
   model_id: string
   prompt: string
   negative_prompt?: string
+  image_urls?: string[]
   parameters: {
     width: number
     height: number

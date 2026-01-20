@@ -26,6 +26,7 @@ export default defineConfig<'vite'>(async (merge) => {
     outputRoot: 'dist',
     plugins: [],
     defineConstants: {
+      'process.env.TARO_APP_API_URL': JSON.stringify(process.env.TARO_APP_API_URL || 'http://localhost:8000/api/v1'),
     },
     copy: {
       patterns: [
