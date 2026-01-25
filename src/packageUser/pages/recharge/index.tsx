@@ -1,14 +1,14 @@
 import { paymentApi } from "@/api";
 import CommonWarp from "@/components/CommonWarp";
+import { useAuth } from "@/hooks/useAuth";
+import { useUser } from "@/store";
+import type { Package } from "@/types";
 import { Button, Field, Input, RollingText } from "@taroify/core";
 import { Arrow, Award, BrushOutlined, Completed, Diamond, Hot, MedalOutlined, VipCard } from "@taroify/icons";
 import { Text, View } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import useRequest from "ahooks/lib/useRequest";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useUser } from "@/store";
-import type { Package } from "@/types";
 import "./index.scss";
 
 interface RechargeProps { }
@@ -144,10 +144,10 @@ const Recharge: React.FC<RechargeProps> = (props) => {
                   {pkg.credits} 积分
                 </Text>
                 <Text className='font-semibold text-2xl mt-2'>
-                  ￥{pkg.price}
+                  ￥{parseFloat(pkg.price)}
                 </Text>
                 <Text className='line-through opacity-85 mt-2'>
-                  ￥{pkg.original_price}
+                  ￥{pkg.original_price ? parseFloat(pkg.original_price) : '-'}
                 </Text>
               </View>
             )
@@ -195,7 +195,7 @@ const Recharge: React.FC<RechargeProps> = (props) => {
                     <View className='text-xl font-semibold flex items-center'>
                       <VipCard size={30} />
                       <Text className='ml-2'>
-                        会员权益
+                        {pkg.name}
                       </Text>
                     </View>
                     <Text className='text-xs'>{pkg.description}</Text>
@@ -214,8 +214,8 @@ const Recharge: React.FC<RechargeProps> = (props) => {
                     </View>
 
                     <View className='absolute bottom-2 right-2 flex flex-col justify-end items-end'>
-                      <Text className='text-3xl font-semibold'>{`¥${pkg.price}`}</Text>
-                      <Text className='line-through opacity-85'>{`¥${pkg.original_price}`}</Text>
+                      <Text className='text-3xl font-semibold'>{`¥${parseFloat(pkg.price)}`}</Text>
+                      <Text className='line-through opacity-85'>{`¥${pkg.original_price ? parseFloat(pkg.original_price) : '-'}`}</Text>
                     </View>
                   </View>
 
@@ -230,7 +230,7 @@ const Recharge: React.FC<RechargeProps> = (props) => {
       <View className='w-screen z-50 fixed bottom-0 left-0 h-30 flex bg-white items-center justify-between px-6 py-4 shadow-t-lg'>
 
         <View className='flex flex-col'>
-          <Text className='text-2xl font-semibold'>{`¥ ${selectedPackage?.price || 0}`}</Text>
+          <Text className='text-2xl font-semibold'>{`¥ ${selectedPackage ? parseFloat(selectedPackage.price) : 0}`}</Text>
           <Text className='text-xs'>应付金额</Text>
         </View>
 

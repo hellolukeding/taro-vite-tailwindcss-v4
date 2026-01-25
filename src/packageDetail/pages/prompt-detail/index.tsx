@@ -9,6 +9,7 @@ import { PromptDetailParameters } from "@/components/business/PromptDetailParame
 import { useAuth } from "@/hooks/useAuth";
 import * as promptApi from "@/services/promptApi";
 import { mapCommentListFromApi } from "@/utils/commentMapper";
+import { smartExtractPrompt } from "@/utils/promptExtractor";
 import { toast } from "@/utils/toast";
 import { normalizeUrl } from "@/utils/url";
 import { ScrollView, Text, View } from "@tarojs/components";
@@ -211,8 +212,39 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
   const handleCreateSimilar = useCallback(async () => {
     const isLogin = await requireLoginRedirect();
     if (!isLogin) return;
-    toast.success("即将跳转到创作页面");
-  }, [requireLoginRedirect]);
+
+    // 检查是否有提示词数据
+    if (!state.data?.prompts) {
+      toast.error("没有可用的提示词");
+      return;
+    }
+
+    // 使用智能提取函数获取最佳提示词
+    const promptText = smartExtractPrompt(state.data.prompts);
+
+    if (!promptText) {
+      toast.error("提示词格式错误或内容为空");
+      console.error("[handleCreateSimilar] 提取失败, 原始数据:", state.data.prompts);
+      return;
+    }
+
+    console.log("[handleCreateSimilar] ✅ 成功提取提示词, 长度:", promptText.length);
+    console.log("[handleCreateSimilar] 提取的提示词:", promptText);
+
+    try {
+      // Studio 页面是 tabBar 页面，需要用 switchTab 跳转
+      // 先将 prompt 存储到本地
+      Taro.setStorageSync('prompt_from_detail', promptText);
+
+      // 使用 switchTab 跳转
+      Taro.switchTab({
+        url: '/pages/studio/index',
+      });
+    } catch (error) {
+      console.error("跳转失败:", error);
+      toast.error("跳转失败");
+    }
+  }, [requireLoginRedirect, state.data?.prompts]);
 
   // 加载评论列表
   const loadComments = useCallback(async () => {
@@ -427,6 +459,7 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
               followers={state.data.followers}
               title={state.data.title}
               onFollow={handleFollow}
+              onUsePrompt={handleCreateSimilar}
             />
 
             {/* Prompt 内容 */}
@@ -435,16 +468,7 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
               onCopy={handleCopyPrompt}
             />
 
-            {/* 点赞、收藏、分享操作栏 */}
-            {/* <PromptDetailActions
-              liked={state.data.liked}
-              likes={state.data.likes}
-              bookmarked={state.data.bookmarked}
-              bookmarks={state.data.bookmarks}
-              onLike={handleLike}
-              onBookmark={handleBookmark}
-              onShare={handleShare}
-            /> */}
+
 
             {/* 参数展示 */}
             <PromptDetailParameters

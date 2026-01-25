@@ -1,3 +1,5 @@
+import { authApi } from "@/api";
+import { squareApi } from "@/api/square";
 import CommonHeader from "@/components/CommonHeader";
 import CommonWarp from "@/components/CommonWarp";
 import { Icon } from "@/components/common/Icon";
@@ -7,26 +9,15 @@ import { Add, Arrow, Fire, Warning } from "@taroify/icons";
 import { Image, ScrollView, Text, View } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { useEffect, useState } from "react";
-
-/**
- * TODO: 后端需要实现的统计接口
- * GET /api/user/stats
- *
- * Response:
- * {
- *   total_works: number,      // 总创作数
- *   total_likes: number,      // 获赞总数
- *   total_favorites: number,  // 收藏总数
- *   today_consumed: number,   // 今日消耗积分
- *   total_created: number     // 累计创作数
- * }
- */
+import type { WorkItem } from "@/types";
+import { normalizeUrl } from "@/utils/url";
+import "../index/index.css"; // 引入首页的瀑布流样式
 
 interface ProfileProps { }
 
 const Profile: React.FC<ProfileProps> = () => {
   const { isLogin, loading } = useAuth();
-  const { userInfo } = useUser();
+  const { userInfo, refreshUserInfo } = useUser();
 
   const [stats, setStats] = useState({
     totalWorks: 0,
@@ -35,6 +26,29 @@ const Profile: React.FC<ProfileProps> = () => {
     todayConsumed: userInfo?.vipInfo?.today_used || 0,
     totalCreated: 0,
   });
+
+  // 收藏作品列表状态
+  const [favorites, setFavorites] = useState<WorkItem[]>([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
+
+  // 加载收藏作品列表
+  const loadFavorites = async () => {
+    if (!isLogin) {
+      setFavorites([]);
+      return;
+    }
+
+    setFavoritesLoading(true);
+    try {
+      const data = await squareApi.getFavorites({ limit: 20 });
+      setFavorites(data.items || []);
+    } catch (error) {
+      console.error("加载收藏列表失败:", error);
+      setFavorites([]);
+    } finally {
+      setFavoritesLoading(false);
+    }
+  };
 
   // 当 userInfo 更新时同步更新今日消耗
   useEffect(() => {
@@ -60,22 +74,42 @@ const Profile: React.FC<ProfileProps> = () => {
       return;
     }
 
-    // 当前后端暂无统计API，使用默认值
-    // TODO: 等待后端实现 /api/user/stats 接口
-    // const stats = await userApi.getStats()
-    // setStats(stats)
+    try {
+      console.log('[Profile] 开始加载用户统计数据...');
+      // 调用后端统计接口
+      const statsData = await authApi.getUserStats();
+      console.log('[Profile] 统计数据返回:', statsData);
 
-    // 临时方案：使用 vipInfo 中的今日消耗
-    if (userInfo?.vipInfo) {
-      setStats((prev) => ({
-        ...prev,
-        todayConsumed: userInfo.vipInfo.today_used,
-      }));
+      setStats({
+        totalWorks: statsData.total_works,
+        likes: statsData.total_likes,
+        favorites: statsData.total_favorites,
+        todayConsumed: userInfo?.vipInfo?.today_used || 0,
+        totalCreated: statsData.total_created,
+      });
+      console.log('[Profile] 统计数据已更新');
+    } catch (error) {
+      console.error("[Profile] 加载统计数据失败:", error);
+      // 如果接口调用失败，使用默认值
+      setStats({
+        totalWorks: 0,
+        likes: 0,
+        favorites: 0,
+        todayConsumed: userInfo?.vipInfo?.today_used || 0,
+        totalCreated: 0,
+      });
     }
   };
 
   useDidShow(() => {
+    // 刷新用户信息（用户名、头像、积分等）
+    if (isLogin) {
+      refreshUserInfo();
+    }
+    // 刷新统计数据
     loadUserStats();
+    // 刷新收藏列表（每次打开页面都重新加载）
+    loadFavorites();
   });
 
   // 处理登录按钮点击
@@ -133,7 +167,7 @@ const Profile: React.FC<ProfileProps> = () => {
               <Text className="text-sm">
                 {stats.likes > 0 ? stats.likes : "-"}
               </Text>
-              <Text className="text-xs mt-1">收获点赞</Text>
+              <Text className="text-xs mt-1">点赞</Text>
             </View>
 
             <View className="flex flex-col ">
@@ -219,12 +253,132 @@ const Profile: React.FC<ProfileProps> = () => {
             </View>
           </View>
 
-          <View className="w-full px-4">
-            <Text className="font-semibold tracking-wide text-lg">
+          <View className="w-full pb-8">
+            <Text className="font-semibold tracking-wide text-lg mb-4 px-4">
               我的收藏
             </Text>
 
-            <ScrollView scrollY className="w-full "></ScrollView>
+            {/* 提示词瀑布流列表（复用首页样式） */}
+            {favoritesLoading ? (
+              <View className="text-center py-8 text-gray-400">
+                <Text>加载中...</Text>
+              </View>
+            ) : favorites.length === 0 ? (
+              <View className="text-center py-8 text-gray-400">
+                <Text>暂无收藏</Text>
+              </View>
+            ) : (
+              <View className='works'>
+                {/* 左列 */}
+                <View className='column'>
+                  {favorites.filter((_, i) => i % 2 === 0).map((work) => (
+                    <View
+                      key={work.id}
+                      className='work-card'
+                      onClick={() => {
+                        if (!isLogin) {
+                          Taro.showModal({
+                            title: "提示",
+                            content: "请先登录后查看",
+                            confirmText: "去登录",
+                            cancelText: "取消",
+                            success: (res) => {
+                              if (res.confirm) {
+                                Taro.navigateTo({ url: "/packageUser/pages/login/index" });
+                              }
+                            },
+                          });
+                          return;
+                        }
+                        Taro.navigateTo({
+                          url: `/packageDetail/pages/prompt-detail/index?id=${work.id}`,
+                        });
+                      }}
+                    >
+                      <Image
+                        src={normalizeUrl(work.cover_image)}
+                        className='work-img'
+                        mode='aspectFill'
+                        lazyLoad
+                      />
+                      <Text className='work-prompt text-lg'>{work.title}</Text>
+                      <View className='work-footer'>
+                        <View className='work-author'>
+                          {work.creator?.avatar_url && (
+                            <Image
+                              src={normalizeUrl(work.creator.avatar_url)}
+                              className='author-avatar'
+                              mode='aspectFill'
+                            />
+                          )}
+                          <Text className='author-name'>{work.creator?.nickname || work.model}</Text>
+                        </View>
+                        <View className='work-stats'>
+                          <View className='work-likes text-lg'>
+                            <Icon name="thumb_up" size={16} color="#F43F5E" />
+                            <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+                {/* 右列 */}
+                <View className='column'>
+                  {favorites.filter((_, i) => i % 2 === 1).map((work) => (
+                    <View
+                      key={work.id}
+                      className='work-card'
+                      onClick={() => {
+                        if (!isLogin) {
+                          Taro.showModal({
+                            title: "提示",
+                            content: "请先登录后查看",
+                            confirmText: "去登录",
+                            cancelText: "取消",
+                            success: (res) => {
+                              if (res.confirm) {
+                                Taro.navigateTo({ url: "/packageUser/pages/login/index" });
+                              }
+                            },
+                          });
+                          return;
+                        }
+                        Taro.navigateTo({
+                          url: `/packageDetail/pages/prompt-detail/index?id=${work.id}`,
+                        });
+                      }}
+                    >
+                      <Image
+                        src={normalizeUrl(work.cover_image)}
+                        className='work-img'
+                        mode='aspectFill'
+                        lazyLoad
+                      />
+                      <Text className='work-prompt text-lg'>{work.title}</Text>
+                      <View className='work-footer'>
+                        <View className='work-author'>
+                          {work.creator?.avatar_url && (
+                            <Image
+                              src={normalizeUrl(work.creator.avatar_url)}
+                              className='author-avatar'
+                              mode='aspectFill'
+                            />
+                          )}
+                          <Text className='author-name'>{work.creator?.nickname || work.model}</Text>
+                        </View>
+                        <View className='work-stats'>
+                          <View className='work-likes text-lg'>
+                            <Icon name="thumb_up" size={16} color="#F43F5E" />
+                            <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
           </View>
         </ScrollView>
       </View>

@@ -49,6 +49,24 @@ const Studio: React.FC<StudioProps> = (props) => {
     loadModels();
   }, []);
 
+  // 处理从提示词详情页传递过来的 prompt（通过 storage）
+  useEffect(() => {
+    // 检查是否有从提示词详情页传递过来的 prompt
+    try {
+      const promptFromDetail = Taro.getStorageSync('prompt_from_detail');
+
+      if (promptFromDetail) {
+        setPrompt(promptFromDetail);
+        console.log('[Studio] 从提示词详情页接收到 prompt:', promptFromDetail);
+
+        // 清除 storage 中的 prompt，避免下次打开时还在
+        Taro.removeStorageSync('prompt_from_detail');
+      }
+    } catch (error) {
+      console.error('[Studio] 读取 prompt 失败:', error);
+    }
+  }, []);
+
   // 当prompt、模型、比例变化时重新估算成本
   useEffect(() => {
     if (prompt && models.find((m) => m.isSelected)) {

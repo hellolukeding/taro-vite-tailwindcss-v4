@@ -61,4 +61,14 @@ export const squareApi = {
   }> {
     return client.post(`/miniprogram/square/work/${taskId}/favorite`)
   },
+
+  /**
+   * 获取用户收藏的作品列表
+   */
+  async getFavorites(params?: {
+    limit?: number
+    offset?: number
+  }): Promise<SquareFeedResponse> {
+    return client.get('/miniprogram/square/favorites', params)
+  },
 }

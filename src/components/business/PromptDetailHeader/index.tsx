@@ -6,7 +6,8 @@ interface PromptDetailHeaderProps {
   username: string
   followers: number
   title: string
-  onFollow: () => void
+  onFollow?: () => void
+  onUsePrompt?: () => void
 }
 
 export function PromptDetailHeader({
@@ -15,6 +16,7 @@ export function PromptDetailHeader({
   followers,
   title,
   onFollow,
+  onUsePrompt,
 }: PromptDetailHeaderProps) {
   return (
     <View className="flex flex-col gap-4">
@@ -37,9 +39,15 @@ export function PromptDetailHeader({
           size="small"
           shape="round"
           className="px-5 py-2"
-          onClick={onFollow}
+          onClick={onUsePrompt}
+          style={{
+            background: "#000",
+            color: "#fff",
+            paddingLeft: "5px",
+            paddingRight: "5px",
+          }}
         >
-          关注
+          一键使用
         </Button>
       </View>
       <Text className="text-2xl font-bold text-slate-900 leading-tight mt-1">

@@ -1,5 +1,4 @@
 import { Icon } from "@/components/common/Icon";
-import { Button } from "@taroify/core";
 import { Image, Text, View } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { useEffect, useState } from "react";
@@ -126,7 +125,7 @@ export function PromptDetailHero({
         )}
 
         {/* 顶部半透明悬浮导航 */}
-        {!imageError && (
+        {/* {!imageError && (
           <View className="absolute bottom-0 right-0 z-50 p-4">
             <Button
               onClick={handleMore}
@@ -141,25 +140,8 @@ export function PromptDetailHero({
               <Text className="text-white text-xl">⋯</Text>
             </Button>
           </View>
-        )}
-
-        {/* 全屏按钮 */}
-        {/* {onFullscreen && !imageError && (
-          <View className="absolute bottom-6 right-6">
-            <Button
-              onClick={onFullscreen}
-              className="bg-black/50 backdrop-blur-md p-2.5 rounded-full border border-white/20 transition-all duration-300 hover:bg-black/70"
-              style={{
-                padding: "10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Icon name="fullscreen" size={20} color="white" />
-            </Button>
-          </View>
         )} */}
+
 
         {/* 底部渐变遮罩 */}
         {!imageError && imageLoaded && (

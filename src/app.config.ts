@@ -62,6 +62,7 @@ export default defineAppConfig({
       root: 'packageDetail',
       pages: [
         'pages/prompt-detail/index',
+        'pages/task-detail/index',
       ],
       // independent: true // 移除独立分包配置以恢复样式继承
     }

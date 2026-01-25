@@ -73,18 +73,65 @@ export const authApi = {
    * 获取用户信息
    */
   async getUserProfile(): Promise<UserInfo> {
-    return client.get('/miniprogram/user/profile')
+    const data = await client.get<{user_id: string, nickname: string | null, avatar_url: string | null, gender?: string | null, birthday?: string | null, industry?: string | null, tags?: string[] | null, role: number, status: number, invite_code?: string | null, credits: number, created_at?: string | null, vip_info: any}>('/miniprogram/user/profile')
+
+    // 字段映射：后端使用下划线命名，前端使用驼峰命名
+    return {
+      userId: data.user_id,
+      nickname: data.nickname,
+      avatarUrl: data.avatar_url,
+      gender: data.gender,
+      birthday: data.birthday,
+      industry: data.industry,
+      tags: data.tags,
+      role: data.role,
+      status: data.status,
+      inviteCode: data.invite_code || undefined,
+      credits: data.credits,
+      createdAt: data.created_at,
+      vipInfo: data.vip_info,
+    }
+  },
+
+  /**
+   * 获取用户统计数据
+   */
+  async getUserStats(): Promise<{
+    total_works: number
+    total_created: number
+    total_likes: number
+    total_favorites: number
+  }> {
+    // client.get() 会自动解包 {success, data} 并返回 data
+    return client.get('/miniprogram/user/stats')
   },
 
   /**
    * 更新用户资料
    */
   async updateProfile(params: UpdateProfileParams): Promise<UserInfo> {
-    const result = await client.put<{ user_info: UserInfo }>(
+    const result = await client.put<{ user_info: {user_id: string, nickname: string | null, avatar_url: string | null, gender?: string | null, birthday?: string | null, industry?: string | null, tags?: string[] | null, role: number, status: number, invite_code?: string | null, credits: number, created_at?: string | null, vip_info: any} }>(
       '/miniprogram/user/profile',
       params
     )
-    return result.user_info
+    const data = result.user_info
+
+    // 字段映射：后端使用下划线命名，前端使用驼峰命名
+    return {
+      userId: data.user_id,
+      nickname: data.nickname,
+      avatarUrl: data.avatar_url,
+      gender: data.gender,
+      birthday: data.birthday,
+      industry: data.industry,
+      tags: data.tags,
+      role: data.role,
+      status: data.status,
+      inviteCode: data.invite_code || undefined,
+      credits: data.credits,
+      createdAt: data.created_at,
+      vipInfo: data.vip_info,
+    }
   },
 }
 

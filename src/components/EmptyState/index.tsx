@@ -1,6 +1,6 @@
-import { Text, View } from '@tarojs/components'
 import { Button } from '@taroify/core'
 import { Arrow } from '@taroify/icons'
+import { Text, View } from '@tarojs/components'
 import './index.scss'
 
 interface EmptyStateProps {
@@ -33,6 +33,10 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ type, onLogin }) => {
 
         <Button
           className='empty-state-button'
+          style={{
+            background: "#000",
+            color: "#fff"
+          }}
           color='primary'
           icon={<Arrow />}
           onClick={onLogin}

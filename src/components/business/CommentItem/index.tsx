@@ -1,5 +1,5 @@
-import { View, Text, Image } from '@tarojs/components'
-import { Icon } from '@/components/common/Icon'
+import { normalizeUrl } from '@/utils/url'
+import { Image, Text, View } from '@tarojs/components'
 
 interface CommentItemProps {
   avatar: string
@@ -20,12 +20,16 @@ export function CommentItem({
   onLike,
   onReply,
 }: CommentItemProps) {
+  // 如果头像为空，使用默认头像
+  const avatarUrl = avatar || '/minio/user-avatars/default-avatar.png'
+
   return (
     <View className='flex gap-4'>
       <View className='shrink-0'>
-        <View
-          className='w-10 h-10 rounded-full bg-gray-200 bg-cover bg-center'
-          style={{ backgroundImage: `url(${avatar})` }}
+        <Image
+          src={normalizeUrl(avatarUrl)}
+          className='w-10 h-10 rounded-full'
+          mode='aspectFill'
         />
       </View>
 
@@ -37,10 +41,10 @@ export function CommentItem({
         <Text className='text-sm text-slate-600 leading-relaxed'>{content}</Text>
         <View className='flex items-center gap-4 pt-1'>
           <Text className='text-slate-400 text-xs font-medium'>Reply</Text>
-          <View className='flex items-center gap-1 text-slate-400 hover:text-red-500 transition-colors'>
+          {/* <View className='flex items-center gap-1 text-slate-400 hover:text-red-500 transition-colors'>
             <Icon name='favorite' size={14} />
             <Text className='text-xs font-medium'>{likes}</Text>
-          </View>
+          </View> */}
         </View>
       </View>
     </View>

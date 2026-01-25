@@ -1,6 +1,7 @@
-import { Textarea, View, Text, Input } from "@tarojs/components";
-import { useState } from "react";
 import { toast } from "@/utils/toast";
+import { ChatOutlined, Like, LikeOutlined, Star, StarOutlined } from "@taroify/icons";
+import { Input, Text, Textarea, View } from "@tarojs/components";
+import { useState } from "react";
 
 interface CommentInputBarProps {
   liked: boolean;
@@ -99,32 +100,31 @@ const CommentInputBar: React.FC<CommentInputBarProps> = (props) => {
                 className="flex items-center"
                 onClick={props.onLike}
               >
-                <Text className={`text-2xl ${props.liked ? "text-red-500" : "text-slate-400"}`}>
-                  {props.liked ? "♥" : "♡"}
-                </Text>
+
+                {props.liked ? <Star size={20} color="#fb2c36" /> : <StarOutlined />}
+
                 <Text className="ml-1 text-sm text-gray-600">{props.likes}</Text>
               </View>
               <View
                 className="flex items-center"
                 onClick={props.onBookmark}
               >
-                <Text className={`text-2xl ${props.bookmarked ? "text-yellow-500" : "text-slate-400"}`}>
-                  {props.bookmarked ? "★" : "☆"}
-                </Text>
+
+                {props.bookmarked ? <Star size={20} color="#facc15" /> : <StarOutlined />}
+
                 <Text className="ml-1 text-sm text-gray-600">{props.bookmarks}</Text>
               </View>
               <View className="flex items-center">
-                <Text className="text-2xl text-slate-400">💬</Text>
+                <ChatOutlined size={20} />
                 <Text className="ml-1 text-sm text-gray-600">{props.comments}</Text>
               </View>
             </View>
 
             <View
-              className={`flex items-center justify-center px-6 py-2 rounded-full ${
-                inputValue.trim() && !props.loading
-                  ? "bg-blue-500"
-                  : "bg-gray-300"
-              }`}
+              className={`flex items-center justify-center px-6 py-2 rounded-full ${inputValue.trim() && !props.loading
+                ? "bg-blue-500"
+                : "bg-gray-300"
+                }`}
               onClick={handleSubmit}
             >
               <Text className="text-sm text-white font-medium">
@@ -149,22 +149,25 @@ const CommentInputBar: React.FC<CommentInputBarProps> = (props) => {
               className="flex items-center"
               onClick={props.onLike}
             >
-              <Text className={`text-2xl ${props.liked ? "text-red-500" : "text-slate-400"}`}>
-                {props.liked ? "♥" : "♡"}
-              </Text>
+
+              {props.liked ? <Like size={20} color="#fb2c36" /> : <LikeOutlined size={20} />}
+
               <Text className="ml-2 text-sm">{props.likes}</Text>
             </View>
             <View
               className="flex items-center"
               onClick={props.onBookmark}
             >
-              <Text className={`text-2xl ${props.bookmarked ? "text-yellow-500" : "text-slate-400"}`}>
-                {props.bookmarked ? "★" : "☆"}
-              </Text>
+
+              {props.bookmarked ? <Star size={20} color="#facc15" /> : <StarOutlined size={20} />}
+
               <Text className="ml-2 text-sm">{props.bookmarks}</Text>
             </View>
             <View className="flex items-center">
-              <Text className="text-2xl text-slate-400">💬</Text>
+
+
+              <ChatOutlined size={20} />
+
               <Text className="ml-2 text-sm">{props.comments}</Text>
             </View>
           </View>

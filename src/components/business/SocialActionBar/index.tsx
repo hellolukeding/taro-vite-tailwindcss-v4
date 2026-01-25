@@ -1,7 +1,7 @@
-import { View, Text } from '@tarojs/components'
-import { Button } from '@taroify/core'
-import { useState } from 'react'
 import { Icon } from '@/components/common/Icon'
+import { Button } from '@taroify/core'
+import { Text, View } from '@tarojs/components'
+import { useState } from 'react'
 
 interface SocialActionBarProps {
   likes?: number
@@ -61,15 +61,14 @@ export function SocialActionBar({
         className='flex flex-col items-center gap-2 transition-all duration-200 active:scale-95'
         disabled={liking}
       >
-        <View 
-          className={`flex items-center justify-center transition-all duration-200 ${
-            liked 
-              ? 'bg-black shadow-lg scale-110' 
+        <View
+          className={`flex items-center justify-center transition-all duration-200 ${liked
+              ? 'bg-black shadow-lg scale-110'
               : 'bg-gray-100 hover:bg-gray-200'
-          }`}
-          style={{ 
-            width: '44px', 
-            height: '44px', 
+            }`}
+          style={{
+            width: '44px',
+            height: '44px',
             borderRadius: '50%',
             boxShadow: liked ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
           }}
@@ -81,12 +80,11 @@ export function SocialActionBar({
             className={liked ? 'animate-pulse' : ''}
           />
         </View>
-        <Text 
-          className={`text-sm font-medium transition-colors duration-200 ${
-            liked 
-              ? 'text-black font-semibold' 
+        <Text
+          className={`text-sm font-medium transition-colors duration-200 ${liked
+              ? 'text-black font-semibold'
               : 'text-gray-500'
-          }`}
+            }`}
           style={{ fontSize: '13px' }}
         >
           {formatCount(likes)}
@@ -100,15 +98,14 @@ export function SocialActionBar({
         className='flex flex-col items-center gap-2 transition-all duration-200 active:scale-95'
         disabled={bookmarking}
       >
-        <View 
-          className={`flex items-center justify-center transition-all duration-200 ${
-            bookmarked 
-              ? 'bg-black shadow-lg scale-110' 
+        <View
+          className={`flex items-center justify-center transition-all duration-200 ${bookmarked
+              ? 'bg-black shadow-lg scale-110'
               : 'bg-gray-100 hover:bg-gray-200'
-          }`}
-          style={{ 
-            width: '44px', 
-            height: '44px', 
+            }`}
+          style={{
+            width: '44px',
+            height: '44px',
             borderRadius: '50%',
             boxShadow: bookmarked ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
           }}
@@ -120,12 +117,11 @@ export function SocialActionBar({
             className={bookmarked ? 'animate-pulse' : ''}
           />
         </View>
-        <Text 
-          className={`text-sm font-medium transition-colors duration-200 ${
-            bookmarked 
-              ? 'text-black font-semibold' 
+        <Text
+          className={`text-sm font-medium transition-colors duration-200 ${bookmarked
+              ? 'text-black font-semibold'
               : 'text-gray-500'
-          }`}
+            }`}
           style={{ fontSize: '13px' }}
         >
           {formatCount(bookmarks)}
@@ -138,17 +134,17 @@ export function SocialActionBar({
         variant='text'
         className='flex flex-col items-center gap-2 transition-all duration-200 active:scale-95'
       >
-        <View 
+        <View
           className='flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-all duration-200'
-          style={{ 
-            width: '44px', 
-            height: '44px', 
+          style={{
+            width: '44px',
+            height: '44px',
             borderRadius: '50%'
           }}
         >
           <Icon name='share' size={22} color='#64748b' />
         </View>
-        <Text 
+        <Text
           className='text-sm font-medium text-gray-500'
           style={{ fontSize: '13px' }}
         >

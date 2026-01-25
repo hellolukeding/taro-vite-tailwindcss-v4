@@ -1,12 +1,12 @@
 import { assetsApi } from "@/api";
 import CommonWarp from "@/components/CommonWarp";
 import { InProgressTaskCard } from "@/components/business/InProgressTaskCard";
-import { TaskCard } from "@/components/business/TaskCard";
-import { Icon } from "@/components/common/Icon";
 import { useAuth } from "@/hooks/useAuth";
 import type { MockTask } from "@/mock/tasks";
 import type { TaskItem } from "@/types";
-import { ArrowLeft } from "@taroify/icons";
+import { formatRelativeTime } from "@/utils/timeFormat";
+import { normalizeUrl } from "@/utils/url";
+import { ArrowLeft, UnderwayOutlined } from "@taroify/icons";
 import { Image, ScrollView, Text, View } from "@tarojs/components";
 import Taro, { useDidHide, useDidShow, usePullDownRefresh, useReachBottom } from "@tarojs/taro";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -308,24 +308,25 @@ const Assets: React.FC<AssetsProps> = () => {
       return;
     }
 
+    // 只允许查看已完成的任务
+    if (task.status !== 3) {
+      Taro.showToast({
+        title: "任务未完成，无法查看详情",
+        icon: "none"
+      });
+      return;
+    }
+
     // 跳转到任务详情页面，传递任务ID
     Taro.navigateTo({
-      url: `/packageTask/pages/task-detail/index?taskId=${task.task_id}`,
+      url: `/packageDetail/pages/task-detail/index?id=${task.task_id}`,
     });
   };
 
   // 转换 TaskItem 到 MockTask 格式
   const transformToMockTask = (task: TaskItem): MockTask => {
-    const time = (() => {
-      const date = new Date(task.created_at);
-      const now = new Date();
-      const diff = Math.floor((now.getTime() - date.getTime()) / 1000 / 60);
-
-      if (diff < 1) return "刚刚";
-      if (diff < 60) return `${diff}分钟前`;
-      if (diff < 1440) return `${Math.floor(diff / 60)}小时前`;
-      return `${Math.floor(diff / 1440)}天前`;
-    })();
+    // 使用时间格式化工具函数
+    const time = formatRelativeTime(task.created_at);
 
     // 根据状态映射
     let status: MockTask["status"] = "private";
@@ -439,9 +440,10 @@ const Assets: React.FC<AssetsProps> = () => {
                     return (
                       <View key={task.task_id} className='work-card' onClick={() => {
                         handleTaskClick(task);
-                      }}>
+                      }}
+                      >
                         <Image
-                          src={task.thumbnail_url || task.image_url || ''}
+                          src={normalizeUrl(task.image_url) || ''}
                           className='work-img'
                           mode='aspectFill'
                           lazyLoad
@@ -455,7 +457,7 @@ const Assets: React.FC<AssetsProps> = () => {
                           </View>
                           <View className='work-stats'>
                             <View className='work-likes text-lg'>
-                              <Icon name="schedule" size={16} color="#9CA3AF" />
+                              <UnderwayOutlined size={12} />
                               <Text className='stats-num ml-1'>{mockTask.time}</Text>
                             </View>
                           </View>
@@ -471,9 +473,10 @@ const Assets: React.FC<AssetsProps> = () => {
                     return (
                       <View key={task.task_id} className='work-card' onClick={() => {
                         handleTaskClick(task);
-                      }}>
+                      }}
+                      >
                         <Image
-                          src={task.thumbnail_url || task.image_url || ''}
+                          src={normalizeUrl(task.image_url) || ''}
                           className='work-img'
                           mode='aspectFill'
                           lazyLoad
@@ -487,7 +490,7 @@ const Assets: React.FC<AssetsProps> = () => {
                           </View>
                           <View className='work-stats'>
                             <View className='work-likes text-lg'>
-                              <Icon name="schedule" size={16} color="#9CA3AF" />
+                              <UnderwayOutlined size={12} />
                               <Text className='stats-num ml-1'>{mockTask.time}</Text>
                             </View>
                           </View>

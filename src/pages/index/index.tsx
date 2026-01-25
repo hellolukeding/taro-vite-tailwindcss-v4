@@ -1,15 +1,15 @@
 import { studioApi } from '@/api/studio'
 // 注意：原生 tabBar 已启用，不再需要自定义 BottomNav 组件
 // import { BottomNav } from '@/components/business/BottomNav'
+import { useAuth } from '@/hooks/useAuth'
 import { BASE_PAGE_SIZE } from '@/utils/constants'
 import { normalizeUrl } from '@/utils/url'
 import { Search, Tabs } from "@taroify/core"
-import { Icon } from '@/components/common/Icon'
+import { GoodJobOutlined } from '@taroify/icons'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import useRequest from 'ahooks/lib/useRequest'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useAuth } from '@/hooks/useAuth'
 import './index.css'
 
 export default function Index() {
@@ -234,8 +234,8 @@ export default function Index() {
                     <Text className='author-name'>{work.creator?.nickname || work.model}</Text>
                   </View>
                   <View className='work-stats'>
-                    <View className='work-likes text-lg'>
-                      <Icon name="thumb_up" size={16} color="#F43F5E" />
+                    <View className='work-likes text-lg flex items-center justify-center'>
+                      <GoodJobOutlined size={16} />
                       <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
                     </View>
                     {work.views_count > 0 && (
@@ -267,8 +267,8 @@ export default function Index() {
                     <Text className='author-name'>{work.creator?.nickname || work.model}</Text>
                   </View>
                   <View className='work-stats'>
-                    <View className='work-likes text-lg'>
-                      <Icon name="thumb_up" size={16} color="#F43F5E" />
+                    <View className='work-likes text-lg flex items-center justify-center'>
+                      <GoodJobOutlined size={16} />
                       <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
                     </View>
                     {work.views_count > 0 && (

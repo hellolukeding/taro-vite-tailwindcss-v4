@@ -3,7 +3,7 @@
  */
 import { authApi } from "@/api";
 import type { UserInfo } from "@/types";
-import { getUserInfo, removeAuthToken, removeUserInfo } from "@/utils/storage";
+import { getUserInfo, removeAuthToken, removeUserInfo, setUserInfo as saveUserInfo } from "@/utils/storage";
 import {
   createContext,
   ReactNode,
@@ -80,6 +80,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     try {
       const freshUserInfo = await authApi.getUserProfile();
       setUserInfo(freshUserInfo);
+      // Save to storage to persist the updated data
+      await saveUserInfo(freshUserInfo);
     } catch (error) {
       console.error("Refresh user info error:", error);
     }

@@ -1,6 +1,6 @@
-import { View, Image, Text, Button } from '@tarojs/components'
 import { Icon } from '@/components/common/Icon'
-import { MockTask, TaskStatus } from '@/mock/tasks'
+import { MockTask } from '@/mock/tasks'
+import { Button, Image, Text, View } from '@tarojs/components'
 
 interface TaskCardProps {
   task: MockTask
@@ -80,7 +80,13 @@ export function TaskCard({ task }: TaskCardProps) {
           <Text className='text-[10px] text-gray-400 mt-1'>网络连接超时</Text>
         </View>
         <View className='p-3 bg-white border-t border-gray-100'>
-          <Button className='w-full py-2 bg-gray-100 text-gray-600 text-[11px] font-bold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-1.5'>
+          <Button className='w-full py-2 bg-gray-100 text-gray-600 text-[11px] font-bold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-1.5'
+            style={{
+              background: "#000",
+              color: "#fff"
+            }}
+          >
+
             <Icon name='refresh' size={14} />
             重试
           </Button>

@@ -113,10 +113,13 @@ export interface TaskItem {
   status: number
   status_text: string
   progress?: number // 任务进度 0-100
+  error_message?: string | null
   publish_status: number
   publish_status_text: string
   created_at: string
   is_public: boolean
+  cost?: number
+  is_vip?: boolean
 }
 
 // ============ 分类相关 ============
