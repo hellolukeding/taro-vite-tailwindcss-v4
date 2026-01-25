@@ -5,12 +5,12 @@ import CommonWarp from "@/components/CommonWarp";
 import { Icon } from "@/components/common/Icon";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/store";
-import { Add, Arrow, Fire, Warning } from "@taroify/icons";
+import type { WorkItem } from "@/types";
+import { normalizeUrl } from "@/utils/url";
+import { Add, Arrow, Fire, GoodJobOutlined, Warning } from "@taroify/icons";
 import { Image, ScrollView, Text, View } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { useEffect, useState } from "react";
-import type { WorkItem } from "@/types";
-import { normalizeUrl } from "@/utils/url";
 import "../index/index.css"; // 引入首页的瀑布流样式
 
 interface ProfileProps { }
@@ -315,7 +315,7 @@ const Profile: React.FC<ProfileProps> = () => {
                         </View>
                         <View className='work-stats'>
                           <View className='work-likes text-lg'>
-                            <Icon name="thumb_up" size={16} color="#F43F5E" />
+                            <GoodJobOutlined size={16} />
                             <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
                           </View>
                         </View>
@@ -369,7 +369,7 @@ const Profile: React.FC<ProfileProps> = () => {
                         </View>
                         <View className='work-stats'>
                           <View className='work-likes text-lg'>
-                            <Icon name="thumb_up" size={16} color="#F43F5E" />
+                            <GoodJobOutlined size={16} />
                             <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
                           </View>
                         </View>
