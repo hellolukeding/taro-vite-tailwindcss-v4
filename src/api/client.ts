@@ -133,11 +133,17 @@ class APIClient {
       // 5. 返回业务数据
       // 兼容直接返回数据对象的情况(后端未包装success字段)
       if (responseData?.success) {
+        // 标准响应格式: { success: true, data: {...} }
         return returnFullResponse ? responseData : responseData.data
       } else if (responseData?.token || responseData?.user_info) {
         // 特殊处理登录接口: 如果没有success字段但包含关键登录信息，视为成功
         return returnFullResponse ? { success: true, data: responseData } : responseData
+      } else if (!responseData?.error?.message && !responseData?.detail) {
+        // 如果没有error字段，说明这是直接返回的业务数据(如工单列表响应)
+        // 此时HTTP状态码<400，直接返回数据
+        return responseData
       } else {
+        // 有明确的错误信息
         const errorMsg = responseData?.error?.message || responseData?.detail || '请求失败'
         if (!skipErrorTip) {
           Taro.showToast({

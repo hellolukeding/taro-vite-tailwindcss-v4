@@ -18,7 +18,7 @@ const CommonHeader: React.FC<CommonHeaderProps> = (props) => {
           onClick={() => Taro.navigateBack()}
         >
           {props.withBack && <ArrowLeft size={20} color="#fff" />}
-          <Text className="text-w hite text-xl font-semibold tracking-wide">
+          <Text className="text-white text-xl font-semibold tracking-wide">
             {props.title}
           </Text>
         </View>

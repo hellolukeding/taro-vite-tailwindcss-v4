@@ -218,6 +218,49 @@ const Studio: React.FC<StudioProps> = (props) => {
 
     setIsGenerating(true);
     try {
+      // 请求订阅消息
+      try {
+        const templateId = process.env.TARO_WECHAT_TASK_COMPLETE_TEMPLATE_ID;
+        if (!templateId) {
+          console.warn('未配置模板ID（TARO_WECHAT_TASK_COMPLETE_TEMPLATE_ID），跳过订阅消息');
+        } else {
+          const subscribeResult = await Taro.requestSubscribeMessage({
+            tmplIds: [templateId],
+          });
+
+          console.log('Subscribe result:', subscribeResult);
+
+          // 检查用户是否同意订阅
+          if (subscribeResult[templateId] === 'accept') {
+            console.log('用户同意订阅消息');
+            // 继续提交任务
+          } else if (subscribeResult[templateId] === 'reject') {
+            console.log('用户拒绝订阅消息');
+            // 用户拒绝，但仍允许继续生成任务
+            Taro.showToast({
+              title: '您拒绝了订阅消息通知',
+              icon: 'none',
+              duration: 2000
+            });
+          } else {
+            // 用户可能点击了关闭或其他情况，仍允许继续
+            console.log('订阅消息状态:', subscribeResult[templateId]);
+          }
+        }
+      } catch (subscribeError: any) {
+        console.error('Request subscribe message error:', subscribeError);
+        // 用户拒绝或出错，但仍允许继续生成任务
+        // 可能是用户点击了关闭弹窗
+        if (subscribeError.errMsg && !subscribeError.errMsg.includes('requestSubscribeMessage:fail')) {
+          Taro.showToast({
+            title: '订阅消息请求失败，将不接收通知',
+            icon: 'none',
+            duration: 2000
+          });
+        }
+      }
+
+      // 提交任务（无论用户是否同意订阅）
       const [width, height] = getResolutionFromRatio(selectedRatio);
 
       // 提取上传的图片路径

@@ -46,6 +46,13 @@ const UserDetail: React.FC = () => {
     })
   }
 
+  // 处理工单
+  const handleTickets = () => {
+    Taro.navigateTo({
+      url: '/packageUser/pages/tickets/index'
+    })
+  }
+
   // 处理退出登录
   const handleLogout = () => {
     Taro.showModal({
@@ -211,6 +218,17 @@ const UserDetail: React.FC = () => {
                   编辑资料
                 </View>
 
+              </View>
+
+              {/* 工单按钮 */}
+              <View className='mt-2'>
+                <View
+                  onClick={handleTickets}
+                  className='w-full py-3 bg-gray-300 text-black text-center rounded-full font-medium shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2'
+                >
+
+                  <Text>我的工单</Text>
+                </View>
               </View>
 
               <View className='mt-2'>

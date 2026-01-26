@@ -56,6 +56,9 @@ export default defineAppConfig({
         'pages/result/index',
         'pages/recharge/index',
         'pages/agreement/index',
+        'pages/tickets/index',
+        'pages/tickets/create',
+        'pages/tickets/detail',
       ]
     },
     {

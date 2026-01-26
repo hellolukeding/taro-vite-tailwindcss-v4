@@ -174,9 +174,11 @@ export const studioApi = {
         success: (res) => {
           if (res.statusCode === 200) {
             try {
-              const data = JSON.parse(res.data);
+              // 兼容不同环境：res.data 可能是字符串或对象
+              const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
               resolve(data);
             } catch (e) {
+              console.error('解析上传响应失败:', res.data, e);
               reject(new Error("解析响应失败"));
             }
           } else {

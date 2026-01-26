@@ -1,0 +1,226 @@
+.ticket-detail-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f5f5f5;
+
+  .header {
+    display: flex;
+    align-items: center;
+    padding: 24px;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+
+    .back-button {
+      padding: 8px;
+      margin-right: 16px;
+    }
+
+    .page-title {
+      font-size: 36px;
+      font-weight: 600;
+      color: #000;
+    }
+  }
+
+  .loading-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-size: 32px;
+    color: #999;
+  }
+
+  .content {
+    flex: 1;
+    padding: 20px;
+  }
+
+  .ticket-info-card {
+    background-color: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #f5f5f5;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .label {
+        font-size: 28px;
+        color: #666;
+      }
+
+      .value {
+        font-size: 28px;
+        color: #000;
+        font-weight: 500;
+
+        &.priority {
+          font-weight: 600;
+        }
+      }
+
+      .status-badge {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 24px;
+        color: #fff;
+      }
+    }
+  }
+
+  .ticket-content {
+    background-color: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+
+    .ticket-title {
+      font-size: 32px;
+      font-weight: 600;
+      color: #000;
+      margin-bottom: 16px;
+    }
+
+    .ticket-desc {
+      font-size: 28px;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .related-info {
+      display: flex;
+      align-items: center;
+      font-size: 26px;
+      margin-top: 12px;
+
+      .related-label {
+        color: #999;
+      }
+
+      .related-value {
+        color: #667eea;
+        margin-left: 8px;
+      }
+    }
+  }
+
+  .messages-section {
+    background-color: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+
+    .section-title {
+      font-size: 30px;
+      font-weight: 600;
+      color: #000;
+      margin-bottom: 20px;
+    }
+
+    .empty-messages {
+      padding: 60px 0;
+      text-align: center;
+
+      .empty-text {
+        font-size: 28px;
+        color: #999;
+      }
+    }
+
+    .message-item {
+      margin-bottom: 24px;
+      padding: 20px;
+      border-radius: 12px;
+      background-color: #f5f5f5;
+
+      &.user {
+        background-color: #e8f5e9;
+      }
+
+      &.admin {
+        background-color: #f5f5f5;
+      }
+
+      .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+
+        .sender-name {
+          font-size: 26px;
+          font-weight: 600;
+          color: #000;
+        }
+
+        .message-time {
+          font-size: 24px;
+          color: #999;
+        }
+      }
+
+      .message-content {
+        font-size: 28px;
+        color: #333;
+        line-height: 1.6;
+      }
+
+      .message-attachments {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 12px;
+
+        .attachment-image {
+          width: 160px;
+          height: 160px;
+          border-radius: 8px;
+        }
+      }
+    }
+  }
+
+  .input-section {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    background-color: #fff;
+    border-top: 1px solid #eee;
+
+    .message-input {
+      flex: 1;
+      height: 72px;
+      padding: 16px 24px;
+      border-radius: 36px;
+      background-color: #f5f5f5;
+      font-size: 28px;
+      border: none;
+    }
+
+    .send-button {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background-color: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 16px;
+
+      &.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+    }
+  }
+}
