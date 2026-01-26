@@ -26,7 +26,8 @@ export default defineConfig<'vite'>(async (merge) => {
     outputRoot: 'dist',
     plugins: [],
     defineConstants: {
-      'process.env.TARO_BASE_URL': JSON.stringify(process.env.TARO_BASE_URL || 'http://127.0.0.1:8000'),
+      // 开发环境使用 Cloudflare 隧道，真机调试可以访问
+      'process.env.TARO_BASE_URL': JSON.stringify('https://allocated-adding-further-obituaries.trycloudflare.com'),
     },
     copy: {
       patterns: [
