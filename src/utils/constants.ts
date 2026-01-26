@@ -2,14 +2,10 @@
  * 常量定义
  */
 
-// 开发环境使用Cloudflare隧道（需要确保：
-// 1. Cloudflare隧道正在运行并指向本地后端
-// 2. 微信开发者工具已勾选"不校验合法域名"
-// 3. 如果图片无法显示，检查隧道是否正常工作
-export const BASE_URL = "https://allocated-adding-further-obituaries.trycloudflare.com";
-
-// 如果不使用Cloudflare隧道，改用本地地址（仅在开发工具中使用）：
-// export const BASE_URL = "http://127.0.0.1:8000";
+// API基础URL - 从环境变量读取，支持开发/生产环境切换
+// 开发环境：在 .env.development 中配置 TARO_BASE_URL
+// 生产环境：在 .env.production 中配置 TARO_BASE_URL
+export const BASE_URL = process.env.TARO_BASE_URL || "http://127.0.0.1:8000";
 
 // API基础URL
 export const API_BASE_URL = `${BASE_URL}/api/v1`;
