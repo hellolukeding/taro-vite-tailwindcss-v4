@@ -109,7 +109,11 @@ export const studioApi = {
       {},
       { skipAuth: true }
     );
-    return response.items || [];
+    console.log('[getCategories] Response:', response);
+    console.log('[getCategories] Items:', response?.items);
+    const items = response?.items || [];
+    console.log('[getCategories] Returning items:', items);
+    return items;
   },
 
   /**

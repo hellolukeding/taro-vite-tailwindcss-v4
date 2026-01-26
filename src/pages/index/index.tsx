@@ -23,7 +23,13 @@ export default function Index() {
   const [isSearching, setIsSearching] = useState(false)
 
   // 使用 useRequest 获取分类列表
-  const { data: categoriesData, loading } = useRequest(() => studioApi.getCategories())
+  const { data: categoriesData, loading } = useRequest(() => studioApi.getCategories(), {
+    onSuccess: (result) => {
+      console.log('[Index] getCategories success:', result);
+      console.log('[Index] Type:', typeof result);
+      console.log('[Index] Is array:', Array.isArray(result));
+    }
+  })
 
   // 获取提示词列表
   const { loading: promptsLoading, run: fetchPrompts } = useRequest(
@@ -97,8 +103,11 @@ export default function Index() {
 
   // 组合分类数据，添加"全部"选项
   const categories = useMemo(() => {
+    console.log('[Index] Computing categories, categoriesData:', categoriesData);
     if (!categoriesData) return ['全部']
-    return ['全部', ...categoriesData]
+    const result = ['全部', ...categoriesData]
+    console.log('[Index] Final categories:', result);
+    return result
   }, [categoriesData])
 
   // 处理分类切换
