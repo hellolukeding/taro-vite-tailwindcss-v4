@@ -131,29 +131,36 @@ class APIClient {
       }
 
       // 5. 返回业务数据
-      // 兼容直接返回数据对象的情况(后端未包装success字段)
-      if (responseData?.success) {
-        // 标准响应格式: { success: true, data: {...} }
-        return returnFullResponse ? responseData : responseData.data
-      } else if (responseData?.token || responseData?.user_info) {
-        // 特殊处理登录接口: 如果没有success字段但包含关键登录信息，视为成功
-        return returnFullResponse ? { success: true, data: responseData } : responseData
-      } else if (!responseData?.error?.message && !responseData?.detail) {
-        // 如果没有error字段，说明这是直接返回的业务数据(如工单列表响应)
-        // 此时HTTP状态码<400，直接返回数据
-        return responseData
-      } else {
-        // 有明确的错误信息
-        const errorMsg = responseData?.error?.message || responseData?.detail || '请求失败'
-        if (!skipErrorTip) {
-          Taro.showToast({
-            title: errorMsg,
-            icon: 'none',
-            duration: 2000
-          })
+      // 统一响应格式: { success: true, data: {...} }
+      // 中间件会自动包装所有API响应（除了排除的路径如登录、验证码等）
+      if (responseData && typeof responseData === 'object') {
+        // 检查是否是统一响应格式
+        if ('success' in responseData && 'data' in responseData) {
+          // 标准响应格式: { success: true, data: {...} }
+          return returnFullResponse ? responseData : responseData.data
+        } else if (responseData?.token || responseData?.user_info || responseData?.access_token) {
+          // 特殊处理未包装的登录接口响应(登录接口在中间件排除列表中)
+          // 这些接口直接返回 { token, user_info } 或 { access_token, refresh_token }
+          return returnFullResponse ? { success: true, data: responseData } : responseData
+        } else if (!responseData?.error?.message && !responseData?.detail && statusCode < 400) {
+          // 兼容旧的直接返回数据格式（HTTP状态码<400且无error字段）
+          // 这种情况可能发生在：
+          // 1. 排除路径之外的接口但还未使用中间件
+          // 2. 某些特殊响应格式
+          return responseData
         }
-        throw new Error(errorMsg)
       }
+
+      // 6. 处理错误响应
+      const errorMsg = responseData?.error?.message || responseData?.detail || '请求失败'
+      if (!skipErrorTip) {
+        Taro.showToast({
+          title: errorMsg,
+          icon: 'none',
+          duration: 2000
+        })
+      }
+      throw new Error(errorMsg)
     } catch (error: any) {
       console.error('API Request Error:', error)
       throw error
