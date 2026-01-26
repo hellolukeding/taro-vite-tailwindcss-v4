@@ -104,7 +104,12 @@ export const studioApi = {
    * 获取提示词标签分类列表
    */
   async getCategories(): Promise<string[]> {
-    return client.get("/miniprogram/studio/categories", {}, { skipAuth: true });
+    const response = await client.get<{items: string[]; total: number}>(
+      "/miniprogram/studio/categories",
+      {},
+      { skipAuth: true }
+    );
+    return response.items || [];
   },
 
   /**
@@ -116,8 +121,7 @@ export const studioApi = {
     page?: number;
     page_size?: number;
   }): Promise<{
-    success: boolean;
-    data: Array<{
+    items: Array<{
       id: string;
       title: string;
       cover_image: string | null;
@@ -138,10 +142,26 @@ export const studioApi = {
     page_size: number;
     has_more: boolean;
   }> {
-    return client.get("/miniprogram/studio/prompts", params, {
-      skipAuth: true,
-      returnFullResponse: true,
-    });
+    const response = await client.get<{
+      items: Array<any>;
+      total: number;
+      page: number;
+      page_size: number;
+      has_more: boolean;
+    }>(
+      "/miniprogram/studio/prompts",
+      params,
+      {
+        skipAuth: true,
+      }
+    );
+    return {
+      items: response.items || [],
+      total: response.total || 0,
+      page: response.page || 1,
+      page_size: response.page_size || 20,
+      has_more: response.has_more || false,
+    };
   },
 
   /**
