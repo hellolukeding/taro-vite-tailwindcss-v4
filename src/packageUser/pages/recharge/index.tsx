@@ -78,15 +78,32 @@ const Recharge: React.FC<RechargeProps> = (props) => {
       const result = await paymentApi.getOrderStatus(orderId)
 
       if (result.status === 'paid') {
-        Taro.showToast({ title: '充值成功!', icon: 'success' })
-
-        // 刷新用户信息
+        // 先刷新用户信息以获取最新积分
         await refreshUserInfo()
+
+        // 获取充值信息
+        const credits = selectedPackage?.credits || 0
+        const isVip = selectedPackage?.is_vip || false
+
+        // 显示感谢提示
+        if (isVip) {
+          Taro.showToast({
+            title: `🎉 恭喜成为${selectedPackage?.name || 'VIP'}！感谢您的支持！`,
+            icon: 'success',
+            duration: 2500
+          })
+        } else {
+          Taro.showToast({
+            title: `🎉 充值成功！获得 ${credits} 积分，感谢您的支持！`,
+            icon: 'success',
+            duration: 2500
+          })
+        }
 
         // 延迟返回
         setTimeout(() => {
           Taro.navigateBack()
-        }, 1500)
+        }, 2500)
       } else {
         Taro.showToast({ title: '支付确认中，请稍后', icon: 'none' })
       }

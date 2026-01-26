@@ -16,7 +16,7 @@
       "outputPath": ""
     },
     "compileWorklet": false,
-    "uglifyFileName": true,
+    "uglifyFileName": false,
     "uploadWithSourceMap": false,
     "packNpmManually": false,
     "packNpmRelationList": [],
