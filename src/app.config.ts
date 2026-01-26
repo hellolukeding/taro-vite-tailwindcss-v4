@@ -77,6 +77,9 @@ export default defineAppConfig({
       packages: ['packageDetail'] // 首页预加载详情页分包
     }
   },
+  // 组件按需注入 - 提升首页加载速度
+  // requiredComponents: 组件仅在被使用时才注入，减少主包体积
+  lazyCodeLoading: 'requiredComponents',
   window: {
     navigationStyle: 'default', // 使用原生导航栏
     navigationBarBackgroundColor: '#ffffff',

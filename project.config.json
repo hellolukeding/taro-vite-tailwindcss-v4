@@ -1,7 +1,7 @@
 {
   "miniprogramRoot": "dist/",
   "projectname": "myApp",
-  "description": "",
+  "description": "AI Image Generation SaaS",
   "appid": "wx1daeb0a1a3dc046c",
   "setting": {
     "urlCheck": true,
@@ -9,25 +9,25 @@
     "enhance": true,
     "compileHotReLoad": false,
     "postcss": false,
-    "minified": false,
+    "minified": true,
     "babelSetting": {
       "ignore": [],
       "disablePlugins": [],
       "outputPath": ""
     },
     "compileWorklet": false,
-    "uglifyFileName": false,
-    "uploadWithSourceMap": true,
+    "uglifyFileName": true,
+    "uploadWithSourceMap": false,
     "packNpmManually": false,
     "packNpmRelationList": [],
     "minifyWXSS": true,
     "minifyWXML": true,
+    "showShadowRootInWxmlPanel": true,
+    "useIsolateContext": true,
+    "useCompilerModule": true,
     "localPlugins": false,
     "disableUseStrict": false,
-    "useCompilerPlugins": false,
-    "condition": false,
-    "swc": false,
-    "disableSWC": true
+    "condition": false
   },
   "compileType": "miniprogram",
   "libVersion": "3.11.0",
