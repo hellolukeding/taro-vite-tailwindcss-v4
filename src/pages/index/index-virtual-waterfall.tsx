@@ -41,13 +41,14 @@ export default function Index() {
         }).filter(([_, value]) => value !== undefined)
       )
       const result = await studioApi.getPrompts(params)
+      console.log('[VirtualWaterfall] fetchPrompts result:', result)
 
       if (page === 1) {
         // 第一页，替换数据
-        setPromptsList(result?.data ?? [])
+        setPromptsList(result?.items ?? [])
       } else {
         // 加载更多，追加数据
-        setPromptsList(prev => [...prev, ...(result?.data ?? [])])
+        setPromptsList(prev => [...prev, ...(result?.items ?? [])])
       }
       setHasMore(result?.has_more ?? false)
     } finally {
@@ -58,7 +59,8 @@ export default function Index() {
   // 初始加载
   useRequest(() => studioApi.getPrompts({ page: 1, page_size: BASE_PAGE_SIZE }), {
     onSuccess: (result) => {
-      setPromptsList(result?.data ?? [])
+      console.log('[VirtualWaterfall] Initial load result:', result)
+      setPromptsList(result?.items ?? [])
       setHasMore(result?.has_more ?? false)
     },
   })
