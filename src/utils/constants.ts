@@ -5,7 +5,7 @@
 // API基础URL - 从环境变量读取，支持开发/生产环境切换
 // 开发环境：在 .env.development 中配置 TARO_BASE_URL
 // 生产环境：在 .env.production 中配置 TARO_BASE_URL
-export const BASE_URL = "https://allocated-adding-further-obituaries.trycloudflare.com";
+export const BASE_URL = "https://hibrushapi.embivision.com";
 
 // API基础URL
 export const API_BASE_URL = `${BASE_URL}/api/v1`;
