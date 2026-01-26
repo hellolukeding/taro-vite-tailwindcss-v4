@@ -8,11 +8,12 @@ import ResolutionSelector from "@/components/business/ResolutionSelector";
 import { StudioModelSelector } from "@/components/business/StudioModelSelector";
 import { useAuth } from "@/hooks/useAuth";
 import { mockPromptExamples, type MockModel } from "@/mock/studio";
+import { receivePromptFromTransfer } from "@/utils/promptTransfer";
 import { useUser } from "@/store";
 import type { ModelInfo } from "@/types";
 import { ArrowLeft } from "@taroify/icons";
 import { ScrollView, Text, View } from "@tarojs/components";
-import Taro from "@tarojs/taro";
+import Taro, { useDidShow } from "@tarojs/taro";
 import type { Uploader } from "@taroify/core";
 import { useEffect, useState } from "react";
 
@@ -49,23 +50,70 @@ const Studio: React.FC<StudioProps> = (props) => {
     loadModels();
   }, []);
 
-  // 处理从提示词详情页传递过来的 prompt（通过 storage）
-  useEffect(() => {
-    // 检查是否有从提示词详情页传递过来的 prompt
+  // 处理从提示词详情页传递过来的 prompt（通过智能传输）
+  // 使用 useDidShow 而不是 useEffect，因为 tabBar 页面切换时不会重新 mount
+  useDidShow(async () => {
     try {
-      const promptFromDetail = Taro.getStorageSync('prompt_from_detail');
+      // 使用智能接收函数（自动检测来源：本地存储或后端接口）
+      const promptContent = await receivePromptFromTransfer();
 
-      if (promptFromDetail) {
-        setPrompt(promptFromDetail);
-        console.log('[Studio] 从提示词详情页接收到 prompt:', promptFromDetail);
+      if (promptContent) {
+        // 智能处理不同类型的提示词内容
+        let finalPrompt = "";
 
-        // 清除 storage 中的 prompt，避免下次打开时还在
-        Taro.removeStorageSync('prompt_from_detail');
+        if (typeof promptContent === 'string') {
+          // 简单字符串，直接使用
+          finalPrompt = promptContent;
+        } else if (Array.isArray(promptContent)) {
+          // 数组：提取最佳提示词
+          // 优先选择中文，其次选择英文，否则选择最长的一个
+          const candidates = promptContent.filter(p => typeof p === 'string' && p.trim().length > 0);
+          if (candidates.length > 0) {
+            // 尝试找到中文提示词
+            const zhPrompt = candidates.find(p => /[\u4e00-\u9fa5]/.test(p));
+            // 按长度排序，选择最长的（通常最完整）
+            candidates.sort((a, b) => b.length - a.length);
+            finalPrompt = zhPrompt || candidates[0];
+          }
+        } else if (typeof promptContent === 'object' && promptContent !== null) {
+          // JSON对象：尝试常见字段
+          const { prompt, zh, en, text, content } = promptContent as any;
+          finalPrompt = prompt || zh || en || text || content || "";
+
+          // 如果是嵌套对象，尝试提取最长字符串
+          if (!finalPrompt) {
+            const allStrings = Object.values(promptContent)
+              .filter(v => typeof v === 'string' && v.trim().length > 0);
+            if (allStrings.length > 0) {
+              allStrings.sort((a, b) => b.length - a.length);
+              finalPrompt = allStrings[0];
+            }
+          }
+        }
+
+        if (finalPrompt && finalPrompt.trim().length > 0) {
+          setPrompt(finalPrompt);
+          console.log('[Studio] ✅ 从提示词详情页接收到 prompt, 长度:', finalPrompt.length);
+
+          // 显示提示，让用户知道提示词已填入
+          Taro.showToast({
+            title: '已填入提示词',
+            icon: 'success',
+            duration: 1500
+          });
+        } else {
+          console.warn('[Studio] ⚠️ 接收到空提示词:', promptContent);
+          Taro.showToast({
+            title: '提示词格式错误',
+            icon: 'none',
+            duration: 2000
+          });
+        }
       }
     } catch (error) {
-      console.error('[Studio] 读取 prompt 失败:', error);
+      console.error('[Studio] ❌ 读取 prompt 失败:', error);
     }
-  }, []);
+  });
 
   // 当prompt、模型、比例变化时重新估算成本
   useEffect(() => {

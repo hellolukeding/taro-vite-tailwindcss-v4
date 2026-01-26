@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import * as promptApi from "@/services/promptApi";
 import { mapCommentListFromApi } from "@/utils/commentMapper";
 import { smartExtractPrompt } from "@/utils/promptExtractor";
+import { transferPromptToStudio } from "@/utils/promptTransfer";
 import { toast } from "@/utils/toast";
 import { normalizeUrl } from "@/utils/url";
 import { ScrollView, Text, View } from "@tarojs/components";
@@ -198,6 +199,54 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
     toast.success("关注成功");
   }, [requireLoginRedirect]);
 
+  // 一键使用：智能传输提示词到 Studio 页面
+  const handleCreateSimilar = useCallback(async () => {
+    const isLogin = await requireLoginRedirect();
+    if (!isLogin) return;
+
+    if (!state.data?.prompts) {
+      toast.error("没有可用的提示词");
+      return;
+    }
+
+    // 使用智能提取函数获取最佳提示词（保留原始数据结构）
+    const promptContent = state.data.prompts; // 传递完整的 prompts 数据（可能是字符串数组或JSON对象）
+
+    if (!promptContent) {
+      toast.error("提示词格式错误或内容为空");
+      console.error("[handleCreateSimilar] 提取失败, 原始数据:", state.data.prompts);
+      return;
+    }
+
+    console.log("[handleCreateSimilar] ✅ 准备传输提示词, 类型:", Array.isArray(promptContent) ? '数组' : typeof promptContent);
+
+    try {
+      // 使用智能传输函数（自动选择本地存储或后端接口）
+      const success = await transferPromptToStudio(promptContent, {
+        onSuccess: (method) => {
+          console.log(`[handleCreateSimilar] ✅ 传输成功 (方式: ${method})`);
+          toast.success(method === "backend" ? "已保存到云端" : "准备就绪");
+        },
+        onError: (error) => {
+          console.error("[handleCreateSimilar] ❌ 传输失败:", error);
+          toast.error("传输失败，请重试");
+        },
+      });
+
+      if (success) {
+        // Studio 页面是 tabBar 页面，需要用 switchTab 跳转
+        Taro.switchTab({
+          url: '/pages/studio/index',
+        });
+      } else {
+        toast.error("传输失败，请重试");
+      }
+    } catch (error) {
+      console.error("跳转失败:", error);
+      toast.error("操作失败");
+    }
+  }, [requireLoginRedirect, state.data?.prompts]);
+
   const handleCopyPrompt = useCallback((prompt: string) => {
     if (!prompt) return;
 
@@ -208,43 +257,6 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
       },
     });
   }, []);
-
-  const handleCreateSimilar = useCallback(async () => {
-    const isLogin = await requireLoginRedirect();
-    if (!isLogin) return;
-
-    // 检查是否有提示词数据
-    if (!state.data?.prompts) {
-      toast.error("没有可用的提示词");
-      return;
-    }
-
-    // 使用智能提取函数获取最佳提示词
-    const promptText = smartExtractPrompt(state.data.prompts);
-
-    if (!promptText) {
-      toast.error("提示词格式错误或内容为空");
-      console.error("[handleCreateSimilar] 提取失败, 原始数据:", state.data.prompts);
-      return;
-    }
-
-    console.log("[handleCreateSimilar] ✅ 成功提取提示词, 长度:", promptText.length);
-    console.log("[handleCreateSimilar] 提取的提示词:", promptText);
-
-    try {
-      // Studio 页面是 tabBar 页面，需要用 switchTab 跳转
-      // 先将 prompt 存储到本地
-      Taro.setStorageSync('prompt_from_detail', promptText);
-
-      // 使用 switchTab 跳转
-      Taro.switchTab({
-        url: '/pages/studio/index',
-      });
-    } catch (error) {
-      console.error("跳转失败:", error);
-      toast.error("跳转失败");
-    }
-  }, [requireLoginRedirect, state.data?.prompts]);
 
   // 加载评论列表
   const loadComments = useCallback(async () => {
