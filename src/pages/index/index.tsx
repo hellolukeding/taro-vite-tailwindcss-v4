@@ -186,13 +186,14 @@ export default function Index() {
           paddingTop: '80px',
           paddingBottom: '16px',
           maxHeight: '500px',
-          transform: headerCollapsed ? 'translateY(-100%)' : 'translateY(0)',
-          transition: 'transform 0.3s ease-in-out, max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+          transform: 'translateY(0) scale(1)',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
           ...(headerCollapsed ? {
             opacity: 0,
             maxHeight: '0px',
             paddingTop: '0px',
             paddingBottom: '0px',
+            transform: 'translateY(-20px) scale(0.95)',
             pointerEvents: 'none'
           } : {})
         }}
