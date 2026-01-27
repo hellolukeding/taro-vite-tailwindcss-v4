@@ -23,6 +23,8 @@ export default function Index() {
   const [isSearching, setIsSearching] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [scrollTop, setScrollTop] = useState(0)
+  const [headerCollapsed, setHeaderCollapsed] = useState(false)
+  const [headerScrollY, setHeaderScrollY] = useState(0)
   const scrollViewRef = useRef<any>(null)
 
   // 使用 useRequest 获取分类列表
@@ -156,8 +158,18 @@ export default function Index() {
   // 处理滚动事件
   const handleScroll = (e: any) => {
     const scrollTop = e.detail.scrollTop
+
     // 当滚动超过300px时显示悬浮按钮
     setShowScrollTop(scrollTop > 300)
+
+    // 当滚动超过80px时，收缩header并隐藏搜索框
+    if (scrollTop > 80 && !headerCollapsed) {
+      setHeaderCollapsed(true)
+      setHeaderScrollY(-60) // 向上收缩60px
+    } else if (scrollTop <= 80 && headerCollapsed) {
+      setHeaderCollapsed(false)
+      setHeaderScrollY(0)
+    }
   }
 
   // 滚动到顶部
@@ -170,7 +182,13 @@ export default function Index() {
   return (
     <View className='page'>
       {/* 黑色圆角头部 */}
-      <View className='header rounded-b-4xl'>
+      <View
+        className='header-container rounded-b-4xl pt-20 pb-4 bg-black overflow-hidden'
+        style={{
+          transform: `translateY(${headerScrollY}px)`,
+          transition: 'transform 0.3s ease-in-out'
+        }}
+      >
         <View className='flex items-center justify-between'>
           <Image src='https://i.urusai.cc/EOn68.png' className='h-20 w-20' />
 
@@ -191,6 +209,12 @@ export default function Index() {
             setIsSearching(false)
           }}
           clearable
+          style={{
+            opacity: headerCollapsed ? 0 : 1,
+            transform: headerCollapsed ? 'translateY(-20px)' : 'translateY(0)',
+            transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out',
+            pointerEvents: headerCollapsed ? 'none' : 'auto'
+          }}
         />
       </View>
 
@@ -330,23 +354,23 @@ export default function Index() {
       </ScrollView>
 
       {/* 滚动到顶部悬浮按钮 */}
-      {showScrollTop && (
-        <FloatingBubble
-          className='scroll-top-bubble'
-          style={{
-            right: 16,
-            bottom: 100,
-            backgroundColor: '#000000',
-            opacity: 0.6,
-            display: showScrollTop ? "" : "none",
-            transition: "ease-in-out"
-          }}
-          onClick={scrollToTop}
-          icon={<ArrowUp style={{ color: '#ffffff' }} />}
-        />
-      )}
 
-      {/* 原生 tabBar 已启用，移除自定义底部导航栏 */}
+      <FloatingBubble
+        axis="xy"
+        magnetic="x"
+        gap={60}
+        style={{
+          backgroundColor: '#3f4245',
+          display: showScrollTop ? "flex" : "none",
+          transition: "ease-in-out",
+          alignItems: "center",
+          justifyContent: "center"
+        }}
+
+        onClick={scrollToTop}
+        icon={<ArrowUp color='#fff' size={20} className='font-semibold' />}
+      />
+
     </View>
   )
 }
