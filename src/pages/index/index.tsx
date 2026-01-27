@@ -4,12 +4,12 @@ import { studioApi } from '@/api/studio'
 import { useAuth } from '@/hooks/useAuth'
 import { BASE_PAGE_SIZE } from '@/utils/constants'
 import { normalizeUrl } from '@/utils/url'
-import { Search, Tabs } from "@taroify/core"
-import { GoodJobOutlined } from '@taroify/icons'
+import { Search, Tabs, FloatingBubble } from "@taroify/core"
+import { GoodJobOutlined, ArrowUp } from '@taroify/icons'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { Event } from '@tarojs/taro'
 import useRequest from 'ahooks/lib/useRequest'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './index.css'
 
 export default function Index() {
@@ -21,6 +21,8 @@ export default function Index() {
   const [currentTag, setCurrentTag] = useState<string | undefined>(undefined)
   const [searchKeyword, setSearchKeyword] = useState("")
   const [isSearching, setIsSearching] = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
+  const scrollViewRef = useRef<any>(null)
 
   // 使用 useRequest 获取分类列表
   const { data: categoriesData, loading } = useRequest(() => studioApi.getCategories(), {
@@ -150,6 +152,23 @@ export default function Index() {
     })
   }
 
+  // 处理滚动事件
+  const handleScroll = (e: any) => {
+    const scrollTop = e.detail.scrollTop
+    // 当滚动超过300px时显示悬浮按钮
+    setShowScrollTop(scrollTop > 300)
+  }
+
+  // 滚动到顶部
+  const scrollToTop = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({
+        top: 0,
+        animated: true,
+      })
+    }
+  }
+
 
   return (
     <View className='page'>
@@ -186,7 +205,9 @@ export default function Index() {
         refresherTriggered={promptsLoading && currentPage === 1}
         onRefresherRefresh={handleRefresh}
         onScrollToLower={handleLoadMore}
+        onScroll={handleScroll}
         lowerThreshold={100}
+        ref={scrollViewRef}
       >
         <View className='w-full mb-2'>
           {loading ? (
@@ -308,6 +329,20 @@ export default function Index() {
           </View>
         )}
       </ScrollView>
+
+      {/* 滚动到顶部悬浮按钮 */}
+      {showScrollTop && (
+        <FloatingBubble
+          className='scroll-top-bubble'
+          style={{
+            right: 16,
+            bottom: 100,
+          }}
+          onClick={scrollToTop}
+        >
+          <ArrowUp />
+        </FloatingBubble>
+      )}
 
       {/* 原生 tabBar 已启用，移除自定义底部导航栏 */}
     </View>
