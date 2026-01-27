@@ -10,7 +10,6 @@
       // TS5090 leading './'
       "@/*": ["./src/*"]
     },
-    "resolveJsonModule": true,
     "types": ["node"],
     "skipLibCheck": true,
     "allowJs": true,

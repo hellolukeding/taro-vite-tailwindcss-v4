@@ -4,7 +4,9 @@ export default {
   mini: {
     // 小程序端生产环境优化
     // 优化主包
-    optimizeMainPackage: true,
+    optimizeMainPackage: {
+      enable: true
+    },
 
     // 小程序基础库版本（使用较新的基础库以获得更好的性能）
     // 支持 lazyCodeLoading 的最低版本：2.10.2
