@@ -17,6 +17,6 @@ export const agreementApi = {
    */
   async getAgreement(agreementType: 'user_agreement' | 'privacy_policy'): Promise<AgreementData> {
     // 使用 skipAuth: true 因为协议接口不需要认证
-    return client.get(`/api/v1/agreements/${agreementType}`, {}, { skipAuth: true })
+    return client.get(`/agreements/${agreementType}`, {}, { skipAuth: true })
   },
 }
