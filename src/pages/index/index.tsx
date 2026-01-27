@@ -182,8 +182,10 @@ export default function Index() {
       <View
         className='rounded-b-4xl pt-20 pb-4 bg-black'
         style={{
-          transform: headerCollapsed ? 'translateY(-20px)' : 'translateY(0)',
-          transition: 'transform 0.3s ease-in-out'
+          opacity: headerCollapsed ? 0 : 1,
+          transform: headerCollapsed ? 'translateY(-100%)' : 'translateY(0)',
+          transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out',
+          pointerEvents: headerCollapsed ? 'none' : 'auto'
         }}
       >
         <View className='flex items-center justify-between'>
@@ -206,15 +208,6 @@ export default function Index() {
             setIsSearching(false)
           }}
           clearable
-          style={{
-            opacity: headerCollapsed ? 0 : 1,
-            maxHeight: headerCollapsed ? '0px' : '200px',
-            marginTop: headerCollapsed ? '0px' : '16px',
-            transform: headerCollapsed ? 'translateY(-10px)' : 'translateY(0)',
-            transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out, max-height 0.3s ease-in-out, margin-top 0.3s ease-in-out',
-            pointerEvents: headerCollapsed ? 'none' : 'auto',
-            overflow: 'hidden'
-          }}
         />
       </View>
 
