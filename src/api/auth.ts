@@ -2,7 +2,7 @@
  * 认证相关API
  */
 import client from './client'
-import { setAuthToken, getAuthToken } from '@/utils/storage'
+import { setAuthToken, getAuthToken, setUserInfo } from '@/utils/storage'
 import { API_BASE_URL } from '@/utils/constants'
 import Taro from '@tarojs/taro'
 import type { UserInfo, VIPInfo } from '@/types'
