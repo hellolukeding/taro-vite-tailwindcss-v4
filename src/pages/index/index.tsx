@@ -4,10 +4,10 @@ import { studioApi } from '@/api/studio'
 import { useAuth } from '@/hooks/useAuth'
 import { BASE_PAGE_SIZE } from '@/utils/constants'
 import { normalizeUrl } from '@/utils/url'
-import { Search, Tabs, FloatingBubble } from "@taroify/core"
-import { GoodJobOutlined, ArrowUp } from '@taroify/icons'
+import { FloatingBubble, Search, Tabs } from "@taroify/core"
+import { ArrowUp, GoodJobOutlined } from '@taroify/icons'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
-import Taro, { Event } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
 import useRequest from 'ahooks/lib/useRequest'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './index.css'
@@ -22,6 +22,7 @@ export default function Index() {
   const [searchKeyword, setSearchKeyword] = useState("")
   const [isSearching, setIsSearching] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
+  const [scrollTop, setScrollTop] = useState(0)
   const scrollViewRef = useRef<any>(null)
 
   // 使用 useRequest 获取分类列表
@@ -161,12 +162,8 @@ export default function Index() {
 
   // 滚动到顶部
   const scrollToTop = () => {
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollTo({
-        top: 0,
-        animated: true,
-      })
-    }
+    // 通过设置 scrollTop 为 0 来滚动到顶部
+    setScrollTop(0)
   }
 
 
@@ -200,6 +197,8 @@ export default function Index() {
       {/* 主内容区域 */}
       <ScrollView
         scrollY
+        scrollTop={scrollTop}
+        scrollWithAnimation
         className='content'
         refresherEnabled
         refresherTriggered={promptsLoading && currentPage === 1}
@@ -338,11 +337,11 @@ export default function Index() {
             right: 16,
             bottom: 100,
             backgroundColor: '#000000',
+            opacity: 0.3
           }}
           onClick={scrollToTop}
-        >
-          <ArrowUp style={{ color: '#ffffff' }} />
-        </FloatingBubble>
+          icon={<ArrowUp style={{ color: '#ffffff' }} />}
+        />
       )}
 
       {/* 原生 tabBar 已启用，移除自定义底部导航栏 */}
