@@ -4,7 +4,6 @@ import { GenerateBar } from "@/components/business/GenerateBar";
 import ImgUploader from "@/components/business/ImgUploader";
 import { PromptInput } from "@/components/business/PromptInput";
 import { RatioSelector } from "@/components/business/RatioSelector";
-import ResolutionSelector from "@/components/business/ResolutionSelector";
 import { StudioModelSelector } from "@/components/business/StudioModelSelector";
 import { useAuth } from "@/hooks/useAuth";
 import { mockPromptExamples, type MockModel } from "@/mock/studio";
@@ -125,15 +124,15 @@ const Studio: React.FC<StudioProps> = (props) => {
   const loadModels = async () => {
     try {
       const modelInfos: ModelInfo[] = await studioApi.getModels(true);
-      const formattedModels: MockModel[] = modelInfos.map((model) => ({
+      const formattedModels: MockModel[] = modelInfos.map((model, index) => ({
         id: model.model_id,
         name: model.name,
         imageUrl: model.icon,
         isVIP: model.is_vip,
-        isSelected: false,
+        isSelected: index === 0, // 自动选择第一个模型
       }));
       setModels(formattedModels);
-      // 不再自动选择模型，让用户主动选择
+      console.log('[Studio] ✅ Loaded models, auto-selected first model');
     } catch (error) {
       console.error("Load models error:", error);
       Taro.showToast({ title: "加载模型失败", icon: "none" });
@@ -353,13 +352,6 @@ const Studio: React.FC<StudioProps> = (props) => {
     }
   };
 
-  // Handle resolution selection (需要登录)
-  const handleResolutionSelect = (resolutionId: string) => {
-    if (!requireLogin()) return;
-
-    console.log("Selected resolution:", resolutionId);
-  };
-
   return (
     <CommonWarp title="创作工坊" withHeader={false}>
       <ScrollView scrollY className="h-full bg-gray-50">
@@ -397,9 +389,6 @@ const Studio: React.FC<StudioProps> = (props) => {
         <View className="px-5 pb-32">
           {/* Model Selector */}
           <StudioModelSelector models={models} onSelect={handleModelSelect} />
-
-          {/* 选择分辨率 */}
-          <ResolutionSelector onSelect={handleResolutionSelect} />
 
           {/* Ratio Selector */}
           <RatioSelector
