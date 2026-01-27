@@ -1,5 +1,6 @@
 import CommonWarp from "@/components/CommonWarp";
 import { useUser } from "@/store";
+import { authApi } from "@/api/auth";
 import { Button, Flex, Radio } from "@taroify/core";
 import { Image, Text, View } from "@tarojs/components";
 import Taro, { useDidShow, useRouter } from "@tarojs/taro";
@@ -22,18 +23,39 @@ const Login: React.FC<LoginProps> = (props) => {
       setInviteCode(invite_code as string)
     }
 
-    // 检查是否已经登录
-    const token = Taro.getStorageSync("token")
-    if (token) {
-      const redirectUrl = (redirect as string) || "/pages/index/index"
-      // 判断是否为 tabBar 页面
-      const isTabBar = redirectUrl.startsWith("/pages/")
-      if (isTabBar) {
-        Taro.switchTab({ url: redirectUrl })
-      } else {
-        Taro.redirectTo({ url: redirectUrl })
+    // 检查是否已经登录（验证 token 有效性）
+    const checkLoginStatus = async () => {
+      const token = Taro.getStorageSync("token")
+      if (!token) {
+        return // 没有 token，显示登录页面
+      }
+
+      try {
+        // 验证 token 是否有效
+        await authApi.getUserProfile()
+
+        // token 有效，跳转到首页
+        const redirectUrl = (redirect as string) || "/pages/index/index"
+        const isTabBar = redirectUrl.startsWith("/pages/")
+        if (isTabBar) {
+          Taro.switchTab({ url: redirectUrl })
+        } else {
+          Taro.redirectTo({ url: redirectUrl })
+        }
+      } catch (error: any) {
+        // token 无效或网络错误
+        console.error('Token validation failed:', error)
+
+        // 如果是 401 错误，清除本地存储
+        if (error.message?.includes('401') || error.message?.includes('登录')) {
+          Taro.removeStorageSync("token")
+          Taro.removeStorageSync("userInfo")
+        }
+        // 其他错误（网络问题等），不清除 token，显示登录页面
       }
     }
+
+    checkLoginStatus()
   })
 
   // 处理微信登录
