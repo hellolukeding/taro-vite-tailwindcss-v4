@@ -139,7 +139,7 @@ const Profile: React.FC<ProfileProps> = () => {
           >
             <View className="rounded-full w-20 h-20 overflow-hidden">
               <Image
-                src={userInfo?.avatarUrl || generateAvatarUrl(userInfo?.nickname)}
+                src={normalizeUrl(userInfo?.avatarUrl || generateAvatarUrl(userInfo?.nickname))}
                 className="w-full h-full object-cover "
               />
             </View>

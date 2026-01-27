@@ -2,6 +2,7 @@ import { authApi, type UpdateProfileParams } from "@/api/auth";
 import CommonHeader from "@/components/CommonHeader";
 import CommonWarp from "@/components/CommonWarp";
 import { useUser } from "@/store";
+import { normalizeUrl } from "@/utils/url";
 import {
   Button,
   DatetimePicker,
@@ -189,11 +190,11 @@ const ProfileEdit: React.FC = () => {
                 onClick={handleAvatarUpload}
               >
                 <Image
-                  src={
+                  src={normalizeUrl(
                     avatarUrl ||
                     userInfo?.avatarUrl ||
                     "https://i.urusai.cc/PlyC9.png"
-                  }
+                  )}
                   className="w-full h-full"
                   mode="aspectFill"
                 />
