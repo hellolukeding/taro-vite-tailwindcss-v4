@@ -258,6 +258,18 @@
 /* 滚动到顶部悬浮按钮 */
 .scroll-top-bubble {
   z-index: 50;
+  animation: slideInFromBottomRight 0.3s ease-out;
+}
+
+@keyframes slideInFromBottomRight {
+  from {
+    transform: translate(100px, 100px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
 }
 
 /* ==================== 虚拟瀑布流样式 ==================== */

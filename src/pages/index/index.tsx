@@ -337,10 +337,11 @@ export default function Index() {
           style={{
             right: 16,
             bottom: 100,
+            backgroundColor: '#000000',
           }}
           onClick={scrollToTop}
         >
-          <ArrowUp />
+          <ArrowUp style={{ color: '#ffffff' }} />
         </FloatingBubble>
       )}
 
