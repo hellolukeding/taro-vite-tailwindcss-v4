@@ -6,7 +6,7 @@ import type { MockTask } from "@/mock/tasks";
 import type { TaskItem } from "@/types";
 import { formatRelativeTime } from "@/utils/timeFormat";
 import { normalizeUrl } from "@/utils/url";
-import { ArrowLeft, UnderwayOutlined } from "@taroify/icons";
+import { UnderwayOutlined } from "@taroify/icons";
 import { Image, ScrollView, Text, View } from "@tarojs/components";
 import Taro, { useDidHide, useDidShow, usePullDownRefresh, useReachBottom } from "@tarojs/taro";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -365,7 +365,7 @@ const Assets: React.FC<AssetsProps> = () => {
               className="flex items-center gap-2"
               onClick={() => Taro.navigateBack()}
             >
-              <ArrowLeft size={20} color="#fff" />
+              {/* <ArrowLeft size={20} color="#fff" /> */}
               <Text className="text-white text-xl font-semibold tracking-wide">
                 资产中心
               </Text>

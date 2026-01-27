@@ -7,13 +7,12 @@ import { RatioSelector } from "@/components/business/RatioSelector";
 import { StudioModelSelector } from "@/components/business/StudioModelSelector";
 import { useAuth } from "@/hooks/useAuth";
 import { mockPromptExamples, type MockModel } from "@/mock/studio";
-import { receivePromptFromTransfer } from "@/utils/promptTransfer";
 import { useUser } from "@/store";
 import type { ModelInfo } from "@/types";
-import { ArrowLeft } from "@taroify/icons";
+import { receivePromptFromTransfer } from "@/utils/promptTransfer";
+import type { Uploader } from "@taroify/core";
 import { ScrollView, Text, View } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
-import type { Uploader } from "@taroify/core";
 import { useEffect, useState } from "react";
 
 type ImageRatio =
@@ -369,7 +368,7 @@ const Studio: React.FC<StudioProps> = (props) => {
               className="flex items-center gap-2"
               onClick={() => Taro.navigateBack()}
             >
-              <ArrowLeft size={20} color="#fff" />
+              {/* <ArrowLeft size={20} color="#fff" /> */}
               <Text className="text-white text-xl font-semibold tracking-wide">
                 创作工坊
               </Text>

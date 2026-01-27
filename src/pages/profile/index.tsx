@@ -132,7 +132,7 @@ const Profile: React.FC<ProfileProps> = () => {
   return (
     <CommonWarp title="我的" withHeader={false}>
       <View className="w-full h-full bg-white flex flex-col">
-        <CommonHeader title="个人主页" withBack>
+        <CommonHeader title="个人主页" withBack={false}>
           <View
             className="w-full flex items-center justify-between"
             onClick={() => Taro.navigateTo({ url: "/pages/user-detail/index" })}

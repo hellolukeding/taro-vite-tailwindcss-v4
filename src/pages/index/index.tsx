@@ -183,7 +183,7 @@ export default function Index() {
         className='rounded-b-4xl bg-black'
         style={{
           opacity: 1,
-          paddingTop: '80px',
+          paddingTop: '50px',
           paddingBottom: '16px',
           maxHeight: '500px',
           transform: 'translateY(0) scale(1)',
@@ -198,7 +198,7 @@ export default function Index() {
           } : {})
         }}
       >
-        <View className='flex items-center justify-between'>
+        <View className='flex items-center justify-between px-4'>
           <Image src='https://i.urusai.cc/EOn68.png' className='h-20 w-20' />
 
           <View className='text-white flex-1 flex flex-col ml-4 text-xl font-semibold'>
