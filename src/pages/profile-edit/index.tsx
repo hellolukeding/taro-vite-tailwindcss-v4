@@ -65,12 +65,36 @@ const ProfileEdit: React.FC = () => {
       });
 
       if (res.tempFilePaths && res.tempFilePaths.length > 0) {
-        setAvatarUrl(res.tempFilePaths[0]);
-        Taro.showToast({
-          title: "头像已选择",
-          icon: "success",
-          duration: 2000,
+        const tempFilePath = res.tempFilePaths[0];
+
+        // 显示加载提示
+        Taro.showLoading({
+          title: "上传中...",
+          mask: true,
         });
+
+        try {
+          // ✅ 先上传到服务器
+          const uploadedUrl = await authApi.uploadAvatar(tempFilePath);
+
+          // ✅ 保存服务器返回的HTTP URL
+          setAvatarUrl(uploadedUrl);
+
+          Taro.hideLoading();
+          Taro.showToast({
+            title: "头像已上传",
+            icon: "success",
+            duration: 2000,
+          });
+        } catch (uploadError: any) {
+          Taro.hideLoading();
+          console.error("Upload avatar error:", uploadError);
+          Taro.showToast({
+            title: uploadError.message || "上传失败",
+            icon: "error",
+            duration: 2000,
+          });
+        }
       }
     } catch (error) {
       console.error("Choose image error:", error);

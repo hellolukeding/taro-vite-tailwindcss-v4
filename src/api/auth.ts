@@ -2,7 +2,9 @@
  * 认证相关API
  */
 import client from './client'
-import { setAuthToken, setUserInfo } from '@/utils/storage'
+import { setAuthToken, getAuthToken } from '@/utils/storage'
+import { API_BASE_URL } from '@/utils/constants'
+import Taro from '@tarojs/taro'
 import type { UserInfo, VIPInfo } from '@/types'
 
 export interface WechatLoginParams {
@@ -132,6 +134,71 @@ export const authApi = {
       createdAt: data.created_at,
       vipInfo: data.vip_info,
     }
+  },
+
+  /**
+   * 上传头像
+   */
+  async uploadAvatar(filePath: string): Promise<string> {
+    const token = await getAuthToken()
+
+    return new Promise((resolve, reject) => {
+      Taro.uploadFile({
+        url: `${API_BASE_URL}/upload`,
+        filePath,
+        name: 'file',
+        header: {
+          Authorization: `Bearer ${token}`,
+        },
+        formData: {
+          token,
+        },
+        success: (res) => {
+          if (res.statusCode === 200) {
+            try {
+              console.log('[uploadAvatar] Raw response:', res.data)
+              const response = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+              console.log('[uploadAvatar] Parsed response:', response)
+
+              // 检查统一响应格式 {success: true, data: {...}}
+              if (response.success && response.data) {
+                // 后端返回格式: { success: true, data: { status: "success", data: { url_direct } } }
+                const innerData = response.data.data
+
+                if (!innerData) {
+                  console.error('[uploadAvatar] No inner data found:', response.data)
+                  reject(new Error('响应中缺少图片数据'))
+                  return
+                }
+
+                const imageUrl = innerData.url_direct
+                if (!imageUrl) {
+                  console.error('[uploadAvatar] No url_direct in response:', innerData)
+                  reject(new Error('响应中缺少图片URL'))
+                  return
+                }
+
+                console.log('[uploadAvatar] ✅ Upload successful, URL:', imageUrl)
+                resolve(imageUrl)
+              } else {
+                console.error('[uploadAvatar] Invalid response format:', response)
+                reject(new Error('响应格式错误'))
+              }
+            } catch (error) {
+              console.error('[uploadAvatar] Parse error:', error)
+              reject(new Error('解析响应失败'))
+            }
+          } else {
+            console.error('[uploadAvatar] Upload failed with status:', res.statusCode)
+            reject(new Error(`上传失败: ${res.statusCode}`))
+          }
+        },
+        fail: (error) => {
+          console.error('[uploadAvatar] Upload error:', error)
+          reject(new Error('上传图片失败'))
+        },
+      })
+    })
   },
 }
 
