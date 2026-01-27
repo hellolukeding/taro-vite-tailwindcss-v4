@@ -8,10 +8,16 @@ const BASE_URL = `${API_BASE_URL}/miniprogram`;
  *
  * 旧格式: {success: true, data: {...}}
  * 新格式: 直接返回数据 {...}
+ * 错误格式: {detail: "错误信息"}
  */
 function unwrapResponse(response: any, errorMessage = "Invalid response format") {
   if (!response.data) {
     throw new Error(`${errorMessage}: response.data is empty`);
+  }
+
+  // FastAPI错误响应格式
+  if (response.data.detail) {
+    throw new Error(response.data.detail);
   }
 
   // 新格式：直接返回数据（已解包）
