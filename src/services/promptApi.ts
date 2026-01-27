@@ -4,6 +4,40 @@ import Taro from "@tarojs/taro";
 const BASE_URL = `${API_BASE_URL}/miniprogram`;
 
 /**
+ * 统一响应处理 - 兼容新旧两种格式
+ *
+ * 旧格式: {success: true, data: {...}}
+ * 新格式: 直接返回数据 {...}
+ */
+function unwrapResponse(response: any, errorMessage = "Invalid response format") {
+  if (!response.data) {
+    throw new Error(`${errorMessage}: response.data is empty`);
+  }
+
+  // 新格式：直接返回数据（已解包）
+  // 检查是否有业务数据字段（根据具体接口调整）
+  if (
+    response.data.prompt_id ||
+    response.data.title ||
+    response.data.likes_count !== undefined ||
+    response.data.favorites_count !== undefined ||
+    Array.isArray(response.data.items) ||
+    Array.isArray(response.data.comments)
+  ) {
+    return response.data;
+  }
+
+  // 旧格式：{success: true, data: {...}}
+  if (response.data.success && response.data.data) {
+    return response.data.data;
+  }
+
+  // 都不是，抛出错误
+  console.error("❌ Invalid response format:", response.data);
+  throw new Error(errorMessage);
+}
+
+/**
  * 获取提示词详情
  * @param promptId 提示词ID
  */
@@ -17,17 +51,11 @@ export async function getPromptDetail(promptId: string) {
     },
   });
 
-  // 检查响应状态
   if (response.statusCode !== 200) {
     throw new Error(`API Error: ${response.statusCode}`);
   }
 
-  // 检查数据格式
-  if (!response.data || !response.data.success || !response.data.data) {
-    throw new Error("Invalid response format");
-  }
-
-  return response.data.data;
+  return unwrapResponse(response, "Failed to load detail");
 }
 
 /**
@@ -52,7 +80,7 @@ export async function likePrompt(promptId: string) {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data.data;
+  return unwrapResponse(response, "Failed to like prompt");
 }
 
 /**
@@ -69,7 +97,7 @@ export async function unlikePrompt(promptId: string) {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data.data;
+  return unwrapResponse(response, "Failed to unlike prompt");
 }
 
 /**
@@ -77,15 +105,7 @@ export async function unlikePrompt(promptId: string) {
  * @deprecated 使用 likePrompt/unlikePrompt 替代
  */
 export async function toggleLikeWork(taskId: string) {
-  const token = Taro.getStorageSync("token");
-  const response = await Taro.request({
-    url: `${BASE_URL}/square/work/${taskId}/like`,
-    method: "POST",
-    header: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return response.data.data;
+  return likePrompt(taskId);
 }
 
 /**
@@ -102,7 +122,7 @@ export async function favoritePrompt(promptId: string) {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data.data;
+  return unwrapResponse(response, "Failed to favorite prompt");
 }
 
 /**
@@ -119,7 +139,7 @@ export async function unfavoritePrompt(promptId: string) {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data.data;
+  return unwrapResponse(response, "Failed to unfavorite prompt");
 }
 
 /**
@@ -127,15 +147,7 @@ export async function unfavoritePrompt(promptId: string) {
  * @deprecated 使用 favoritePrompt/unfavoritePrompt 替代
  */
 export async function toggleFavoriteWork(taskId: string) {
-  const token = Taro.getStorageSync("token");
-  const response = await Taro.request({
-    url: `${BASE_URL}/studio/prompts/${taskId}/favorite`,
-    method: "POST",
-    header: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return response.data;
+  return favoritePrompt(taskId);
 }
 
 /**
@@ -160,7 +172,7 @@ export async function getComments(
       Authorization: token ? `Bearer ${token}` : "",
     },
   });
-  return response.data.data;
+  return unwrapResponse(response, "Failed to load comments");
 }
 
 /**
@@ -190,7 +202,7 @@ export async function createComment(
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data.data;
+  return unwrapResponse(response, "Failed to create comment");
 }
 
 /**
@@ -207,7 +219,7 @@ export async function toggleLikeComment(commentId: string) {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data.data;
+  return unwrapResponse(response, "Failed to like comment");
 }
 
 /**
@@ -224,7 +236,7 @@ export async function shareWork(taskId: string) {
       Authorization: `Bearer ${token}`,
     },
   });
-  return response.data;
+  return unwrapResponse(response, "Failed to share work");
 }
 
 /**
