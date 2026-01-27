@@ -265,7 +265,9 @@ const Studio: React.FC<StudioProps> = (props) => {
 
     setIsGenerating(true);
     try {
-      // 请求订阅消息
+      // 请求订阅消息，并记录用户选择
+      let subscribeAccepted = false;  // 默认false（未同意）
+
       try {
         const templateId = process.env.TARO_WECHAT_TASK_COMPLETE_TEMPLATE_ID;
         if (!templateId) {
@@ -280,9 +282,10 @@ const Studio: React.FC<StudioProps> = (props) => {
           // 检查用户是否同意订阅
           if (subscribeResult[templateId] === 'accept') {
             console.log('用户同意订阅消息');
-            // 继续提交任务
+            subscribeAccepted = true;  // ✅ 记录用户同意
           } else if (subscribeResult[templateId] === 'reject') {
             console.log('用户拒绝订阅消息');
+            subscribeAccepted = false;  // ❌ 记录用户拒绝
             // 用户拒绝，但仍允许继续生成任务
             Taro.showToast({
               title: '您拒绝了订阅消息通知',
@@ -290,12 +293,14 @@ const Studio: React.FC<StudioProps> = (props) => {
               duration: 2000
             });
           } else {
-            // 用户可能点击了关闭或其他情况，仍允许继续
+            // 用户可能点击了关闭或其他情况，视为未同意
             console.log('订阅消息状态:', subscribeResult[templateId]);
+            subscribeAccepted = false;
           }
         }
       } catch (subscribeError: any) {
         console.error('Request subscribe message error:', subscribeError);
+        subscribeAccepted = false;  // ❌ 出错也视为未同意
         // 用户拒绝或出错，但仍允许继续生成任务
         // 可能是用户点击了关闭弹窗
         if (subscribeError.errMsg && !subscribeError.errMsg.includes('requestSubscribeMessage:fail')) {
@@ -307,7 +312,7 @@ const Studio: React.FC<StudioProps> = (props) => {
         }
       }
 
-      // 提交任务（无论用户是否同意订阅）
+      // 提交任务（包含订阅状态）
       const [width, height] = getResolutionFromRatio(selectedRatio);
 
       // 提取上传的图片路径
@@ -318,6 +323,7 @@ const Studio: React.FC<StudioProps> = (props) => {
         prompt: prompt,
         parameters: { width, height, steps, cfg_scale: cfg },
         image_urls: imageUrls.length > 0 ? imageUrls : undefined,
+        subscribe_accepted: subscribeAccepted,  // ✅ 传递订阅状态给后端
       });
 
       // 显示提交成功的提示

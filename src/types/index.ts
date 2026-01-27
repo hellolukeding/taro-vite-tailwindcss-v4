@@ -101,6 +101,7 @@ export interface TaskSubmitParams {
     cfg_scale?: number
     seed?: number
   }
+  subscribe_accepted?: boolean  // 用户是否同意接收订阅消息
 }
 
 export interface TaskItem {
