@@ -24,7 +24,6 @@ export default function Index() {
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [scrollTop, setScrollTop] = useState(0)
   const [headerCollapsed, setHeaderCollapsed] = useState(false)
-  const [headerScrollY, setHeaderScrollY] = useState(0)
   const scrollViewRef = useRef<any>(null)
 
   // 使用 useRequest 获取分类列表
@@ -163,12 +162,10 @@ export default function Index() {
     setShowScrollTop(scrollTop > 300)
 
     // 当滚动超过80px时，收缩header并隐藏搜索框
-    if (scrollTop > 80 && !headerCollapsed) {
+    if (scrollTop > 80) {
       setHeaderCollapsed(true)
-      setHeaderScrollY(-60) // 向上收缩60px
-    } else if (scrollTop <= 80 && headerCollapsed) {
+    } else {
       setHeaderCollapsed(false)
-      setHeaderScrollY(0)
     }
   }
 
@@ -183,13 +180,18 @@ export default function Index() {
     <View className='page'>
       {/* 黑色圆角头部 */}
       <View
-        className='header-container rounded-b-4xl pt-20 pb-4 bg-black overflow-hidden'
+        className='rounded-b-4xl pt-20 pb-4 bg-black'
         style={{
-          transform: `translateY(${headerScrollY}px)`,
+          transform: headerCollapsed ? 'translateY(-50px)' : 'translateY(0)',
           transition: 'transform 0.3s ease-in-out'
         }}
       >
-        <View className='flex items-center justify-between'>
+        <View className='flex items-center justify-between'
+          style={{
+            opacity: headerCollapsed ? 0 : 1,
+            transition: 'opacity 0.2s ease-in-out'
+          }}
+        >
           <Image src='https://i.urusai.cc/EOn68.png' className='h-20 w-20' />
 
           <View className='text-white flex-1 flex flex-col ml-4 text-xl font-semibold'>
@@ -211,7 +213,7 @@ export default function Index() {
           clearable
           style={{
             opacity: headerCollapsed ? 0 : 1,
-            transform: headerCollapsed ? 'translateY(-20px)' : 'translateY(0)',
+            transform: headerCollapsed ? 'translateY(-10px)' : 'translateY(0)',
             transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out',
             pointerEvents: headerCollapsed ? 'none' : 'auto'
           }}
