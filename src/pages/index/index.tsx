@@ -162,8 +162,8 @@ export default function Index() {
 
   // 滚动到顶部
   const scrollToTop = () => {
-    // 通过设置 scrollTop 为 0 来滚动到顶部
-    setScrollTop(0)
+    // 使用随机值确保每次参数都不同，触发 Taro 的视图更新
+    setScrollTop(0 + Math.random())
   }
 
 
