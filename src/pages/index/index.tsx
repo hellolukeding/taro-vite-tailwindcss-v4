@@ -183,9 +183,13 @@ export default function Index() {
         className='rounded-b-4xl pt-20 pb-4 bg-black'
         style={{
           opacity: headerCollapsed ? 0 : 1,
+          maxHeight: headerCollapsed ? '0px' : '500px',
+          paddingTop: headerCollapsed ? '0px' : '80px',
+          paddingBottom: headerCollapsed ? '0px' : '16px',
           transform: headerCollapsed ? 'translateY(-100%)' : 'translateY(0)',
-          transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out',
-          pointerEvents: headerCollapsed ? 'none' : 'auto'
+          transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out, max-height 0.3s ease-in-out, padding 0.3s ease-in-out',
+          pointerEvents: headerCollapsed ? 'none' : 'auto',
+          overflow: 'hidden'
         }}
       >
         <View className='flex items-center justify-between'>
