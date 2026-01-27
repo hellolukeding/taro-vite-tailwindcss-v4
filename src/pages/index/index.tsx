@@ -180,16 +180,21 @@ export default function Index() {
     <View className='page'>
       {/* 黑色圆角头部 */}
       <View
-        className='rounded-b-4xl pt-20 pb-4 bg-black'
+        className='rounded-b-4xl bg-black'
         style={{
-          opacity: headerCollapsed ? 0 : 1,
-          maxHeight: headerCollapsed ? '0px' : '500px',
-          paddingTop: headerCollapsed ? '0px' : '80px',
-          paddingBottom: headerCollapsed ? '0px' : '16px',
+          opacity: 1,
+          paddingTop: '80px',
+          paddingBottom: '16px',
+          maxHeight: '500px',
           transform: headerCollapsed ? 'translateY(-100%)' : 'translateY(0)',
-          transition: 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out, max-height 0.3s ease-in-out, padding 0.3s ease-in-out',
-          pointerEvents: headerCollapsed ? 'none' : 'auto',
-          overflow: 'hidden'
+          transition: 'transform 0.3s ease-in-out, max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+          ...(headerCollapsed ? {
+            opacity: 0,
+            maxHeight: '0px',
+            paddingTop: '0px',
+            paddingBottom: '0px',
+            pointerEvents: 'none'
+          } : {})
         }}
       >
         <View className='flex items-center justify-between'>
