@@ -26,11 +26,28 @@ const SIZE_THRESHOLD = 2 * 1024;
 
 /**
  * 计算数据大小（bytes）
+ * 兼容小程序环境（不支持Blob）
  */
 function getDataSize(data: any): number {
   try {
     const str = typeof data === 'string' ? data : JSON.stringify(data);
-    return new Blob([str]).size;
+
+    // 小程序环境兼容：使用字符串长度作为近似值
+    // 对于UTF-8编码，英文1字节，中文3字节
+    // 这里使用简单的估算方法
+    let size = 0;
+    for (let i = 0; i < str.length; i++) {
+      const charCode = str.charCodeAt(i);
+      if (charCode < 0x80) {
+        size += 1; // ASCII: 1 byte
+      } else if (charCode < 0x800) {
+        size += 2; // 2 bytes
+      } else {
+        size += 3; // 中文等: 3 bytes
+      }
+    }
+
+    return size;
   } catch (error) {
     console.error('[PromptTransfer] Failed to calculate data size:', error);
     return 0;
