@@ -89,3 +89,18 @@ export const IMAGE_RATIOS = {
   "16:9": { width: 1344, height: 768 },
   "9:16": { width: 768, height: 1344 },
 } as const;
+
+/**
+ * 生成默认头像URL
+ * 基于用户昵称生成唯一的几何图形头像
+ * @param nickname 用户昵称
+ * @returns 头像URL
+ */
+export function generateAvatarUrl(nickname?: string | null): string {
+  if (!nickname || nickname.trim() === "") {
+    // 如果没有昵称，使用默认头像
+    return "https://i.urusai.cc/PlyC9.png";
+  }
+  // 使用后端头像生成API
+  return `${API_BASE_URL}/avatar/${encodeURIComponent(nickname)}`;
+}

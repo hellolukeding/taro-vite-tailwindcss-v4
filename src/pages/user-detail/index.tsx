@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { Icon } from '@/components/common/Icon'
 import { useAuth } from '@/hooks/useAuth'
 import { useUser } from '@/store'
+import { generateAvatarUrl } from '@/utils/constants'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { useState } from 'react'
@@ -122,7 +123,7 @@ const UserDetail: React.FC = () => {
                 {/* 头像 */}
                 <View className='w-30 h-30 rounded-full overflow-hidden border-4 border-white shadow-lg mb-4'>
                   <Image
-                    src={userInfo?.avatarUrl || 'https://i.urusai.cc/PlyC9.png'}
+                    src={userInfo?.avatarUrl || generateAvatarUrl(userInfo?.nickname)}
                     className='w-full h-full object-cover'
                   />
                 </View>

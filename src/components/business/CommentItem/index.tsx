@@ -1,4 +1,5 @@
 import { normalizeUrl } from '@/utils/url'
+import { generateAvatarUrl } from '@/utils/constants'
 import { Image, Text, View } from '@tarojs/components'
 
 interface CommentItemProps {
@@ -20,8 +21,8 @@ export function CommentItem({
   onLike,
   onReply,
 }: CommentItemProps) {
-  // 如果头像为空，使用默认头像
-  const avatarUrl = avatar || '/minio/user-avatars/default-avatar.png'
+  // 如果头像为空，基于用户名生成默认头像
+  const avatarUrl = avatar || generateAvatarUrl(username)
 
   return (
     <View className='flex gap-4'>

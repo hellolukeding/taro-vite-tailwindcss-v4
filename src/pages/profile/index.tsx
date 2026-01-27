@@ -6,6 +6,7 @@ import { Icon } from "@/components/common/Icon";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/store";
 import type { WorkItem } from "@/types";
+import { generateAvatarUrl } from "@/utils/constants";
 import { normalizeUrl } from "@/utils/url";
 import { Add, Arrow, Fire, GoodJobOutlined, Warning } from "@taroify/icons";
 import { Image, ScrollView, Text, View } from "@tarojs/components";
@@ -138,7 +139,7 @@ const Profile: React.FC<ProfileProps> = () => {
           >
             <View className="rounded-full w-20 h-20 overflow-hidden">
               <Image
-                src={userInfo?.avatarUrl || "https://i.urusai.cc/PlyC9.png"}
+                src={userInfo?.avatarUrl || generateAvatarUrl(userInfo?.nickname)}
                 className="w-full h-full object-cover "
               />
             </View>
