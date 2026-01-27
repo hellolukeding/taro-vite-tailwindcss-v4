@@ -1,5 +1,5 @@
 import { Icon } from '@/components/common/Icon'
-import { BASE_URL } from '@/utils/constants'
+import { normalizeUrl } from '@/utils/url'
 import { Image, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { memo } from 'react'
@@ -26,7 +26,7 @@ export const WorkCard = memo(({ id, index, data, isScrolling }: WorkCardProps) =
   return (
     <View id={id} className='work-card' onClick={handleClick}>
       <Image
-        src={`${BASE_URL}${work.cover_image}`}
+        src={normalizeUrl(work.cover_image)}
         className='work-img'
         mode='aspectFill'
         lazyLoad
@@ -36,7 +36,7 @@ export const WorkCard = memo(({ id, index, data, isScrolling }: WorkCardProps) =
         <View className='work-author'>
           {work.creator?.avatar_url && (
             <Image
-              src={`${BASE_URL}${work.creator.avatar_url}`}
+              src={normalizeUrl(work.creator.avatar_url)}
               className='author-avatar'
               mode='aspectFill'
             />

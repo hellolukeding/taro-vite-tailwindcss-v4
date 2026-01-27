@@ -1,7 +1,7 @@
 import { studioApi } from '@/api/studio'
 import { BottomNav } from '@/components/business/BottomNav'
 import { WorkCard } from '@/components/WorkCard'
-import { BASE_PAGE_SIZE, BASE_URL } from '@/utils/constants'
+import { BASE_PAGE_SIZE } from '@/utils/constants'
 import { Search, Tabs } from "@taroify/core"
 import { ScrollView, Text, View } from '@tarojs/components'
 import Taro, { useReachBottom, usePullDownRefresh } from '@tarojs/taro'

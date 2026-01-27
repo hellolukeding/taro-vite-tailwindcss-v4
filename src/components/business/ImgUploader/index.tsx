@@ -66,25 +66,18 @@ const ImgUploader: React.FC<ImgUploaderProps> = ({
       // 逐个上传图片到服务器
       const uploadPromises = res.tempFilePaths.map(async (filePath, index) => {
         try {
-          const result = await studioApi.uploadImage(filePath, token)
+          const uploadedData = await studioApi.uploadImage(filePath, token)
 
-          if (result.status === "success" && result.data) {
-            // 上传成功，返回文件对象
-            return {
-              type: "image" as const,
-              url: result.data.url,
-              status: "completed" as const,
-              name: result.data.filename || `image_${Date.now()}_${index}`,
-            }
-          } else {
-            return {
-              type: "image" as const,
-              url: filePath,
-              status: "failed" as const,
-              message: result.message || "上传失败",
-            }
+          // 上传成功，返回文件对象
+          console.log(`[ImgUploader] Image ${index} uploaded successfully:`, uploadedData)
+          return {
+            type: "image" as const,
+            url: uploadedData.url,
+            status: "completed" as const,
+            name: uploadedData.filename || `image_${Date.now()}_${index}`,
           }
         } catch (error: any) {
+          console.error(`[ImgUploader] Image ${index} upload failed:`, error)
           return {
             type: "image" as const,
             url: filePath,

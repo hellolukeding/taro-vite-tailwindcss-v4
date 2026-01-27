@@ -337,7 +337,9 @@ export default function Index() {
             right: 16,
             bottom: 100,
             backgroundColor: '#000000',
-            opacity: 0.3
+            opacity: 0.6,
+            display: showScrollTop ? "" : "none",
+            transition: "ease-in-out"
           }}
           onClick={scrollToTop}
           icon={<ArrowUp style={{ color: '#ffffff' }} />}

@@ -73,22 +73,12 @@ export function TicketImageUploader({ images, onChange, maxCount = 4 }: TicketIm
 
       console.log('[上传图片] 开始上传:', filePath)
 
-      const result = await studioApi.uploadImage(filePath, token)
+      const uploadedData = await studioApi.uploadImage(filePath, token)
 
-      console.log('[上传图片] 上传结果:', result)
+      console.log('[上传图片] 上传结果:', uploadedData)
 
-      if (result.status === 'success' && result.data?.url_preview) {
-        // 使用 normalizeUrl 拼接完整URL
-        // /prompt-images/xxx.jpg → https://xxx.com/minio/prompt-images/xxx.jpg
-        return normalizeUrl(`/minio${result.data.url_preview}`)
-      } else {
-        console.error('上传失败:', result.message)
-        Taro.showToast({
-          title: result.message || '上传失败',
-          icon: 'none'
-        })
-        return null
-      }
+      // uploadImage 现在直接返回 {url, id, filename}，url 已经是完整的
+      return uploadedData.url
     } catch (error: any) {
       console.error('[上传图片] 异常:', error)
       Taro.showToast({
