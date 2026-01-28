@@ -63,15 +63,11 @@ const Studio: React.FC<StudioProps> = (props) => {
           // 简单字符串，直接使用
           finalPrompt = promptContent;
         } else if (Array.isArray(promptContent)) {
-          // 数组：提取最佳提示词
-          // 优先选择中文，其次选择英文，否则选择最长的一个
+          // 数组：合并所有提示词（避免内容被截断）
           const candidates = promptContent.filter(p => typeof p === 'string' && p.trim().length > 0);
           if (candidates.length > 0) {
-            // 尝试找到中文提示词
-            const zhPrompt = candidates.find(p => /[\u4e00-\u9fa5]/.test(p));
-            // 按长度排序，选择最长的（通常最完整）
-            candidates.sort((a, b) => b.length - a.length);
-            finalPrompt = zhPrompt || candidates[0];
+            // 用换行符连接所有提示词，保留完整内容
+            finalPrompt = candidates.join('\n');
           }
         } else if (typeof promptContent === 'object' && promptContent !== null) {
           // JSON对象：尝试常见字段
