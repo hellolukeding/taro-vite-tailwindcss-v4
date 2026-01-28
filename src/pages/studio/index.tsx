@@ -265,21 +265,34 @@ const Studio: React.FC<StudioProps> = (props) => {
 
       try {
         const templateId = process.env.TARO_WECHAT_TASK_COMPLETE_TEMPLATE_ID;
+
+        // 🔍 添加调试日志
+        console.log('📱 [订阅消息] 开始请求订阅消息');
+        console.log('  - 模板ID:', templateId);
+        console.log('  - process.env:', process.env.TARO_WECHAT_TASK_COMPLETE_TEMPLATE_ID);
+
         if (!templateId) {
-          console.warn('未配置模板ID（TARO_WECHAT_TASK_COMPLETE_TEMPLATE_ID），跳过订阅消息');
+          console.warn('⚠️ [订阅消息] 未配置模板ID，跳过订阅消息');
         } else {
+          console.log('✅ [订阅消息] 调用 Taro.requestSubscribeMessage...');
+
           const subscribeResult = await Taro.requestSubscribeMessage({
             tmplIds: [templateId],
           });
 
-          console.log('Subscribe result:', subscribeResult);
+          console.log('📋 [订阅消息] 订阅结果:', subscribeResult);
 
           // 检查用户是否同意订阅
           if (subscribeResult[templateId] === 'accept') {
-            console.log('用户同意订阅消息');
+            console.log('✅ [订阅消息] 用户同意订阅消息');
             subscribeAccepted = true;  // ✅ 记录用户同意
+            Taro.showToast({
+              title: '已订阅任务完成通知',
+              icon: 'success',
+              duration: 1500
+            });
           } else if (subscribeResult[templateId] === 'reject') {
-            console.log('用户拒绝订阅消息');
+            console.log('❌ [订阅消息] 用户拒绝订阅消息');
             subscribeAccepted = false;  // ❌ 记录用户拒绝
             // 用户拒绝，但仍允许继续生成任务
             Taro.showToast({
@@ -289,12 +302,12 @@ const Studio: React.FC<StudioProps> = (props) => {
             });
           } else {
             // 用户可能点击了关闭或其他情况，视为未同意
-            console.log('订阅消息状态:', subscribeResult[templateId]);
+            console.log('⚠️ [订阅消息] 未知状态:', subscribeResult[templateId]);
             subscribeAccepted = false;
           }
         }
       } catch (subscribeError: any) {
-        console.error('Request subscribe message error:', subscribeError);
+        console.error('💥 [订阅消息] 请求异常:', subscribeError);
         subscribeAccepted = false;  // ❌ 出错也视为未同意
         // 用户拒绝或出错，但仍允许继续生成任务
         // 可能是用户点击了关闭弹窗
