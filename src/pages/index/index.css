@@ -185,6 +185,9 @@
 .content {
   flex: 1;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* 分类栏 */
@@ -237,7 +240,6 @@
 
 .work-img {
   width: 100%;
-  aspect-ratio: 3/4;
 }
 
 .vip-tag {

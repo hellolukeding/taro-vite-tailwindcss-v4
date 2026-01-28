@@ -1,6 +1,8 @@
 import { assetsApi } from "@/api";
 import CommonWarp from "@/components/CommonWarp";
+import { EmptyState } from "@/components/business/EmptyState";
 import { InProgressTaskCard } from "@/components/business/InProgressTaskCard";
+import { VirtualWaterfall, WorkItem } from "@/components/business/VirtualWaterfall";
 import { useAuth } from "@/hooks/useAuth";
 import type { MockTask } from "@/mock/tasks";
 import type { TaskItem } from "@/types";
@@ -9,7 +11,7 @@ import { normalizeUrl } from "@/utils/url";
 import { UnderwayOutlined } from "@taroify/icons";
 import { Image, ScrollView, Text, View } from "@tarojs/components";
 import Taro, { useDidHide, useDidShow, usePullDownRefresh, useReachBottom } from "@tarojs/taro";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./index.css";
 
 interface AssetsProps { }
@@ -346,6 +348,21 @@ const Assets: React.FC<AssetsProps> = () => {
     };
   };
 
+  // 转换 TaskItem 到 WorkItem 格式（用于 VirtualWaterfall）
+  const workItems = useMemo(() => {
+    return tasks.map((task) => ({
+      id: task.task_id,
+      title: task.prompt.length > 50 ? task.prompt.substring(0, 50) + '...' : task.prompt,
+      cover_image: task.image_url,
+      creator: {
+        nickname: task.model_name || task.model_id,
+      },
+      model: task.model_name,
+      likes_count: 0,
+      views_count: 0,
+    } as WorkItem));
+  }, [tasks]);
+
   // 加载中
   if (loading) {
     return (
@@ -432,81 +449,24 @@ const Assets: React.FC<AssetsProps> = () => {
           ) : (
             <View className="px-4 py-4">
               {/* 瀑布流作品列表 */}
-              <View className='works'>
-                {/* 左列 */}
-                <View className='column'>
-                  {tasks.filter((_, i) => i % 2 === 0).map((task) => {
-                    const mockTask = transformToMockTask(task);
-                    return (
-                      <View key={task.task_id} className='work-card' onClick={() => {
-                        handleTaskClick(task);
-                      }}
-                      >
-                        <Image
-                          src={normalizeUrl(task.image_url) || ''}
-                          className='work-img'
-                          mode='aspectFill'
-                          lazyLoad
-                        />
-                        <Text className='work-prompt text-lg'>
-                          {task.prompt.length > 50 ? task.prompt.substring(0, 50) + '...' : task.prompt}
-                        </Text>
-                        <View className='work-footer'>
-                          <View className='work-author'>
-                            <Text className='author-name'>{task.model_name || task.model_id}</Text>
-                          </View>
-                          <View className='work-stats'>
-                            <View className='work-likes text-lg'>
-                              <UnderwayOutlined size={12} />
-                              <Text className='stats-num ml-1'>{mockTask.time}</Text>
-                            </View>
-                          </View>
-                        </View>
-                      </View>
-                    );
-                  })}
-                </View>
-                {/* 右列 */}
-                <View className='column'>
-                  {tasks.filter((_, i) => i % 2 === 1).map((task) => {
-                    const mockTask = transformToMockTask(task);
-                    return (
-                      <View key={task.task_id} className='work-card' onClick={() => {
-                        handleTaskClick(task);
-                      }}
-                      >
-                        <Image
-                          src={normalizeUrl(task.image_url) || ''}
-                          className='work-img'
-                          mode='aspectFill'
-                          lazyLoad
-                        />
-                        <Text className='work-prompt text-lg'>
-                          {task.prompt.length > 50 ? task.prompt.substring(0, 50) + '...' : task.prompt}
-                        </Text>
-                        <View className='work-footer'>
-                          <View className='work-author'>
-                            <Text className='author-name'>{task.model_name || task.model_id}</Text>
-                          </View>
-                          <View className='work-stats'>
-                            <View className='work-likes text-lg'>
-                              <UnderwayOutlined size={12} />
-                              <Text className='stats-num ml-1'>{mockTask.time}</Text>
-                            </View>
-                          </View>
-                        </View>
-                      </View>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* 空状态 */}
-              {tasks.length === 0 && !loadingTasks && (
-                <View className="text-center py-8 text-gray-400">
-                  <Text>暂无已完成的任务</Text>
-                </View>
-              )}
+              <VirtualWaterfall
+                items={workItems}
+                loading={loadingTasks}
+                hasMore={hasMore}
+                onItemClick={(work) => {
+                  const task = tasks.find(t => t.task_id === work.id);
+                  if (task) handleTaskClick(task);
+                }}
+                onRefresh={() => loadTasks(false)}
+                onLoadMore={() => loadTasks(true)}
+                renderEmpty={() => (
+                  <EmptyState
+                    type='no-tasks'
+                    title='暂无已完成的任务'
+                    description='快去创作你的第一个作品吧'
+                  />
+                )}
+              />
             </View>
           )}
         </ScrollView>

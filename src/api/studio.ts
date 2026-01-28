@@ -2,9 +2,9 @@
  * 创作工作台相关API
  */
 import type { ModelInfo, TaskStatus, TaskSubmitParams } from "@/types";
-import Taro from "@tarojs/taro";
 import { API_BASE_URL } from "@/utils/constants";
 import { normalizeUrl } from "@/utils/url";
+import Taro from "@tarojs/taro";
 import client from "./client";
 
 const BASE_URL = API_BASE_URL;
@@ -105,13 +105,13 @@ export const studioApi = {
    * 获取提示词标签分类列表
    */
   async getCategories(): Promise<string[]> {
-    const response = await client.get<{items: string[]; total: number}>(
+    const response = await client.get<{ items: string[]; total: number }>(
       "/miniprogram/studio/categories",
       {},
       { skipAuth: true }
     );
     console.log('[getCategories] Response:', response);
-    console.log('[getCategories] Items:', response?.items);
+
     const items = response?.items || [];
     console.log('[getCategories] Returning items:', items);
     return items;

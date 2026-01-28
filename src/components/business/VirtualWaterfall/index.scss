@@ -1,0 +1,40 @@
+/* VirtualWaterfall 虚拟瀑布流组件样式 */
+
+.virtual-waterfall {
+  flex: 1;
+  height: 100%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.waterfall-scrollview {
+  flex: 1;
+  height: 100%;
+}
+
+.waterfall-container {
+  display: flex;
+  gap: 16px;
+  padding: 0 16px 24px 16px;
+}
+
+.waterfall-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.waterfall-loading,
+.waterfall-load-more {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.waterfall-empty {
+  padding: 48px 32px;
+  min-height: 400px;
+}

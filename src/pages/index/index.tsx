@@ -1,13 +1,13 @@
 import { studioApi } from '@/api/studio'
-// 注意：原生 tabBar 已启用，不再需要自定义 BottomNav 组件
-// import { BottomNav } from '@/components/business/BottomNav'
+import { CategoryTabs } from '@/components/business/CategoryTabs'
+import { EmptyState } from '@/components/business/EmptyState'
 import { SearchBar } from '@/components/business/SearchBar'
+import { VirtualWaterfall } from '@/components/business/VirtualWaterfall'
 import { useAuth } from '@/hooks/useAuth'
 import { BASE_PAGE_SIZE } from '@/utils/constants'
-import { normalizeUrl } from '@/utils/url'
-import { FloatingBubble, Search, Tabs } from "@taroify/core"
-import { ArrowUp, ExpandOutlined, GoodJobOutlined, Shrink } from '@taroify/icons'
-import { Image, Input, ScrollView, Text, View } from '@tarojs/components'
+import { FloatingBubble } from '@taroify/core'
+import { ArrowUp, Shrink } from '@taroify/icons'
+import { Image, Input, Text, View } from '@tarojs/components'
 import Taro, { nextTick } from '@tarojs/taro'
 import useRequest from 'ahooks/lib/useRequest'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -35,7 +35,7 @@ export default function Index() {
   // 使用 useRequest 获取分类列表
   const { data: categoriesData, loading } = useRequest(() => studioApi.getCategories(), {
     onSuccess: (result) => {
-      console.log('[Index] getCategories success:', result);
+      // console.log('[Index] getCategories success:', result);
       console.log('[Index] Type:', typeof result);
       console.log('[Index] Is array:', Array.isArray(result));
     }
@@ -145,10 +145,10 @@ export default function Index() {
 
   // 组合分类数据，添加"全部"选项
   const categories = useMemo(() => {
-    console.log('[Index] Computing categories, categoriesData:', categoriesData);
+
     if (!categoriesData) return ['全部']
     const result = ['全部', ...categoriesData]
-    console.log('[Index] Final categories:', result);
+
     return result
   }, [categoriesData])
 
@@ -234,7 +234,7 @@ export default function Index() {
           } : {})
         }}
       >
-        <View className='flex items-center justify-between px-4'>
+        <View className='flex items-center justify-between px-6 pb-4'>
           <Image src='https://i.urusai.cc/EOn68.png' className='h-20 w-20' />
 
           <View className='text-white flex-1 flex flex-col ml-4 text-xl font-semibold'>
@@ -266,7 +266,7 @@ export default function Index() {
               </View>
             </View>
           </View>
-          <View className='fullscreen-edit-content'>
+          <View className='fullscreen-edit-content px-4'>
             <Input
               ref={inputRef}
               className='fullscreen-edit-input'
@@ -288,34 +288,15 @@ export default function Index() {
       )}
 
       {/* 主内容区域 */}
-      <ScrollView
-        scrollY
-        scrollTop={scrollTop}
-        scrollWithAnimation
-        className='content'
-        refresherEnabled
-        refresherTriggered={promptsLoading && currentPage === 1}
-        onRefresherRefresh={handleRefresh}
-        onScrollToLower={handleLoadMore}
-        onScroll={handleScroll}
-        lowerThreshold={100}
-        ref={scrollViewRef}
-        scrollIntoView={isFullscreenEdit}
-      >
+      <View className='content'>
+        {/* 分类标签栏 */}
         <View className='w-full mb-2'>
-          {loading ? (
-            <View className='flex justify-center p-4'>
-              <Text>加载中...</Text>
-            </View>
-          ) : (
-            <Tabs value={selectedCategory} onChange={handleCategoryChange}>
-              {categories.map((category: string) => {
-                return (
-                  <Tabs.TabPane title={category} key={category}></Tabs.TabPane>
-                )
-              })}
-            </Tabs>
-          )}
+          <CategoryTabs
+            categories={categories}
+            value={selectedCategory}
+            onChange={handleCategoryChange}
+            loading={loading}
+          />
         </View>
 
         {/* 搜索状态提示 */}
@@ -337,91 +318,22 @@ export default function Index() {
         )}
 
         {/* 瀑布流作品列表 */}
-        <View className='works pb-20'>
-          {/* 左列 */}
-          <View className='column'>
-            {promptsList.filter((_, i) => i % 2 === 0).map((work) => (
-              <View key={work.id} className='work-card' onClick={() => {
-                handleClick(work.id)
-              }}
-              >
-                <Image src={normalizeUrl(work.cover_image)} className='work-img' mode='aspectFill' lazyLoad />
-                <Text className='work-prompt text-lg'>{work.title}</Text>
-                <View className='work-footer'>
-                  <View className='work-author'>
-                    {work.creator?.avatar_url && (
-                      <Image
-                        src={normalizeUrl(work.creator?.avatar_url)}
-                        className='author-avatar'
-                        mode='aspectFill'
-                      />
-                    )}
-                    <Text className='author-name'>{work.creator?.nickname || work.model}</Text>
-                  </View>
-                  <View className='work-stats'>
-                    <View className='work-likes text-lg flex items-center justify-center'>
-                      <GoodJobOutlined size={16} />
-                      <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
-                    </View>
-                    {work.views_count > 0 && (
-                      <Text className='views-num text-lg'>{work.views_count}</Text>
-                    )}
-                  </View>
-                </View>
-              </View>
-            ))}
-          </View>
-          {/* 右列 */}
-          <View className='column'>
-            {promptsList.filter((_, i) => i % 2 === 1).map((work) => (
-              <View key={work.id} className='work-card' onClick={() => {
-                handleClick(work.id)
-              }}
-              >
-                <Image src={normalizeUrl(work.cover_image)} className='work-img' mode='aspectFill' lazyLoad />
-                <Text className='work-prompt text-lg'>{work.title}</Text>
-                <View className='work-footer'>
-                  <View className='work-author text-lg'>
-                    {work.creator?.avatar_url && (
-                      <Image
-                        src={normalizeUrl(work.creator?.avatar_url)}
-                        className='author-avatar'
-                        mode='aspectFill'
-                      />
-                    )}
-                    <Text className='author-name'>{work.creator?.nickname || work.model}</Text>
-                  </View>
-                  <View className='work-stats'>
-                    <View className='work-likes text-lg flex items-center justify-center'>
-                      <GoodJobOutlined size={16} />
-                      <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
-                    </View>
-                    {work.views_count > 0 && (
-                      <Text className='views-num text-lg'>{work.views_count}</Text>
-                    )}
-                  </View>
-                </View>
-              </View>
-            ))}
-          </View>
+        <View className='flex-1 overflow-hidden'>
+          <VirtualWaterfall
+            items={promptsList}
+            loading={promptsLoading}
+            hasMore={hasMore}
+            onItemClick={(work) => handleClick(work.id)}
+            onRefresh={handleRefresh}
+            onLoadMore={handleLoadMore}
+            renderEmpty={() => (
+              <EmptyState
+                type={isSearching ? 'no-search-result' : 'no-data'}
+              />
+            )}
+          />
         </View>
-
-        {/* 加载更多提示 */}
-        {promptsList.length > 0 && (
-          <View className='flex justify-center p-4'>
-            <Text className='text-gray-500 text-sm'>
-              {promptsLoading && currentPage > 1 ? '加载中...' : hasMore ? '上拉加载更多' : '没有更多了'}
-            </Text>
-          </View>
-        )}
-
-        {/* 空状态 */}
-        {!promptsLoading && promptsList.length === 0 && (
-          <View className='flex flex-col items-center justify-center p-8'>
-            <Text className='text-gray-400'>暂无数据</Text>
-          </View>
-        )}
-      </ScrollView>
+      </View>
 
       {/* 滚动到顶部悬浮按钮 */}
 
