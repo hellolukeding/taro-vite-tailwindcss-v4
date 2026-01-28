@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { mockPromptExamples, type MockModel } from "@/mock/studio";
 import { useUser } from "@/store";
 import type { ModelInfo } from "@/types";
+import { WECHAT_TASK_COMPLETE_TEMPLATE_ID } from "@/utils/constants";
 import { receivePromptFromTransfer } from "@/utils/promptTransfer";
 import type { Uploader } from "@taroify/core";
 import { ScrollView, Text, View } from "@tarojs/components";
@@ -264,15 +265,20 @@ const Studio: React.FC<StudioProps> = (props) => {
       let subscribeAccepted = false;  // 默认false（未同意）
 
       try {
-        const templateId = process.env.TARO_WECHAT_TASK_COMPLETE_TEMPLATE_ID;
+        const templateId = WECHAT_TASK_COMPLETE_TEMPLATE_ID;
 
         // 🔍 添加调试日志
         console.log('📱 [订阅消息] 开始请求订阅消息');
         console.log('  - 模板ID:', templateId);
-        console.log('  - process.env:', process.env.TARO_WECHAT_TASK_COMPLETE_TEMPLATE_ID);
+        console.log('  - 常量配置:', WECHAT_TASK_COMPLETE_TEMPLATE_ID);
 
         if (!templateId) {
           console.warn('⚠️ [订阅消息] 未配置模板ID，跳过订阅消息');
+          Taro.showToast({
+            title: '模板消息未配置',
+            icon: 'none',
+            duration: 2000
+          });
         } else {
           console.log('✅ [订阅消息] 调用 Taro.requestSubscribeMessage...');
 
@@ -304,19 +310,43 @@ const Studio: React.FC<StudioProps> = (props) => {
             // 用户可能点击了关闭或其他情况，视为未同意
             console.log('⚠️ [订阅消息] 未知状态:', subscribeResult[templateId]);
             subscribeAccepted = false;
+            // 显示提示给用户
+            Taro.showToast({
+              title: '未订阅任务完成通知',
+              icon: 'none',
+              duration: 2000
+            });
           }
         }
       } catch (subscribeError: any) {
         console.error('💥 [订阅消息] 请求异常:', subscribeError);
+        console.error('  - 错误消息:', subscribeError.errMsg);
+        console.error('  - 错误详情:', JSON.stringify(subscribeError));
+
         subscribeAccepted = false;  // ❌ 出错也视为未同意
-        // 用户拒绝或出错，但仍允许继续生成任务
-        // 可能是用户点击了关闭弹窗
-        if (subscribeError.errMsg && !subscribeError.errMsg.includes('requestSubscribeMessage:fail')) {
-          Taro.showToast({
-            title: '订阅消息请求失败，将不接收通知',
-            icon: 'none',
-            duration: 2000
-          });
+
+        // 显示详细的错误信息
+        let errorMessage = '订阅消息请求失败';
+
+        if (subscribeError.errMsg) {
+          if (subscribeError.errMsg.includes('requestSubscribeMessage:fail')) {
+            // 用户拒绝或系统错误
+            errorMessage = '订阅消息授权失败';
+          } else {
+            errorMessage = '订阅消息异常: ' + subscribeError.errMsg;
+          }
+        }
+
+        // 总是显示错误提示
+        Taro.showToast({
+          title: errorMessage,
+          icon: 'none',
+          duration: 2500
+        });
+
+        // 如果是开发环境，提示使用真机调试
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ [开发提示] 订阅消息弹窗只能在真机上触发，开发者工具无法测试');
         }
       }
 

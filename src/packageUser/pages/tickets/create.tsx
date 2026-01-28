@@ -2,6 +2,7 @@ import { ticketsApi } from '@/api'
 import CommonWarp from '@/components/CommonWarp'
 import { TicketImageUploader } from '@/components/business/TicketImageUploader'
 import { useAuth } from '@/hooks/useAuth'
+import { WECHAT_TICKET_REPLY_TEMPLATE_ID } from '@/utils/constants'
 import { ArrowLeft } from '@taroify/icons'
 import { Button, Input } from '@taroify/core'
 import { Picker, Text, Textarea, View } from '@tarojs/components'
@@ -57,6 +58,46 @@ const Create: React.FC<CreateProps> = () => {
 
     setLoading(true)
     try {
+      // 请求订阅消息
+      let subscribeAccepted = false
+      try {
+        const templateId = WECHAT_TICKET_REPLY_TEMPLATE_ID
+
+        console.log('📱 [工单] 开始请求订阅消息')
+        console.log('  - 模板ID:', templateId)
+
+        if (!templateId) {
+          console.warn('⚠️ [工单] 未配置模板ID，跳过订阅消息')
+        } else {
+          const subscribeResult = await Taro.requestSubscribeMessage({
+            tmplIds: [templateId],
+          })
+
+          console.log('📋 [工单] 订阅结果:', subscribeResult)
+
+          if (subscribeResult[templateId] === 'accept') {
+            console.log('✅ [工单] 用户同意订阅消息')
+            subscribeAccepted = true
+            Taro.showToast({
+              title: '已订阅工单回复通知',
+              icon: 'success',
+              duration: 1500
+            })
+          } else if (subscribeResult[templateId] === 'reject') {
+            console.log('❌ [工单] 用户拒绝订阅消息')
+            subscribeAccepted = false
+          } else {
+            console.log('⚠️ [工单] 未知状态:', subscribeResult[templateId])
+            subscribeAccepted = false
+          }
+        }
+      } catch (subscribeError: any) {
+        console.error('💥 [工单] 订阅异常:', subscribeError)
+        subscribeAccepted = false
+        // 订阅失败不影响工单提交
+      }
+
+      // 提交工单
       const ticket = await ticketsApi.createTicket({
         type,
         priority,
@@ -65,6 +106,7 @@ const Create: React.FC<CreateProps> = () => {
         related_order_id: relatedOrderId.trim() || undefined,
         related_task_id: relatedTaskId.trim() || undefined,
         attachments: attachments.length > 0 ? attachments : undefined,
+        subscribe_accepted: subscribeAccepted,
       })
 
       Taro.showToast({ title: '提交成功', icon: 'success' })

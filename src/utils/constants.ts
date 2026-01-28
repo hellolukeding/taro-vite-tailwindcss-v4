@@ -12,6 +12,10 @@ export const API_BASE_URL = `${BASE_URL}/api/v1`;
 
 export const BASE_PAGE_SIZE = 20;
 
+// 微信订阅消息模板ID
+export const WECHAT_TASK_COMPLETE_TEMPLATE_ID = "3wbMuP_BB8AfTSFzWj46qfvfj6Jpw_nz_C9JhRjMvjU";
+export const WECHAT_TICKET_REPLY_TEMPLATE_ID = "-A47c_eiF47h8p_5No3Sk29YyGT7KkfJ3j-aDsMbTxk";
+
 // Storage Keys
 export const STORAGE_KEYS = {
   TOKEN: "token",

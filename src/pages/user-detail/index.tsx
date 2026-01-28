@@ -55,6 +55,13 @@ const UserDetail: React.FC = () => {
     })
   }
 
+  // 处理测试页面（仅开发环境）
+  const handleTestPage = () => {
+    Taro.navigateTo({
+      url: '/pages/test/index'
+    })
+  }
+
   // 处理退出登录
   const handleLogout = () => {
     Taro.showModal({
@@ -232,6 +239,18 @@ const UserDetail: React.FC = () => {
                   <Text>我的工单</Text>
                 </View>
               </View>
+
+              {/* 测试页面按钮（仅开发环境） */}
+              {process.env.NODE_ENV === 'development' && (
+                <View className='mt-2'>
+                  <View
+                    onClick={handleTestPage}
+                    className='w-full py-3 bg-purple-500 text-white text-center rounded-full font-medium shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2'
+                  >
+                    <Text>🧪 测试页面</Text>
+                  </View>
+                </View>
+              )}
 
               <View className='mt-2'>
                 <View

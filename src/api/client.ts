@@ -153,6 +153,20 @@ class APIClient {
 
       // 6. 处理错误响应
       const errorMsg = responseData?.error?.message || responseData?.detail || '请求失败'
+
+      // 检查是否是认证相关错误
+      const authErrorKeywords = ['未提供认证Token', '认证失败', '未授权', 'Unauthorized', 'Authentication failed']
+      const isAuthError = authErrorKeywords.some(keyword => errorMsg.includes(keyword))
+
+      if (isAuthError) {
+        // 认证错误，清除token并跳转登录
+        await removeAuthToken()
+        Taro.redirectTo({
+          url: '/pages/login/index'
+        })
+        throw new Error('登录已过期,请重新登录')
+      }
+
       if (!skipErrorTip) {
         Taro.showToast({
           title: errorMsg,

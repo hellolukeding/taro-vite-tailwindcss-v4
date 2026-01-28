@@ -1,0 +1,52 @@
+/* 搜索框包装器 */
+.search-bar-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* 自定义搜索框 */
+.custom-search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 30px;
+  padding: 12px 16px;
+  min-height: 48px;
+}
+
+.search-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.search-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 14px;
+  color: #000000;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.search-placeholder {
+  color: #9ca3af;
+}
+
+.expand-icon {
+  flex-shrink: 0;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+}
