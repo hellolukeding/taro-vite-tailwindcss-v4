@@ -10,6 +10,7 @@ export interface PromptInputFullscreenProps {
   onTranslate?: () => void
   onRandom?: () => void
   placeholder?: string
+  onFullscreenChange?: (isFullscreen: boolean) => void  // 新增：全屏状态变化回调
 }
 
 /**
@@ -28,7 +29,8 @@ export const PromptInputFullscreen: FC<PromptInputFullscreenProps> = ({
   onChange,
   onTranslate,
   onRandom,
-  placeholder = '描述你想生成的图片...'
+  placeholder = '描述你想生成的图片...',
+  onFullscreenChange  // 新增：全屏状态变化回调
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [fullscreenValue, setFullscreenValue] = useState(value)
@@ -37,17 +39,20 @@ export const PromptInputFullscreen: FC<PromptInputFullscreenProps> = ({
   const handleOpenFullscreen = () => {
     setFullscreenValue(value)
     setIsFullscreen(true)
+    onFullscreenChange?.(true)  // 通知外部组件：全屏已打开
   }
 
   // 关闭全屏（不保存）
   const handleCloseFullscreen = () => {
     setIsFullscreen(false)
+    onFullscreenChange?.(false)  // 通知外部组件：全屏已关闭
   }
 
   // 确认并保存
   const handleConfirm = () => {
     onChange(fullscreenValue)
     setIsFullscreen(false)
+    onFullscreenChange?.(false)  // 通知外部组件：全屏已关闭
   }
 
   // 清除内容
@@ -92,7 +97,7 @@ export const PromptInputFullscreen: FC<PromptInputFullscreenProps> = ({
 
       {/* 全屏编辑模式 */}
       {isFullscreen && (
-        <View className='prompt-input-fullscreen' catchMove>
+        <View className='prompt-input-fullscreen' catchMove={true}>
           <CommonHeader title='编辑提示词' withBack={false}>
             <View className='flex items-center justify-end px-4 py-2'>
               {fullscreenValue && (
@@ -106,40 +111,44 @@ export const PromptInputFullscreen: FC<PromptInputFullscreenProps> = ({
               )}
             </View>
           </CommonHeader>
-          <ScrollView
-            scrollY
-            className='fullscreen-content'
-          >
-            <View className='content-wrapper'>
-              <Textarea
-                className='fullscreen-input'
-                placeholder={placeholder}
-                value={fullscreenValue}
-                onInput={(e) => setFullscreenValue(e.detail.value)}
-                focus
-                adjustPosition
-                maxlength={-1}
-                autoHeight={false}
-                style={{ minHeight: '300px', height: 'auto' }}
-              />
 
-              <View className='fullscreen-tips'>
-                <Text className='tips-text'>
-                  💡 提示：详细描述能获得更好的生成效果
-                </Text>
-              </View>
+          <View className='fullscreen-scroll-area'>
+            <ScrollView
+              scrollY
+              className='fullscreen-content'
+              scrollWithAnimation
+            >
+              <View className='content-wrapper'>
+                <Textarea
+                  className='fullscreen-input'
+                  placeholder={placeholder}
+                  value={fullscreenValue}
+                  onInput={(e) => setFullscreenValue(e.detail.value)}
+                  focus
+                  adjustPosition={true}
+                  maxlength={-1}
+                  autoHeight={false}
+                  style={{ minHeight: '300px', height: '300px' }}
+                />
 
-              <View className='fullscreen-info'>
-                <View className='info-item'>
-                  <Text className='info-label'>字数统计</Text>
-                  <Text className='info-value'>{fullscreenValue.length} 字</Text>
+                <View className='fullscreen-tips'>
+                  <Text className='tips-text'>
+                    💡 提示：详细描述能获得更好的生成效果
+                  </Text>
+                </View>
+
+                <View className='fullscreen-info'>
+                  <View className='info-item'>
+                    <Text className='info-label'>字数统计</Text>
+                    <Text className='info-value'>{fullscreenValue.length} 字</Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          </ScrollView>
+            </ScrollView>
+          </View>
 
-
-          <View className='w-full px-4 flex items-center justify-between pb-4 pt-2 bg-white'>
+          {/* 底部按钮区域 */}
+          <View className='fullscreen-footer flex items-center justify-between'>
             <Button
               variant="outlined"
               style={{

@@ -55,19 +55,28 @@
   right: 0;
   bottom: 0;
   background: #f9fafb;
-  z-index: 9999;
+  z-index: 99999; /* 提高z-index，确保覆盖GenerateBar的fixed定位 */
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.fullscreen-scroll-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .fullscreen-content {
   flex: 1;
+  overflow-y: auto;
   background: #f9fafb;
 }
 
 .content-wrapper {
   padding: 20px;
-  min-height: 100%;
+  padding-bottom: 120px; /* 为底部按钮预留足够空间 */
 }
 
 .fullscreen-input {
@@ -127,3 +136,14 @@
   color: #1f2937;
 }
 
+/* 底部按钮区域 - 使用flex布局确保始终可见 */
+.fullscreen-footer {
+  flex-shrink: 0; /* 防止被压缩 */
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom)); /* 适配 iPhone X 等底部安全区 */
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 100000; /* 确保按钮区域在最上层 */
+}

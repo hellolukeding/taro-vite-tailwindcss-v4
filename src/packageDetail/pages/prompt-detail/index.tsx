@@ -234,8 +234,8 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
       });
 
       if (success) {
-        // Studio 页面是 tabBar 页面，需要用 switchTab 跳转
-        Taro.switchTab({
+        // 使用 reLaunch 跳转到 studio 页面（清除页面栈，更稳定）
+        Taro.reLaunch({
           url: '/pages/studio/index',
         });
       } else {

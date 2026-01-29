@@ -1,14 +1,13 @@
 import { studioApi } from '@/api/studio'
 import { CategoryTabs } from '@/components/business/CategoryTabs'
 import { EmptyState } from '@/components/business/EmptyState'
-import { SearchBar } from '@/components/business/SearchBar'
 import { VirtualWaterfall } from '@/components/business/VirtualWaterfall'
 import { useAuth } from '@/hooks/useAuth'
 import { BASE_PAGE_SIZE } from '@/utils/constants'
-import { FloatingBubble } from '@taroify/core'
-import { ArrowUp, Shrink } from '@taroify/icons'
-import { Image, Input, Text, View } from '@tarojs/components'
-import Taro, { nextTick } from '@tarojs/taro'
+import { FloatingBubble, Search } from '@taroify/core'
+import { ArrowUp } from '@taroify/icons'
+import { Image, Text, View } from '@tarojs/components'
+import Taro from '@tarojs/taro'
 import useRequest from 'ahooks/lib/useRequest'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './index.css'
@@ -26,11 +25,6 @@ export default function Index() {
   const [scrollTop, setScrollTop] = useState(0)
   const [headerCollapsed, setHeaderCollapsed] = useState(false)
   const scrollViewRef = useRef<any>(null)
-
-  // 全屏编辑状态
-  const [isFullscreenEdit, setIsFullscreenEdit] = useState(false)
-  const [fullscreenKeyword, setFullscreenKeyword] = useState("")
-  const inputRef = useRef<any>(null)
 
   // 使用 useRequest 获取分类列表
   const { data: categoriesData, loading } = useRequest(() => studioApi.getCategories(), {
@@ -88,51 +82,27 @@ export default function Index() {
     fetchPrompts(1, currentTag)
   }, [searchKeyword, currentTag, fetchPrompts])
 
-  // 全屏编辑处理
-  const handleOpenFullscreen = () => {
-    setFullscreenKeyword(searchKeyword)
-    setIsFullscreenEdit(true)
-    // 锁定页面滚动
-    nextTick(() => {
-      Taro.pageScrollTo({
-        scrollTop: 0,
-        duration: 0
-      })
-    })
-  }
-
-  const handleCloseFullscreen = () => {
-    setIsFullscreenEdit(false)
-    setSearchKeyword(fullscreenKeyword)
-    // 如果内容有变化，触发搜索
-    if (fullscreenKeyword !== searchKeyword) {
-      setTimeout(() => {
-        handleSearch()
-      }, 100)
-    }
-  }
-
-  const handleFullscreenSearch = () => {
-    setSearchKeyword(fullscreenKeyword)
-    setIsFullscreenEdit(false)
-    handleSearch()
-  }
-
-  // 搜索防抖
+  // 搜索防抖 - 只监听 searchKeyword 变化
   useEffect(() => {
     if (searchKeyword.trim()) {
       // 延迟搜索，避免频繁请求
       const timer = setTimeout(() => {
-        handleSearch()
+        setIsSearching(true)
+        setCurrentPage(1)
+        setPromptsList([])
+        fetchPrompts(1, currentTag)
       }, 500)
 
       return () => clearTimeout(timer)
     } else if (isSearching) {
       // 清空搜索关键词时，恢复列表
       setIsSearching(false)
+      setCurrentPage(1)
+      setPromptsList([])
       fetchPrompts(1, currentTag)
     }
-  }, [searchKeyword, isSearching, currentTag, fetchPrompts, handleSearch])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchKeyword])
 
   // 初始加载
   useRequest(() => studioApi.getPrompts({ page: 1, page_size: BASE_PAGE_SIZE }), {
@@ -242,50 +212,13 @@ export default function Index() {
             <Text>准备好用文字&quot;画&quot;画了吗?</Text>
           </View>
         </View>
-        <SearchBar
+        <Search
+          placeholder="请输入搜索关键词"
           value={searchKeyword}
-          onOpenFullscreen={handleOpenFullscreen}
+          className='search-bg'
+          onChange={setSearchKeyword}
         />
       </View>
-
-      {/* 全屏编辑模式 */}
-      {isFullscreenEdit && (
-        <View className='fullscreen-edit-modal' catchMove>
-          <View className='fullscreen-edit-header'>
-            <Text className='fullscreen-edit-title'>搜索提示词</Text>
-            <View className='fullscreen-edit-actions'>
-              <Text
-                className='fullscreen-edit-action'
-                onClick={handleFullscreenSearch}
-              >
-                搜索
-              </Text>
-              <View className='fullscreen-edit-divider' />
-              <View onClick={handleCloseFullscreen} className='fullscreen-edit-close'>
-                <Shrink size={20} />
-              </View>
-            </View>
-          </View>
-          <View className='fullscreen-edit-content px-4'>
-            <Input
-              ref={inputRef}
-              className='fullscreen-edit-input'
-              placeholder='请输入搜索关键词...'
-              value={fullscreenKeyword}
-              onInput={(e) => setFullscreenKeyword(e.detail.value)}
-              focus
-              adjustPosition
-              confirmType='search'
-              onConfirm={handleFullscreenSearch}
-            />
-            <View className='fullscreen-edit-tips'>
-              <Text className='text-sm text-gray-500'>
-                💡 提示：按回车键快速搜索，点击收缩图标退出
-              </Text>
-            </View>
-          </View>
-        </View>
-      )}
 
       {/* 主内容区域 */}
       <View className='content'>

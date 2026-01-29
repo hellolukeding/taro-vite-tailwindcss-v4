@@ -16,6 +16,9 @@ import { ScrollView, Text, View } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { useEffect, useRef, useState } from "react";
 
+// 临时禁用 ESLint 警告
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 type ImageRatio =
   | "auto"
   | "1:1"
@@ -43,6 +46,7 @@ const Studio: React.FC<StudioProps> = (props) => {
   const [estimatedCost, setEstimatedCost] = useState(0);
   const [userCredits, setUserCredits] = useState(0);
   const [uploadedImages, setUploadedImages] = useState<Uploader.File[]>([]);
+  const [isPromptFullscreen, setIsPromptFullscreen] = useState(false); // 新增：全屏编辑状态
 
   // 使用 ref 跟踪是否已处理过 prompt 传输
   const hasHandledPrompt = useRef(false);
@@ -450,6 +454,7 @@ const Studio: React.FC<StudioProps> = (props) => {
             onChange={setPrompt}
             onTranslate={handleTranslate}
             onRandom={handleRandom}
+            onFullscreenChange={setIsPromptFullscreen}  // 新增：监听全屏状态
             placeholder='描述你想生成的图片... (例如: 一个未来城市的街道，霓虹灯光，8k分辨率)'
           />
         </View>
@@ -467,13 +472,15 @@ const Studio: React.FC<StudioProps> = (props) => {
         </View>
       </ScrollView>
 
-      {/* Generate Bar */}
-      <GenerateBar
-        cost={estimatedCost}
-        balance={userCredits}
-        onGenerate={handleGenerate}
-        loading={isGenerating}
-      />
+      {/* Generate Bar - 全屏编辑时隐藏 */}
+      {!isPromptFullscreen && (
+        <GenerateBar
+          cost={estimatedCost}
+          balance={userCredits}
+          onGenerate={handleGenerate}
+          loading={isGenerating}
+        />
+      )}
     </CommonWarp>
   );
 };

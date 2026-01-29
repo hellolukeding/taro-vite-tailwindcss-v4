@@ -1,6 +1,5 @@
-import { Icon } from "@/components/common/Icon";
+import { Button, Divider } from "@taroify/core";
 import { Star } from "@taroify/icons";
-import { Button } from "@taroify/core";
 import { Text, View } from "@tarojs/components";
 
 interface GenerateBarProps {
@@ -22,53 +21,59 @@ export function GenerateBar({
   };
 
   return (
-    <View className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-4 shadow-lg rounded-t-2xl">
-      <View className="flex items-center gap-4">
-        {/* Cost */}
-        <View className="flex flex-col">
-          <Text className="text-[10px] font-bold uppercase text-gray-400">
-            预计消耗
-          </Text>
-          <View className="flex items-center gap-1">
-            <Icon name="bolt" size={16} />
-            <Text className="font-bold text-lg text-black">
-              {cost !== undefined ? cost : "--"}
-            </Text>
-          </View>
-        </View>
 
-        {/* Divider */}
-        <View className="h-8 w-[1px] bg-gray-200 mx-2"></View>
 
-        {/* Balance */}
-        <View className="flex flex-col mr-auto">
-          <Text className="text-[10px] font-bold uppercase text-gray-400">
-            余额
-          </Text>
-          <Text className="font-bold text-sm text-black">
-            {balance !== undefined ? balance.toLocaleString() : "--"}
+    <View className=" flex items-center justify-between fixed bottom-0 left-0 w-full bg-white px-6 py-4 border-t border-gray-200 shadow-md z-50">
+      {/* Cost */}
+      <View className="flex flex-col gap-2 ">
+        <Text className="text-base font-semibold text-gray-600 w-20">
+          预计消耗
+        </Text>
+        <View className="flex items-center gap-2">
+          <Text className="text-lg font-bold text-black leading-none">
+            {cost !== undefined ? cost : "--"}
           </Text>
         </View>
+      </View>
 
-        {/* Generate Button */}
+
+      {/* Divider */}
+      <Divider type='vertical' />
+
+      {/* Balance */}
+      <View className="flex flex-col gap-2 ">
+        <Text className="text-base font-semibold text-gray-600 w-20">
+          余额
+        </Text>
+        <Text className="text-lg font-bold text-black leading-none">
+          {balance !== undefined ? balance.toLocaleString() : "--"}
+        </Text>
+      </View>
+
+      {/* Generate Button */}
+      <View className="flex justify-end flex-1">
         <Button
           onClick={handleGenerate}
           disabled={loading}
           shape="round"
           style={{
-            backgroundColor: "#000",
+            background: "#000",
             color: "#fff",
-            fontWeight: "bold",
-            width: "66.66%",
-            padding: "14px 32px",
+            padding: "12px 32px",
           }}
+          icon={
+            <Star size={24} color="white" />
+          }
         >
-          <View className="flex items-center justify-center gap-2">
-            <Star size={20} color="white" />
-            <Text>{loading ? "生成中..." : "立即生成"}</Text>
-          </View>
+          立即生成
         </Button>
       </View>
     </View>
+
+
+
+
+
+
   );
 }

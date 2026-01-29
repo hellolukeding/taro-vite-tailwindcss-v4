@@ -6,6 +6,9 @@
   background-color: #ffffff;
 }
 
+.search-bg {
+  --search-background-color: transparent;
+}
 /* 全屏编辑模式 */
 .fullscreen-edit-modal {
   position: fixed;
