@@ -9,7 +9,9 @@ export const paymentApi = {
    * 获取充值套餐列表
    */
   async getPackages(): Promise<Package[]> {
-    return client.get('/miniprogram/recharge/packages')
+    const response = await client.get<any>('/miniprogram/recharge/packages', {}, { returnFullResponse: true })
+    // 手动处理解包，避免双重解包问题
+    return response.success ? response.data : response
   },
 
   /**
@@ -28,7 +30,10 @@ export const paymentApi = {
       paySign: string
     }
   }> {
-    return client.post('/miniprogram/recharge/create-order', params)
+    const response = await client.post<any>('/miniprogram/recharge/create-order', params, { returnFullResponse: true })
+    // 手动处理解包，避免双重解包问题
+    const data = response.success ? response.data : response
+    return data
   },
 
   /**
@@ -39,6 +44,9 @@ export const paymentApi = {
     status: string
     paid_at?: string
   }> {
-    return client.get(`/miniprogram/recharge/order/${orderId}`)
+    const response = await client.get<any>(`/miniprogram/recharge/order/${orderId}`, {}, { returnFullResponse: true })
+    // 手动处理解包，避免双重解包问题
+    const data = response.success ? response.data : response
+    return data
   },
 }

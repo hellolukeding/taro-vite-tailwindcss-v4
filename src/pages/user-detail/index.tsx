@@ -6,21 +6,25 @@ import { useAuth } from '@/hooks/useAuth'
 import { useUser } from '@/store'
 import { generateAvatarUrl } from '@/utils/constants'
 import { normalizeUrl } from '@/utils/url'
+import { Button } from '@taroify/core'
 import { Image, ScrollView, Text, View } from '@tarojs/components'
-import Taro, { useDidShow } from '@tarojs/taro'
-import { useState } from 'react'
+import Taro from '@tarojs/taro'
+import { useEffect, useRef, useState } from 'react'
 
 const UserDetail: React.FC = () => {
   const { isLogin, loading } = useAuth()
   const { userInfo, refreshUserInfo, logout } = useUser()
   const [refreshing, setRefreshing] = useState(false)
+  const hasLoaded = useRef(false)
 
-  // 刷新用户信息
-  useDidShow(() => {
-    if (isLogin) {
+  // 恢复自动加载 - 只在首次挂载时执行
+  useEffect(() => {
+    if (isLogin && !hasLoaded.current) {
+      console.log('[UserDetail] First mount, loading user info')
       loadUserInfo()
+      hasLoaded.current = true
     }
-  })
+  }, [isLogin])
 
   const loadUserInfo = async () => {
     if (refreshing) return
@@ -59,6 +63,35 @@ const UserDetail: React.FC = () => {
   const handleTestPage = () => {
     Taro.navigateTo({
       url: '/pages/test/index'
+    })
+  }
+
+  // 处理复制邀请码
+  const handleCopyInviteCode = () => {
+    const inviteCode = userInfo?.inviteCode
+    if (!inviteCode) {
+      Taro.showToast({
+        title: '邀请码不存在',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 复制到剪贴板
+    Taro.setClipboardData({
+      data: inviteCode,
+      success: () => {
+        Taro.showToast({
+          title: '邀请码已复制',
+          icon: 'success'
+        })
+      },
+      fail: () => {
+        Taro.showToast({
+          title: '复制失败',
+          icon: 'none'
+        })
+      }
     })
   }
 
@@ -114,10 +147,48 @@ const UserDetail: React.FC = () => {
     return '未知'
   }
 
-  // 格式化日期
+  // 格式化日期为更人性化的显示
   const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return '未设置'
-    return dateStr
+
+    try {
+      const date = new Date(dateStr)
+      const now = new Date()
+      const diffMs = now.getTime() - date.getTime()
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+      // 如果是今天
+      if (diffDays === 0) {
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+        if (diffHours === 0) {
+          const diffMinutes = Math.floor(diffMs / (1000 * 60))
+          if (diffMinutes === 0) return '刚刚'
+          return `${diffMinutes}分钟前`
+        }
+        return `${diffHours}小时前`
+      }
+
+      // 如果是昨天
+      if (diffDays === 1) return '昨天'
+
+      // 如果是7天内
+      if (diffDays < 7) return `${diffDays}天前`
+
+      // 如果是30天内
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)}周前`
+
+      // 如果是12个月内
+      if (diffDays < 365) return `${Math.floor(diffDays / 30)}个月前`
+
+      // 超过1年，显示具体日期
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    } catch (error) {
+      console.error('Date formatting error:', error)
+      return dateStr
+    }
   }
 
   return (
@@ -204,9 +275,20 @@ const UserDetail: React.FC = () => {
                 {/* 邀请码 */}
                 <View className='flex justify-between items-center py-2'>
                   <Text className='text-gray-500 text-sm'>邀请码</Text>
-                  <Text className='text-black text-sm font-medium'>
-                    {userInfo?.inviteCode || '---'}
-                  </Text>
+                  <View className='flex items-center gap-2'>
+                    <Text className='text-black text-sm font-medium'>
+                      {userInfo?.inviteCode || '---'}
+                    </Text>
+                    {userInfo?.inviteCode && (
+                      <Button
+                        size='mini'
+                        variant='text'
+                        onClick={handleCopyInviteCode}
+                      >
+                        复制
+                      </Button>
+                    )}
+                  </View>
                 </View>
 
                 {/* 注册时间 */}
@@ -220,45 +302,65 @@ const UserDetail: React.FC = () => {
 
               {/* 编辑资料按钮 */}
               <View className='mt-6'>
-                <View
+                <Button
+                  shape="round"
                   onClick={handleEditProfile}
-                  className='w-full py-3 bg-black text-white text-center rounded-full font-medium shadow-lg active:scale-95 transition-transform'
+                  className='w-full'
+                  style={{
+                    backgroundColor: "#000",
+                    color: "#fff",
+                    fontWeight: "medium",
+                  }}
                 >
                   编辑资料
-                </View>
-
+                </Button>
               </View>
 
               {/* 工单按钮 */}
-              <View className='mt-2'>
-                <View
+              <View className='mt-2 w-full'>
+                <Button
+                  shape="round"
                   onClick={handleTickets}
-                  className='w-full py-3 bg-gray-300 text-black text-center rounded-full font-medium shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2'
+                  variant="outlined"
+                  className='w-full'
+                  style={{
+                    fontWeight: "medium",
+                  }}
                 >
-
-                  <Text>我的工单</Text>
-                </View>
+                  我的工单
+                </Button>
               </View>
 
-              {/* 测试页面按钮（仅开发环境） */}
+              {/* 测试页面按钮（仅开发环境）
               {process.env.NODE_ENV === 'development' && (
                 <View className='mt-2'>
-                  <View
+                  <Button
+                    shape="round"
                     onClick={handleTestPage}
-                    className='w-full py-3 bg-purple-500 text-white text-center rounded-full font-medium shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2'
+                    style={{
+                      backgroundColor: "#8B5CF6",
+                      color: "#fff",
+                      fontWeight: "medium",
+                    }}
                   >
-                    <Text>🧪 测试页面</Text>
-                  </View>
+                    🧪 测试页面
+                  </Button>
                 </View>
-              )}
+              )} */}
 
               <View className='mt-2'>
-                <View
+                <Button
+                  shape="round"
                   onClick={handleLogout}
-                  className='w-full py-3 bg-red-500 text-white text-center rounded-full font-medium shadow-lg active:scale-95 transition-transform'
+                  className='w-full'
+                  style={{
+                    backgroundColor: "#EF4444",
+                    color: "#fff",
+                    fontWeight: "medium",
+                  }}
                 >
                   退出登录
-                </View>
+                </Button>
               </View>
             </View>
           </ScrollView>

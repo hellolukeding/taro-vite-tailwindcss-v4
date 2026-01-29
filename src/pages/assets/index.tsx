@@ -10,7 +10,7 @@ import { formatRelativeTime } from "@/utils/timeFormat";
 import { normalizeUrl } from "@/utils/url";
 import { UnderwayOutlined } from "@taroify/icons";
 import { Image, ScrollView, Text, View } from "@tarojs/components";
-import Taro, { useDidHide, useDidShow, usePullDownRefresh, useReachBottom } from "@tarojs/taro";
+import Taro, { usePullDownRefresh, useReachBottom } from "@tarojs/taro";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./index.css";
 
@@ -22,80 +22,7 @@ const Assets: React.FC<AssetsProps> = () => {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const tasksRef = useRef<TaskItem[]>([]);
   const loadingRef = useRef(false);
-
-  // Smart polling state
-  const pollingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const pollCountRef = useRef(0);
-  const maxPolls = 30; // Stop after 30 polls (about 5 minutes)
-  const isTabActiveRef = useRef(true);
-
-  // Keep ref in sync with state
-  useEffect(() => {
-    tasksRef.current = tasks;
-  }, [tasks]);
-
-  // Smart polling function with exponential backoff
-  const startPolling = useCallback(() => {
-    // Only poll for "in progress" tab (activeTab === 0)
-    if (activeTab !== 0 || !isTabActiveRef.current) {
-      stopPolling();
-      return;
-    }
-
-    // Clear existing timer
-    if (pollingTimerRef.current) {
-      clearInterval(pollingTimerRef.current);
-    }
-
-    // Check if there are active tasks
-    const hasActiveTasks = tasksRef.current.some(t =>
-      [0, 1, 2].includes(t.status) // pending, processing, uploading
-    );
-
-    if (!hasActiveTasks) {
-      console.log('[Assets] No active tasks, stopping polling');
-      stopPolling();
-      return;
-    }
-
-    // Calculate poll interval with exponential backoff: 3s → 5s → 10s
-    const getPollInterval = () => {
-      const count = pollCountRef.current;
-      if (count < 5) return 3000;      // First 5 polls: 3s
-      if (count < 10) return 5000;     // Next 5 polls: 5s
-      return 10000;                    // After that: 10s
-    };
-
-    pollingTimerRef.current = setInterval(() => {
-      pollCountRef.current++;
-
-      // Stop after max polls
-      if (pollCountRef.current >= maxPolls) {
-        console.log('[Assets] Max polls reached, stopping');
-        stopPolling();
-        return;
-      }
-
-      console.log(`[Assets] Polling... (${pollCountRef.current}/${maxPolls})`);
-
-      // Refresh task list silently (no loading indicator)
-      loadTasks(false);
-    }, getPollInterval());
-
-    console.log(`[Assets] Polling started: ${getPollInterval() / 1000}s interval`);
-  }, [activeTab, loadTasks]);
-
-  // Stop polling function
-  const stopPolling = useCallback(() => {
-    if (pollingTimerRef.current) {
-      clearInterval(pollingTimerRef.current);
-      pollingTimerRef.current = null;
-      pollCountRef.current = 0;
-      console.log('[Assets] Polling stopped');
-    }
-  }, []);
 
   // 加载任务列表
   const loadTasks = useCallback(
@@ -113,11 +40,10 @@ const Assets: React.FC<AssetsProps> = () => {
       setLoadingTasks(true);
       try {
         const status = activeTab === 0 ? "pending" : "success";
-        const currentTasksLength = tasksRef.current.length;
         const result = await assetsApi.getTasks({
           status,
           limit: 20,
-          offset: loadMore ? currentTasksLength : 0,
+          offset: loadMore ? tasks.length : 0,
         });
 
         if (loadMore) {
@@ -134,44 +60,13 @@ const Assets: React.FC<AssetsProps> = () => {
         setLoadingTasks(false);
       }
     },
-    [activeTab, isLogin],
+    [activeTab, isLogin], // ✅ 移除 tasks.length 依赖，使用函数式更新
   );
 
-  // 切换标签时重新加载并控制轮询
+  // 切换标签时重新加载
   useEffect(() => {
     loadTasks(false);
-
-    // Start polling for "in progress" tab (activeTab === 0)
-    if (activeTab === 0 && isLogin) {
-      startPolling();
-    } else {
-      stopPolling();
-    }
-  }, [activeTab, isLogin, loadTasks, startPolling, stopPolling]);
-
-  // Pause polling when page is hidden
-  useDidHide(() => {
-    console.log('[Assets] Page hidden, pausing polling');
-    isTabActiveRef.current = false;
-    stopPolling();
-  });
-
-  // Resume polling when page is shown
-  useDidShow(() => {
-    console.log('[Assets] Page shown, resuming polling');
-    isTabActiveRef.current = true;
-    if (activeTab === 0 && isLogin) {
-      startPolling();
-    }
-  });
-
-  // Cleanup polling on unmount
-  useEffect(() => {
-    return () => {
-      console.log('[Assets] Component unmounting, cleaning up polling');
-      stopPolling();
-    };
-  }, [stopPolling]);
+  }, [activeTab, isLogin]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 下拉刷新
   usePullDownRefresh(() => {

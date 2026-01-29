@@ -1,0 +1,129 @@
+/* PromptInputFullscreen 全屏提示词输入组件样式 */
+
+/* ========== 紧凑模式 ========== */
+
+.prompt-input-compact {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.prompt-input-compact:active {
+  transform: scale(0.98);
+}
+
+.prompt-input-description {
+  /* Tailwind classes: mb-3 text-xs text-gray-500 */
+}
+
+.prompt-input-preview {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+}
+
+.preview-text {
+  font-size: 14px;
+  color: #1f2937;
+  line-height: 1.6;
+  word-break: break-all;
+  flex: 1;
+}
+
+.preview-placeholder {
+  font-size: 14px;
+  color: #9ca3af;
+  line-height: 1.6;
+}
+
+.prompt-input-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ========== 全屏模式 ========== */
+
+.prompt-input-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #f9fafb;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+}
+
+.fullscreen-content {
+  flex: 1;
+  background: #f9fafb;
+}
+
+.content-wrapper {
+  padding: 20px;
+  min-height: 100%;
+}
+
+.fullscreen-input {
+  width: 100%;
+  min-height: 300px;
+  font-size: 16px;
+  line-height: 1.8;
+  padding: 20px;
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  color: #1f2937;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  text-align: left;
+  vertical-align: top;
+}
+
+.fullscreen-input:focus {
+  border-color: #000000;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.fullscreen-tips {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.tips-text {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.fullscreen-info {
+  margin-top: 20px;
+  padding: 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+

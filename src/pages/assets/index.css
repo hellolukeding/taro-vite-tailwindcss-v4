@@ -27,7 +27,7 @@
 
 .work-img {
   width: 100%;
-  aspect-ratio: 3/4;
+  /* ⚠️ 移除 aspect-ratio，让图片根据实际宽高比自适应 */
   display: block;
 }
 

@@ -1,4 +1,5 @@
-import { Button, Text, View } from '@tarojs/components'
+import { Button } from '@taroify/core'
+import { Text, View } from '@tarojs/components'
 import { FC, ReactNode } from 'react'
 import './index.scss'
 
@@ -65,7 +66,11 @@ export const EmptyState: FC<EmptyStateProps> = ({
       <Text className='empty-state-title'>{displayTitle}</Text>
       <Text className='empty-state-description'>{displayDescription}</Text>
       {actionText && onAction && (
-        <Button className='empty-state-action' onClick={onAction}>
+        <Button
+          shape="round"
+          className='empty-state-action'
+          onClick={onAction}
+        >
           {actionText}
         </Button>
       )}

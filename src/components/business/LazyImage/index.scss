@@ -4,6 +4,7 @@
   position: relative;
   overflow: hidden;
   background-color: #f3f4f6;
+  /* ⚠️ 不要设置高度，让内容自适应 */
 }
 
 .lazy-image-placeholder {
@@ -22,7 +23,7 @@
 .lazy-image {
   display: block;
   width: 100%;
-  height: 100%;
+  /* ⚠️ 移除 height: 100%，让图片根据 mode 自适应高度 */
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
 }

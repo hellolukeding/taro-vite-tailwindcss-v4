@@ -1,6 +1,7 @@
 import { Icon } from "@/components/common/Icon";
 import { Star } from "@taroify/icons";
-import { Button, Text, View } from "@tarojs/components";
+import { Button } from "@taroify/core";
+import { Text, View } from "@tarojs/components";
 
 interface GenerateBarProps {
   cost?: number;
@@ -53,10 +54,19 @@ export function GenerateBar({
         <Button
           onClick={handleGenerate}
           disabled={loading}
-          className="bg-black text-white font-bold py-3.5 px-8 rounded-full shadow-lg flex items-center gap-2 active:scale-95 transition-all w-2/3 justify-center text-sm tracking-wide"
+          shape="round"
+          style={{
+            backgroundColor: "#000",
+            color: "#fff",
+            fontWeight: "bold",
+            width: "66.66%",
+            padding: "14px 32px",
+          }}
         >
-          <Star size={20} color="white" />
-          {loading ? "生成中..." : "立即生成"}
+          <View className="flex items-center justify-center gap-2">
+            <Star size={20} color="white" />
+            <Text>{loading ? "生成中..." : "立即生成"}</Text>
+          </View>
         </Button>
       </View>
     </View>

@@ -3,8 +3,8 @@ import CommonWarp from "@/components/CommonWarp";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/store";
 import type { Package } from "@/types";
-import { Button, Field, Input, RollingText } from "@taroify/core";
-import { Arrow, Award, BrushOutlined, Completed, Diamond, Hot, MedalOutlined, VipCard } from "@taroify/icons";
+import { Button, RollingText } from "@taroify/core";
+import { Award, BrushOutlined, Completed, Diamond, Hot, MedalOutlined, PointGift, VipCard } from "@taroify/icons";
 import { Text, View } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import useRequest from "ahooks/lib/useRequest";
@@ -42,10 +42,23 @@ const Recharge: React.FC<RechargeProps> = (props) => {
     setLoading(true)
     try {
       // Step 1: 创建订单
-      const { order_id, payment_params } = await paymentApi.createOrder({
+      console.log('[Recharge] 创建订单，套餐ID:', selectedPackage.package_id)
+      const orderResponse = await paymentApi.createOrder({
         package_id: selectedPackage.package_id,
         quantity: 1
       })
+
+      console.log('[Recharge] 订单创建响应:', orderResponse)
+      const { order_id, payment_params } = orderResponse
+
+      if (!order_id || !payment_params) {
+        console.error('[Recharge] 订单响应数据不完整:', orderResponse)
+        Taro.showToast({ title: '订单创建失败，数据异常', icon: 'none' })
+        return
+      }
+
+      console.log('[Recharge] 开始支付，订单ID:', order_id)
+      console.log('[Recharge] 支付参数:', payment_params)
 
       // Step 2: 调起微信支付
       await Taro.requestPayment({
@@ -56,16 +69,19 @@ const Recharge: React.FC<RechargeProps> = (props) => {
         paySign: payment_params.paySign
       })
 
+      console.log('[Recharge] 支付成功，验证订单状态')
       // Step 3: 验证支付结果
       await verifyPayment(order_id)
     } catch (error: any) {
-      console.error('Payment error:', error)
+      console.error('[Recharge] Payment error:', error)
+      console.error('[Recharge] Error message:', error.message)
+      console.error('[Recharge] Error stack:', error.stack)
 
       // 处理支付取消
       if (error.errMsg?.includes('cancel')) {
         Taro.showToast({ title: '支付已取消', icon: 'none' })
       } else {
-        Taro.showToast({ title: '支付失败', icon: 'none' })
+        Taro.showToast({ title: '支付失败: ' + (error.message || '未知错误'), icon: 'none' })
       }
     } finally {
       setLoading(false)
@@ -132,6 +148,14 @@ const Recharge: React.FC<RechargeProps> = (props) => {
         </View>
       </View>
 
+      <View className='w-full mt-4 flex items-center'>
+
+        <PointGift size={30} />
+        <Text className='text-xl font-semibold ml-2'>
+          积分充值
+        </Text>
+      </View>
+
       <View className='mt-4 w-full overflow-auto whitespace-nowrap py-2' >
         {
           (packages ?? []).map((pkg) => {
@@ -170,14 +194,6 @@ const Recharge: React.FC<RechargeProps> = (props) => {
             )
           })
         }
-      </View>
-
-
-      <View className='w-full mt-4 rounded-xl overflow-hidden shadow-2xl'>
-        <Field align='center' label='邀请码'>
-          <Input placeholder='输入邀请码' />
-          <Button variant='text' color='primary' icon={<Arrow />} />
-        </Field>
       </View>
 
       <View className='w-full mt-4 flex items-center'>

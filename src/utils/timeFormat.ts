@@ -40,3 +40,41 @@ export function formatRelativeTime(isoString: string): string {
     return `${Math.floor(diff / year)}年前`;
   }
 }
+
+/**
+ * 格式化友好的日期时间（用于注册时间等需要显示具体日期的场景）
+ * @param isoString ISO格式时间字符串
+ * @returns 格式化的日期字符串
+ *
+ * @example
+ * formatFriendlyDate("2024-01-19T10:30:00Z") // "2024年1月19日"
+ */
+export function formatFriendlyDate(isoString: string): string {
+  const date = new Date(isoString);
+
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // 月份从0开始
+  const day = date.getDate();
+
+  return `${year}年${month}月${day}日`;
+}
+
+/**
+ * 格式化完整的日期时间（包含年月日时分）
+ * @param isoString ISO格式时间字符串
+ * @returns 格式化的日期时间字符串
+ *
+ * @example
+ * formatFullDateTime("2024-01-19T10:30:00Z") // "2024年01月19日 10:30"
+ */
+export function formatFullDateTime(isoString: string): string {
+  const date = new Date(isoString);
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}年${month}月${day}日 ${hours}:${minutes}`;
+}

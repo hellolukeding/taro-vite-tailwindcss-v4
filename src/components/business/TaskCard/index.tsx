@@ -1,6 +1,7 @@
 import { Icon } from '@/components/common/Icon'
 import { MockTask } from '@/mock/tasks'
-import { Button, Image, Text, View } from '@tarojs/components'
+import { Button } from '@taroify/core'
+import { Image, Text, View } from '@tarojs/components'
 
 interface TaskCardProps {
   task: MockTask
@@ -28,7 +29,16 @@ export function TaskCard({ task }: TaskCardProps) {
             </Text>
             <Text className='text-[10px] text-gray-300'>{task.time}</Text>
           </View>
-          <Button className='w-full py-2 bg-black text-white text-[11px] font-bold rounded-xl hover:bg-gray-800 transition-colors'>
+          <Button
+            shape="round"
+            style={{
+              backgroundColor: "#000",
+              color: "#fff",
+              fontSize: "11px",
+              fontWeight: "bold",
+              width: "100%",
+            }}
+          >
             去公开
           </Button>
         </View>
@@ -60,7 +70,15 @@ export function TaskCard({ task }: TaskCardProps) {
               <Text className='text-[10px]'>{task.likes}</Text>
             </View>
           </View>
-          <Button className='w-full py-2 bg-white border border-gray-200 text-gray-900 text-[11px] font-bold rounded-xl hover:bg-gray-50 transition-colors'>
+          <Button
+            shape="round"
+            variant="outlined"
+            style={{
+              fontSize: "11px",
+              fontWeight: "bold",
+              width: "100%",
+            }}
+          >
             查看详情
           </Button>
         </View>
@@ -80,15 +98,20 @@ export function TaskCard({ task }: TaskCardProps) {
           <Text className='text-[10px] text-gray-400 mt-1'>网络连接超时</Text>
         </View>
         <View className='p-3 bg-white border-t border-gray-100'>
-          <Button className='w-full py-2 bg-gray-100 text-gray-600 text-[11px] font-bold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-1.5'
+          <Button
+            shape="round"
             style={{
-              background: "#000",
-              color: "#fff"
+              backgroundColor: "#000",
+              color: "#fff",
+              fontSize: "11px",
+              fontWeight: "bold",
+              width: "100%",
             }}
           >
-
-            <Icon name='refresh' size={14} />
-            重试
+            <View className="flex items-center justify-center gap-1.5">
+              <Icon name='refresh' size={14} />
+              <Text>重试</Text>
+            </View>
           </Button>
         </View>
       </View>

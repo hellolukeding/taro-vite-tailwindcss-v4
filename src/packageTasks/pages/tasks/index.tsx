@@ -49,10 +49,6 @@ export default function TasksPage() {
         {/* 用户信息 */}
         <View className='user-info'>
           <Text className='user-name'>{mockUser.nickname}</Text>
-          <View className='user-id-row'>
-            <Text className='user-id'>ID: {mockUser.userId}</Text>
-            <Icon name='content_copy' size={14} />
-          </View>
         </View>
         <Icon name='chevron_right' size={20} />
       </View>

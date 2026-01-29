@@ -1,10 +1,10 @@
-import { Uploader } from "@taroify/core"
-import { getAuthToken } from "@/utils/storage"
 import { studioApi } from "@/api/studio"
+import { getAuthToken } from "@/utils/storage"
+import type { Uploader as TaroUploader } from "@taroify/core"
+import { Uploader } from "@taroify/core"
 import { Text, View } from "@tarojs/components"
 import Taro from "@tarojs/taro"
 import { useState } from "react"
-import type { Uploader as TaroUploader } from "@taroify/core"
 
 interface ImgUploaderProps {
   value?: TaroUploader.File[]
@@ -122,7 +122,7 @@ const ImgUploader: React.FC<ImgUploaderProps> = ({
   }
 
   return (
-    <View className='bg-white rounded-2xl p-5 shadow-lg border border-gray-100 mb-2'>
+    <View className='bg-white rounded-2xl px-2 py-5 shadow-lg border border-gray-100 mb-2'>
       <View className='flex justify-between items-center mb-3'>
         <Text className='text-xs font-bold text-black uppercase tracking-wider flex items-center gap-1'>
           上传参考图片

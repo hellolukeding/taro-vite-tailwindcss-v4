@@ -1,8 +1,8 @@
+import { authApi } from "@/api/auth";
 import CommonWarp from "@/components/CommonWarp";
 import { useUser } from "@/store";
-import { authApi } from "@/api/auth";
 import { Button, Flex, Radio } from "@taroify/core";
-import { Image, Text, View } from "@tarojs/components";
+import { Image, Input as TaroInput, Text, View } from "@tarojs/components";
 import Taro, { useDidShow, useRouter } from "@tarojs/taro";
 import { useState } from "react";
 import "./index.css";
@@ -15,6 +15,13 @@ const Login: React.FC<LoginProps> = (props) => {
   const [loading, setLoading] = useState(false)
   const [agreed, setAgreed] = useState(false)
   const [inviteCode, setInviteCode] = useState("")
+  const [validating, setValidating] = useState(false)
+  const [inviteValidation, setInviteValidation] = useState<{
+    valid: boolean
+    inviter_nickname?: string | null
+    inviter_avatar?: string | null
+    message?: string | null
+  } | null>(null)
 
   useDidShow(() => {
     // 从 URL 参数获取邀请码和重定向地址
@@ -57,6 +64,33 @@ const Login: React.FC<LoginProps> = (props) => {
 
     checkLoginStatus()
   })
+
+  // 处理邀请码输入
+  const handleInviteCodeInput = async (value: string) => {
+    setInviteCode(value)
+
+    // 如果清空了邀请码，重置验证状态
+    if (!value.trim()) {
+      setInviteValidation(null)
+      return
+    }
+
+    // 防抖：延迟500ms后再验证
+    setValidating(true)
+    // TODO: 实现防抖逻辑，这里简化处理
+    try {
+      const result = await authApi.validateInviteCode(value)
+      setInviteValidation(result)
+    } catch (error) {
+      console.error('验证邀请码失败:', error)
+      setInviteValidation({
+        valid: false,
+        message: '验证失败，请稍后再试'
+      })
+    } finally {
+      setValidating(false)
+    }
+  }
 
   // 处理微信登录
   const handleWeChatLogin = async () => {
@@ -172,6 +206,51 @@ const Login: React.FC<LoginProps> = (props) => {
         </View>
 
         <View className='w-full flex flex-col px-6'>
+
+          {/* 邀请码输入框 */}
+          <View className='mb-4 flex flex-col items-center'>
+            <TaroInput
+              className='border border-gray-300 rounded-2xl bg-white'
+              placeholder='请输入邀请码（可选）'
+              value={inviteCode}
+              onInput={(e) => handleInviteCodeInput(e.detail.value)}
+              disabled={loading}
+              style={{
+                width: "280px",
+                padding: "12px"
+              }}
+            />
+
+            {/* 验证结果显示 */}
+            {inviteValidation && inviteCode && (
+              <View className='mt-2 px-3 py-2 rounded-lg' style={{
+                backgroundColor: inviteValidation.valid ? '#F0FDF4' : '#FEF2F2',
+                minWidth: '280px'
+              }}>
+                {inviteValidation.valid ? (
+                  <View className='flex items-center gap-2'>
+                    <Text className='text-xs' style={{ color: '#16A34A' }}>✓</Text>
+                    <Text className='text-xs' style={{ color: '#16A34A' }}>
+                      邀请人：{inviteValidation.inviter_nickname || '未知用户'}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text className='text-xs' style={{ color: '#DC2626' }}>
+                    {inviteValidation.message || '无效的邀请码'}
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {/* 验证中提示 */}
+            {validating && (
+              <View className='mt-2'>
+                <Text className='text-xs text-gray-500'>验证中...</Text>
+              </View>
+            )}
+          </View>
+
+
 
           <Button
             shape='round'

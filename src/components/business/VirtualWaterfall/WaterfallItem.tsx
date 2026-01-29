@@ -3,7 +3,7 @@ import { GoodJobOutlined } from '@taroify/icons'
 import { Image, Text, View } from '@tarojs/components'
 import { FC, memo } from 'react'
 import { normalizeUrl } from '@/utils/url'
-import '../WaterfallItem/index.scss'
+import './index.scss'
 
 export interface WorkItem {
   id: string

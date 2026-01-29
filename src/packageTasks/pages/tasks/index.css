@@ -84,19 +84,6 @@
   margin-bottom: 4px;
 }
 
-.user-id-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.user-id {
-  font-size: 12px;
-  color: #9ca3af;
-  font-family: monospace;
-  letter-spacing: 0.05em;
-}
-
 /* 积分卡片 */
 .credits-card {
   margin: 0 20px 32px;

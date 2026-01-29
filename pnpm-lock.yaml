@@ -84,6 +84,9 @@ importers:
       '@babel/core':
         specifier: ^7.28.3
         version: 7.28.5
+      '@babel/plugin-transform-runtime':
+        specifier: ^7.28.5
+        version: 7.28.5(@babel/core@7.28.5)
       '@babel/preset-react':
         specifier: ^7.27.1
         version: 7.28.5(@babel/core@7.28.5)

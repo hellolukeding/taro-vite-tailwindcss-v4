@@ -12,6 +12,13 @@ export interface WechatLoginParams {
   invite_code?: string
 }
 
+export interface InviteCodeValidationResponse {
+  valid: boolean
+  inviter_nickname?: string | null
+  inviter_avatar?: string | null
+  message?: string | null
+}
+
 export interface LoginResponse {
   token: string
   is_new_user: boolean
@@ -199,6 +206,16 @@ export const authApi = {
         },
       })
     })
+  },
+
+  /**
+   * 验证邀请码
+   */
+  async validateInviteCode(code: string): Promise<InviteCodeValidationResponse> {
+    return client.get<InviteCodeValidationResponse>(
+      `/auth-v2/invite/validate?code=${encodeURIComponent(code)}`,
+      { skipAuth: true }
+    )
   },
 }
 

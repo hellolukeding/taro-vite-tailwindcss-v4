@@ -2,7 +2,7 @@ import { studioApi } from "@/api";
 import CommonWarp from "@/components/CommonWarp";
 import { GenerateBar } from "@/components/business/GenerateBar";
 import ImgUploader from "@/components/business/ImgUploader";
-import { PromptInput } from "@/components/business/PromptInput";
+import { PromptInputFullscreen } from "@/components/business/PromptInputFullscreen";
 import { RatioSelector } from "@/components/business/RatioSelector";
 import { StudioModelSelector } from "@/components/business/StudioModelSelector";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,7 +14,7 @@ import { receivePromptFromTransfer } from "@/utils/promptTransfer";
 import type { Uploader } from "@taroify/core";
 import { ScrollView, Text, View } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ImageRatio =
   | "auto"
@@ -44,71 +44,95 @@ const Studio: React.FC<StudioProps> = (props) => {
   const [userCredits, setUserCredits] = useState(0);
   const [uploadedImages, setUploadedImages] = useState<Uploader.File[]>([]);
 
+  // 使用 ref 跟踪是否已处理过 prompt 传输
+  const hasHandledPrompt = useRef(false);
+
   // 加载模型列表
   useEffect(() => {
     loadModels();
   }, []);
 
-  // 处理从提示词详情页传递过来的 prompt（通过智能传输）
-  // 使用 useDidShow 而不是 useEffect，因为 tabBar 页面切换时不会重新 mount
-  useDidShow(async () => {
-    try {
-      // 使用智能接收函数（自动检测来源：本地存储或后端接口）
-      const promptContent = await receivePromptFromTransfer();
-
-      if (promptContent) {
-        // 智能处理不同类型的提示词内容
-        let finalPrompt = "";
-
-        if (typeof promptContent === 'string') {
-          // 简单字符串，直接使用
-          finalPrompt = promptContent;
-        } else if (Array.isArray(promptContent)) {
-          // 数组：合并所有提示词（避免内容被截断）
-          const candidates = promptContent.filter(p => typeof p === 'string' && p.trim().length > 0);
-          if (candidates.length > 0) {
-            // 用换行符连接所有提示词，保留完整内容
-            finalPrompt = candidates.join('\n');
-          }
-        } else if (typeof promptContent === 'object' && promptContent !== null) {
-          // JSON对象：尝试常见字段
-          const { prompt, zh, en, text, content } = promptContent as any;
-          finalPrompt = prompt || zh || en || text || content || "";
-
-          // 如果是嵌套对象，尝试提取最长字符串
-          if (!finalPrompt) {
-            const allStrings = Object.values(promptContent)
-              .filter(v => typeof v === 'string' && v.trim().length > 0);
-            if (allStrings.length > 0) {
-              allStrings.sort((a, b) => b.length - a.length);
-              finalPrompt = allStrings[0];
-            }
-          }
-        }
-
-        if (finalPrompt && finalPrompt.trim().length > 0) {
-          setPrompt(finalPrompt);
-          console.log('[Studio] ✅ 从提示词详情页接收到 prompt, 长度:', finalPrompt.length);
-
-          // 显示提示，让用户知道提示词已填入
-          Taro.showToast({
-            title: '已填入提示词',
-            icon: 'success',
-            duration: 1500
-          });
-        } else {
-          console.warn('[Studio] ⚠️ 接收到空提示词:', promptContent);
-          Taro.showToast({
-            title: '提示词格式错误',
-            icon: 'none',
-            duration: 2000
-          });
-        }
+  // 恢复 prompt 自动处理 - 只在首次挂载时执行
+  useEffect(() => {
+    const processPrompt = async () => {
+      if (hasHandledPrompt.current) {
+        return;
       }
-    } catch (error) {
-      console.error('[Studio] ❌ 读取 prompt 失败:', error);
-    }
-  });
+      try {
+        const promptContent = await receivePromptFromTransfer();
+        console.log('[Studio] Received promptContent:', promptContent, 'type:', typeof promptContent);
+
+        if (promptContent) {
+          let finalPrompt = "";
+
+          // 确保最终结果是字符串
+          if (typeof promptContent === 'string') {
+            finalPrompt = promptContent;
+          } else if (Array.isArray(promptContent)) {
+            // 数组：连接所有字符串元素
+            const candidates = promptContent.filter(p => typeof p === 'string' && p.trim().length > 0);
+            if (candidates.length > 0) {
+              finalPrompt = candidates.join('\n');
+            }
+          } else if (typeof promptContent === 'object' && promptContent !== null) {
+            // 对象：尝试提取常见字段
+            const { prompt, zh, en, text, content } = promptContent as any;
+            finalPrompt = prompt || zh || en || text || content || "";
+
+            // 如果没有找到常见字段，尝试所有字符串字段
+            if (!finalPrompt) {
+              const allStrings = Object.values(promptContent)
+                .filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
+
+              if (allStrings.length > 0) {
+                // 按长度排序，使用最长的字符串
+                allStrings.sort((a, b) => b.length - a.length);
+                finalPrompt = allStrings[0];
+              }
+            }
+
+            // 如果仍然为空，将对象序列化为 JSON
+            if (!finalPrompt) {
+              console.warn('[Studio] ⚠️ 无法从对象中提取字符串，使用 JSON 序列化');
+              finalPrompt = JSON.stringify(promptContent);
+            }
+          } else {
+            // 其他类型（数字、布尔等），转为字符串
+            finalPrompt = String(promptContent);
+          }
+
+          // 确保最终结果是字符串
+          if (typeof finalPrompt !== 'string') {
+            console.error('[Studio] ❌ finalPrompt 不是字符串:', typeof finalPrompt, finalPrompt);
+            finalPrompt = String(finalPrompt || '');
+          }
+
+          console.log('[Studio] Final prompt type:', typeof finalPrompt, 'length:', finalPrompt.length);
+
+          if (finalPrompt && finalPrompt.trim().length > 0) {
+            setPrompt(finalPrompt);
+            hasHandledPrompt.current = true;
+            console.log('[Studio] ✅ 从提示词详情页接收到 prompt, 长度:', finalPrompt.length);
+            Taro.showToast({
+              title: '已填入提示词',
+              icon: 'success',
+              duration: 1500
+            });
+          } else {
+            hasHandledPrompt.current = true;
+            console.warn('[Studio] ⚠️ 接收到空提示词');
+          }
+        } else {
+          hasHandledPrompt.current = true;
+          console.log('[Studio] No prompt content received');
+        }
+      } catch (error) {
+        hasHandledPrompt.current = true;
+        console.error('[Studio] ❌ 读取 prompt 失败:', error);
+      }
+    };
+    processPrompt();
+  }, []);
 
   // 当prompt、模型、比例变化时重新估算成本
   useEffect(() => {
@@ -421,11 +445,12 @@ const Studio: React.FC<StudioProps> = (props) => {
           />
 
           {/* Prompt Input */}
-          <PromptInput
+          <PromptInputFullscreen
             value={prompt}
             onChange={setPrompt}
             onTranslate={handleTranslate}
             onRandom={handleRandom}
+            placeholder='描述你想生成的图片... (例如: 一个未来城市的街道，霓虹灯光，8k分辨率)'
           />
         </View>
 

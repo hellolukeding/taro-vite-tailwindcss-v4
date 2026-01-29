@@ -61,7 +61,7 @@ async function createDraftPrompt(content: any): Promise<string | null> {
   try {
     const token = Taro.getStorageSync("token");
     const response = await Taro.request({
-      url: `${API_BASE_URL}/studio/draft-prompts`,
+      url: `${API_BASE_URL}/miniprogram/studio/draft-prompts`,
       method: "POST",
       header: {
         Authorization: token ? `Bearer ${token}` : "",
@@ -76,11 +76,26 @@ async function createDraftPrompt(content: any): Promise<string | null> {
       },
     });
 
-    if (response.statusCode !== 200 || !response.data?.success) {
+    console.log("[PromptTransfer] Draft prompt response:", response);
+    console.log("  - statusCode:", response.statusCode);
+    console.log("  - data:", response.data);
+
+    if (response.statusCode !== 200) {
+      // 处理HTTP错误
+      const errorMsg = response.data?.detail || response.data?.message || `HTTP ${response.statusCode}`;
+      throw new Error(errorMsg);
+    }
+
+    if (!response.data?.success) {
+      // 处理业务错误
       throw new Error(response.data?.message || "创建草稿失败");
     }
 
-    const draftId = response.data.data.draft_id;
+    const draftId = response.data.data?.draft_id;
+    if (!draftId) {
+      throw new Error("响应中缺少 draft_id");
+    }
+
     console.log("[PromptTransfer] ✅ Created draft prompt:", draftId);
 
     // 存储 draft_id 到本地（用于跳转后获取）
@@ -237,7 +252,7 @@ export async function receivePromptFromTransfer(): Promise<any> {
 
       const token = Taro.getStorageSync("token");
       const response = await Taro.request({
-        url: `${API_BASE_URL}/studio/draft-prompts/${draftId}`,
+        url: `${API_BASE_URL}/miniprogram/studio/draft-prompts/${draftId}`,
         method: "GET",
         header: {
           Authorization: token ? `Bearer ${token}` : "",

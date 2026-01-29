@@ -7,8 +7,10 @@ import { getUserInfo, removeAuthToken, removeUserInfo, setUserInfo as saveUserIn
 import {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -48,7 +50,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const login = async (code: string, inviteCode?: string) => {
+  const login = useCallback(async (code: string, inviteCode?: string) => {
     const result = await authApi.wechatLogin({ code, invite_code: inviteCode });
 
     // 保存用户信息到状态
@@ -68,15 +70,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       createdAt: result.user_info.created_at || undefined,
     };
     setUserInfo(userData);
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await removeAuthToken();
     await removeUserInfo();
     setUserInfo(null);
-  };
+  }, []);
 
-  const refreshUserInfo = async () => {
+  const refreshUserInfo = useCallback(async () => {
     try {
       const freshUserInfo = await authApi.getUserProfile();
       setUserInfo(freshUserInfo);
@@ -85,24 +87,28 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Refresh user info error:", error);
     }
-  };
+  }, []);
 
-  const setUser = (newUserInfo: UserInfo | null) => {
+  const setUser = useCallback((newUserInfo: UserInfo | null) => {
     setUserInfo(newUserInfo);
-  };
+  }, []);
+
+  // 缓存 context value，避免每次渲染都创建新对象导致子组件不必要的重新渲染
+  const value = useMemo(
+    () => ({
+      userInfo,
+      isLogin: !!userInfo,
+      loading,
+      login,
+      logout,
+      refreshUserInfo,
+      setUser,
+    }),
+    [userInfo, loading, login, logout, refreshUserInfo, setUser] // 包含所有函数引用
+  );
 
   return (
-    <UserContext.Provider
-      value={{
-        userInfo,
-        isLogin: !!userInfo,
-        loading,
-        login,
-        logout,
-        refreshUserInfo,
-        setUser,
-      }}
-    >
+    <UserContext.Provider value={value}>
       {children}
     </UserContext.Provider>
   );

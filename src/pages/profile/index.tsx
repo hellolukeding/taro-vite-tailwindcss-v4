@@ -2,16 +2,18 @@ import { authApi } from "@/api";
 import { squareApi } from "@/api/square";
 import CommonHeader from "@/components/CommonHeader";
 import CommonWarp from "@/components/CommonWarp";
+import { EmptyState } from "@/components/business/EmptyState";
+import { VirtualWaterfall, WorkItem as VirtualWaterfallItem } from "@/components/business/VirtualWaterfall";
 import { Icon } from "@/components/common/Icon";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/store";
-import type { WorkItem } from "@/types";
+import type { WorkItem as ApiWorkItem } from "@/types";
 import { generateAvatarUrl } from "@/utils/constants";
 import { normalizeUrl } from "@/utils/url";
 import { Add, Arrow, Fire, GoodJobOutlined, Warning } from "@taroify/icons";
 import { Image, ScrollView, Text, View } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../index/index.css"; // 引入首页的瀑布流样式
 
 interface ProfileProps { }
@@ -19,6 +21,9 @@ interface ProfileProps { }
 const Profile: React.FC<ProfileProps> = () => {
   const { isLogin, loading } = useAuth();
   const { userInfo, refreshUserInfo } = useUser();
+
+  // 使用 ref 跟踪页面是否已经加载过
+  const hasLoaded = useRef(false);
 
   const [stats, setStats] = useState({
     totalWorks: 0,
@@ -28,9 +33,40 @@ const Profile: React.FC<ProfileProps> = () => {
     totalCreated: 0,
   });
 
+  // 恢复自动加载 - 只在首次挂载时执行
+  useEffect(() => {
+    if (!isLogin) return;
+
+    // 首次加载用户信息
+    if (!hasLoaded.current) {
+      refreshUserInfo();
+      hasLoaded.current = true;
+    }
+
+    // 加载统计数据和收藏列表
+    loadUserStats();
+    loadFavorites();
+  }, [isLogin]);
+
   // 收藏作品列表状态
-  const [favorites, setFavorites] = useState<WorkItem[]>([]);
+  const [favorites, setFavorites] = useState<any[]>([]);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
+
+  // 将 API 数据转换为 VirtualWaterfall 格式
+  const convertedFavorites = useMemo(() => {
+    return favorites.map((item): VirtualWaterfallItem => ({
+      id: item.id || item.prompt_id,
+      title: item.title || item.prompt || '',
+      cover_image: item.cover_image || item.image_url || item.thumbnail_url || '',
+      creator: item.creator ? {
+        nickname: item.creator.nickname,
+        avatar_url: item.creator.avatar_url,
+      } : undefined,
+      model: item.model || item.model_name,
+      likes_count: item.likes_count || 0,
+      views_count: item.views_count || 0,
+    }));
+  }, [favorites]);
 
   // 加载收藏作品列表
   const loadFavorites = async () => {
@@ -50,6 +86,32 @@ const Profile: React.FC<ProfileProps> = () => {
       setFavoritesLoading(false);
     }
   };
+
+  // 处理收藏作品点击
+  const handleFavoriteClick = useCallback((item: VirtualWaterfallItem) => {
+    if (!isLogin) {
+      Taro.showModal({
+        title: "提示",
+        content: "请先登录后查看",
+        confirmText: "去登录",
+        cancelText: "取消",
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({ url: "/packageUser/pages/login/index" });
+          }
+        },
+      });
+      return;
+    }
+    Taro.navigateTo({
+      url: `/packageDetail/pages/prompt-detail/index?id=${item.id}`,
+    });
+  }, [isLogin]);
+
+  // 刷新收藏列表
+  const handleRefreshFavorites = useCallback(async () => {
+    await loadFavorites();
+  }, []);
 
   // 当 userInfo 更新时同步更新今日消耗
   useEffect(() => {
@@ -102,16 +164,11 @@ const Profile: React.FC<ProfileProps> = () => {
     }
   };
 
-  useDidShow(() => {
-    // 刷新用户信息（用户名、头像、积分等）
-    if (isLogin) {
-      refreshUserInfo();
-    }
-    // 刷新统计数据
-    loadUserStats();
-    // 刷新收藏列表（每次打开页面都重新加载）
-    loadFavorites();
-  });
+  // ⚠️ 完全禁用 useDidShow，因为 tabBar 页面会在每次渲染时触发它
+  // 改用 useEffect + 路由监听的方式，或者依赖下拉刷新
+  // useDidShow(() => {
+  //   // 代码已禁用，防止无限循环
+  // });
 
   // 处理登录按钮点击
   const handleLogin = () => {
@@ -137,10 +194,14 @@ const Profile: React.FC<ProfileProps> = () => {
             className="w-full flex items-center justify-between"
             onClick={() => Taro.navigateTo({ url: "/pages/user-detail/index" })}
           >
-            <View className="rounded-full w-20 h-20 overflow-hidden">
+            <View
+              className="w-20 h-20 overflow-hidden"
+              style={{ borderRadius: '50%' }}
+            >
               <Image
                 src={normalizeUrl(userInfo?.avatarUrl || generateAvatarUrl(userInfo?.nickname))}
-                className="w-full h-full object-cover "
+                className="w-full h-full object-cover"
+                style={{ borderRadius: '50%' }}
               />
             </View>
 
@@ -259,127 +320,17 @@ const Profile: React.FC<ProfileProps> = () => {
               我的收藏
             </Text>
 
-            {/* 提示词瀑布流列表（复用首页样式） */}
-            {favoritesLoading ? (
-              <View className="text-center py-8 text-gray-400">
-                <Text>加载中...</Text>
-              </View>
-            ) : favorites.length === 0 ? (
-              <View className="text-center py-8 text-gray-400">
-                <Text>暂无收藏</Text>
-              </View>
-            ) : (
-              <View className='works'>
-                {/* 左列 */}
-                <View className='column'>
-                  {favorites.filter((_, i) => i % 2 === 0).map((work) => (
-                    <View
-                      key={work.id}
-                      className='work-card'
-                      onClick={() => {
-                        if (!isLogin) {
-                          Taro.showModal({
-                            title: "提示",
-                            content: "请先登录后查看",
-                            confirmText: "去登录",
-                            cancelText: "取消",
-                            success: (res) => {
-                              if (res.confirm) {
-                                Taro.navigateTo({ url: "/packageUser/pages/login/index" });
-                              }
-                            },
-                          });
-                          return;
-                        }
-                        Taro.navigateTo({
-                          url: `/packageDetail/pages/prompt-detail/index?id=${work.id}`,
-                        });
-                      }}
-                    >
-                      <Image
-                        src={normalizeUrl(work.cover_image)}
-                        className='work-img'
-                        mode='aspectFill'
-                        lazyLoad
-                      />
-                      <Text className='work-prompt text-lg'>{work.title}</Text>
-                      <View className='work-footer'>
-                        <View className='work-author'>
-                          {work.creator?.avatar_url && (
-                            <Image
-                              src={normalizeUrl(work.creator.avatar_url)}
-                              className='author-avatar'
-                              mode='aspectFill'
-                            />
-                          )}
-                          <Text className='author-name'>{work.creator?.nickname || work.model}</Text>
-                        </View>
-                        <View className='work-stats'>
-                          <View className='work-likes text-lg'>
-                            <GoodJobOutlined size={16} />
-                            <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
-                          </View>
-                        </View>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-                {/* 右列 */}
-                <View className='column'>
-                  {favorites.filter((_, i) => i % 2 === 1).map((work) => (
-                    <View
-                      key={work.id}
-                      className='work-card'
-                      onClick={() => {
-                        if (!isLogin) {
-                          Taro.showModal({
-                            title: "提示",
-                            content: "请先登录后查看",
-                            confirmText: "去登录",
-                            cancelText: "取消",
-                            success: (res) => {
-                              if (res.confirm) {
-                                Taro.navigateTo({ url: "/packageUser/pages/login/index" });
-                              }
-                            },
-                          });
-                          return;
-                        }
-                        Taro.navigateTo({
-                          url: `/packageDetail/pages/prompt-detail/index?id=${work.id}`,
-                        });
-                      }}
-                    >
-                      <Image
-                        src={normalizeUrl(work.cover_image)}
-                        className='work-img'
-                        mode='aspectFill'
-                        lazyLoad
-                      />
-                      <Text className='work-prompt text-lg'>{work.title}</Text>
-                      <View className='work-footer'>
-                        <View className='work-author'>
-                          {work.creator?.avatar_url && (
-                            <Image
-                              src={normalizeUrl(work.creator.avatar_url)}
-                              className='author-avatar'
-                              mode='aspectFill'
-                            />
-                          )}
-                          <Text className='author-name'>{work.creator?.nickname || work.model}</Text>
-                        </View>
-                        <View className='work-stats'>
-                          <View className='work-likes text-lg'>
-                            <GoodJobOutlined size={16} />
-                            <Text className='stats-num ml-2'>{work.likes_count || 0}</Text>
-                          </View>
-                        </View>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
+            {/* 提示词瀑布流列表（使用统一的 VirtualWaterfall 组件） */}
+            <VirtualWaterfall
+              items={convertedFavorites}
+              loading={favoritesLoading}
+              hasMore={false}
+              onItemClick={handleFavoriteClick}
+              onRefresh={handleRefreshFavorites}
+              renderEmpty={() => (
+                <EmptyState type="no-data" title="暂无收藏" description="还没有收藏任何作品" />
+              )}
+            />
           </View>
         </ScrollView>
       </View>
