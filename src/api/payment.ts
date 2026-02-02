@@ -66,7 +66,23 @@ export const paymentApi = {
       balance_after: number
       description: string
       created_at: string
-      status: 'pending' | 'completed' | 'failed'
+      status: string
+      // 充值订单特有字段
+      package_name?: string
+      credits?: number
+      bonus?: number
+      is_vip?: boolean
+      vip_days?: number
+      amount_rmb?: number
+      payment_method?: string
+      paid_at?: string
+      // 消费记录特有字段
+      ref_id?: string
+      task_info?: {
+        task_id: string
+        task_type: string
+      }
+      transaction_type?: string
     }>
     total: number
     page: number
