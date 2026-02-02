@@ -2,7 +2,7 @@ import { paymentApi } from "@/api"
 import CommonWarp from "@/components/CommonWarp"
 import { useAuth } from "@/hooks/useAuth"
 import { Cell, Tabs } from "@taroify/core"
-import { ArrowDown, Description, AddCircle, SubtractCircle } from "@taroify/icons"
+import { ArrowDown, Description, AddOutlined, Minus } from "@taroify/icons"
 import { ScrollView, Text, View } from "@tarojs/components"
 import Taro, { usePullDownRefresh, useReachBottom } from "@tarojs/taro"
 import { useCallback, useEffect, useState } from "react"
@@ -160,9 +160,9 @@ const Orders: React.FC<OrderProps> = () => {
                   <View className="order-header">
                     <View className="order-type">
                       {order.type === 'recharge' ? (
-                        <AddCircle size={20} color="#10b981" />
+                        <AddOutlined size={20} color="#10b981" />
                       ) : (
-                        <SubtractCircle size={20} color="#f59e0b" />
+                        <Minus size={20} color="#f59e0b" />
                       )}
                       <Text className="order-type-text">
                         {order.type === 'recharge' ? (order.package_name || '充值') : order.description}
