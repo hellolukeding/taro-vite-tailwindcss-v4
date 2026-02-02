@@ -7,12 +7,11 @@ import { VirtualWaterfall, WorkItem as VirtualWaterfallItem } from "@/components
 import { Icon } from "@/components/common/Icon";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/store";
-import type { WorkItem as ApiWorkItem } from "@/types";
 import { generateAvatarUrl } from "@/utils/constants";
 import { normalizeUrl } from "@/utils/url";
-import { Add, Arrow, Fire, GoodJobOutlined, Warning } from "@taroify/icons";
+import { Add, Arrow, Fire, Warning } from "@taroify/icons";
 import { Image, ScrollView, Text, View } from "@tarojs/components";
-import Taro, { useDidShow } from "@tarojs/taro";
+import Taro from "@tarojs/taro";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../index/index.css"; // 引入首页的瀑布流样式
 
@@ -210,7 +209,7 @@ const Profile: React.FC<ProfileProps> = () => {
                 {userInfo?.nickname || "未登录"}
               </Text>
               <Text className="text-gray-300 text-sm mt-1">
-                @{userInfo?.userId || "---"}
+                {/* @{userInfo?.userId || "---"} */}
               </Text>
             </View>
 

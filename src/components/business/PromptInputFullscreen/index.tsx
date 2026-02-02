@@ -60,44 +60,49 @@ export const PromptInputFullscreen: FC<PromptInputFullscreenProps> = ({
     setFullscreenValue('')
   }
 
-  // 预览文字（显示前30个字符）
+  // 预览文字（显示前150个字符）
   const previewText = value
-    ? value.length > 30
-      ? value.substring(0, 30) + '...'
+    ? value.length > 150
+      ? value.substring(0, 150) + '...'
       : value
     : placeholder
 
   return (
     <>
       {/* 普通模式 - 简化的输入框 */}
-      <View className='prompt-input-compact bg-white rounded-2xl px-2 py-5 shadow-lg border border-gray-100' onClick={handleOpenFullscreen}>
+      <View className='prompt-input-compact bg-white rounded-2xl px-4 py-6 shadow-lg border border-gray-100' onClick={handleOpenFullscreen}>
         <View className='prompt-input-header'>
-          <Text className='text-xs font-bold text-black uppercase tracking-wider'>
+          <Text className='text-sm font-bold text-black uppercase tracking-wider'>
             提示词
           </Text>
         </View>
 
         <View className='prompt-input-description mb-3'>
-          <Text className='text-xs text-gray-500'>
+          <Text className='text-sm text-gray-500'>
             描述你想生成的图片内容
           </Text>
         </View>
 
         <View className='prompt-input-preview'>
-          <Text className={`h-20 ${value ? 'preview-text' : 'preview-placeholder'}`}>
+          <Text className={value ? 'preview-text' : 'preview-placeholder'}>
             {previewText}
           </Text>
+          {!value && (
+            <View className='edit-hint'>
+              <Text className='edit-hint-text'>✏️ 点击开始编辑</Text>
+            </View>
+          )}
         </View>
 
         <View className='prompt-input-footer'>
-          <Text className='text-xs text-gray-400'>点击展开编辑</Text>
-          <Text className='text-xs text-gray-400'>{value.length} 字</Text>
+          <Text className='text-sm text-gray-400'>💡 点击卡片展开编辑</Text>
+          <Text className='text-sm text-gray-400'>{value.length} 字</Text>
         </View>
       </View>
 
       {/* 全屏编辑模式 */}
       {isFullscreen && (
-        <View className='prompt-input-fullscreen' catchMove={true}>
+        <View className='prompt-input-fullscreen'>
           <CommonHeader title='编辑提示词' withBack={false}>
             <View className='flex items-center justify-end px-4 py-2'>
               {fullscreenValue && (
@@ -128,7 +133,7 @@ export const PromptInputFullscreen: FC<PromptInputFullscreenProps> = ({
                   adjustPosition={true}
                   maxlength={-1}
                   autoHeight={false}
-                  style={{ minHeight: '300px', height: '300px' }}
+                  style={{ minHeight: '400px' }}
                 />
 
                 <View className='fullscreen-tips'>
@@ -156,10 +161,10 @@ export const PromptInputFullscreen: FC<PromptInputFullscreenProps> = ({
                 color: "#6b7280"
               }}
               shape="round"
-              className='flex-1 mr-2'
+              className='fullscreen-cancel-btn flex-1 mr-2'
               onClick={handleCloseFullscreen}
             >
-              取消
+              <Text className='fullscreen-btn-text'>取消</Text>
             </Button>
 
             <Button
@@ -169,10 +174,10 @@ export const PromptInputFullscreen: FC<PromptInputFullscreenProps> = ({
                 color: "#fff"
               }}
               shape="round"
-              className='flex-1 ml-2'
+              className='fullscreen-confirm-btn flex-1 ml-2'
               onClick={handleConfirm}
             >
-              完成
+              <Text className='fullscreen-btn-text'>完成</Text>
             </Button>
           </View>
         </View>

@@ -209,8 +209,27 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
       return;
     }
 
-    // 使用智能提取函数获取最佳提示词（保留原始数据结构）
-    const promptContent = state.data.prompts; // 传递完整的 prompts 数据（可能是字符串数组或JSON对象）
+    // 智能提取最佳提示词
+    let promptContent: any;
+
+    if (Array.isArray(state.data.prompts)) {
+      // 如果是数组，取最后一个非空元素
+      const nonEmptyPrompts = state.data.prompts.filter((p: any) => p && typeof p === 'string' && p.trim());
+      if (nonEmptyPrompts.length > 0) {
+        promptContent = nonEmptyPrompts[nonEmptyPrompts.length - 1];
+        console.log("[handleCreateSimilar] 从数组中取最后一个提示词，共", nonEmptyPrompts.length, "个");
+      } else {
+        promptContent = state.data.prompts[state.data.prompts.length - 1];
+      }
+    } else if (typeof state.data.prompts === 'object' && state.data.prompts !== null) {
+      // 如果是对象，优先使用 zh（中文），其次 en（英文）
+      const { zh, en } = state.data.prompts as any;
+      promptContent = zh || en;
+      console.log("[handleCreateSimilar] 从对象中提取，优先中文:", zh ? '有' : '无', en ? '有' : '无');
+    } else {
+      // 其他情况（字符串），直接使用
+      promptContent = state.data.prompts;
+    }
 
     if (!promptContent) {
       toast.error("提示词格式错误或内容为空");
@@ -218,7 +237,8 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
       return;
     }
 
-    console.log("[handleCreateSimilar] ✅ 准备传输提示词, 类型:", Array.isArray(promptContent) ? '数组' : typeof promptContent);
+    console.log("[handleCreateSimilar] ✅ 准备传输提示词, 类型:", typeof promptContent, "长度:", promptContent?.length);
+    console.log("[handleCreateSimilar] 提示词内容预览:", promptContent?.substring(0, 50) + "...");
 
     try {
       // 使用智能传输函数（自动选择本地存储或后端接口）
@@ -234,9 +254,20 @@ const PromptDetail: React.FC<PromptDetailProps> = (props) => {
       });
 
       if (success) {
-        // 使用 reLaunch 跳转到 studio 页面（清除页面栈，更稳定）
-        Taro.reLaunch({
+        // 跳转到 tabBar 页面，使用 switchTab
+        Taro.switchTab({
           url: '/pages/studio/index',
+          fail: (err) => {
+            console.error('[handleCreateSimilar] switchTab 失败，尝试 redirectTo:', err);
+            // 降级方案：使用 redirectTo（如果小程序支持）
+            Taro.redirectTo({
+              url: '/pages/studio/index',
+              fail: (err2) => {
+                console.error('[handleCreateSimilar] redirectTo 也失败:', err2);
+                toast.error("跳转失败，请手动前往创作页面");
+              }
+            });
+          }
         });
       } else {
         toast.error("传输失败，请重试");

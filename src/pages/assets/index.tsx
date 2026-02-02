@@ -336,6 +336,7 @@ const Assets: React.FC<AssetsProps> = () => {
                       status={cardStatus}
                       errorMessage={task.error_message || undefined}
                       onCancel={handleCancelTask}
+                      onDelete={handleDeleteTask}
                     />
                   );
                 })

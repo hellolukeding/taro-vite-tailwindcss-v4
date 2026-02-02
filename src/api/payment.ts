@@ -49,4 +49,32 @@ export const paymentApi = {
     const data = response.success ? response.data : response
     return data
   },
+
+  /**
+   * 获取订单列表（充值记录和消费记录）
+   */
+  async getOrders(params?: {
+    page?: number
+    page_size?: number
+    type?: 'recharge' | 'consume' | 'all'
+  }): Promise<{
+    items: Array<{
+      id: string
+      order_id: string
+      type: 'recharge' | 'consume'
+      amount: number
+      balance_after: number
+      description: string
+      created_at: string
+      status: 'pending' | 'completed' | 'failed'
+    }>
+    total: number
+    page: number
+    page_size: number
+    has_more: boolean
+  }> {
+    const response = await client.get<any>('/miniprogram/recharge/orders', params, { returnFullResponse: true })
+    const data = response.success ? response.data : response
+    return data
+  },
 }

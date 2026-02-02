@@ -9,6 +9,7 @@ interface InProgressTaskProps {
   status: 'progress' | 'queued' | 'failed'
   errorMessage?: string // 失败错误信息
   onCancel?: (id: string) => void
+  onDelete?: (id: string) => void // 新增：删除任务回调
 }
 
 export function InProgressTaskCard({
@@ -19,6 +20,7 @@ export function InProgressTaskCard({
   status,
   errorMessage,
   onCancel,
+  onDelete,
 }: InProgressTaskProps) {
   return (
     <View className='flex flex-col gap-3 p-4 bg-white border border-gray-100 rounded-2xl shadow-sm'>
@@ -99,7 +101,7 @@ export function InProgressTaskCard({
         )}
         {status === 'failed' && (
           <View
-            onClick={() => onCancel?.(id)}
+            onClick={() => onDelete?.(id)}
             className='px-4 py-1.5 rounded-lg border border-red-200 bg-red-50 text-xs font-medium flex items-center gap-1 active:bg-red-100'
           >
             <Icon name='delete' size={14} />

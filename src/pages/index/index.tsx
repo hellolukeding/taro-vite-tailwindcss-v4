@@ -67,7 +67,8 @@ export default function Index() {
 
   // 搜索处理
   const handleSearch = useCallback(() => {
-    if (!searchKeyword.trim()) {
+    const keyword = typeof searchKeyword === 'string' ? searchKeyword : String(searchKeyword || '')
+    if (!keyword.trim()) {
       // 清空搜索，显示全部
       setCurrentTag(undefined)
       setCurrentPage(1)
@@ -82,9 +83,20 @@ export default function Index() {
     fetchPrompts(1, currentTag)
   }, [searchKeyword, currentTag, fetchPrompts])
 
+  // 清空搜索
+  const handleClearSearch = () => {
+    setSearchKeyword("")
+    setIsSearching(false)
+    setCurrentTag(undefined)
+    setCurrentPage(1)
+    setPromptsList([])
+    fetchPrompts(1, undefined)
+  }
+
   // 搜索防抖 - 只监听 searchKeyword 变化
   useEffect(() => {
-    if (searchKeyword.trim()) {
+    const keyword = typeof searchKeyword === 'string' ? searchKeyword : String(searchKeyword || '')
+    if (keyword.trim()) {
       // 延迟搜索，避免频繁请求
       const timer = setTimeout(() => {
         setIsSearching(true)
@@ -95,11 +107,12 @@ export default function Index() {
 
       return () => clearTimeout(timer)
     } else if (isSearching) {
-      // 清空搜索关键词时，恢复列表
+      // 清空搜索关键词时，恢复列表（重置所有搜索状态）
       setIsSearching(false)
+      setCurrentTag(undefined)
       setCurrentPage(1)
       setPromptsList([])
-      fetchPrompts(1, currentTag)
+      fetchPrompts(1, undefined)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchKeyword])
@@ -162,13 +175,13 @@ export default function Index() {
 
   // 处理滚动事件
   const handleScroll = (e: any) => {
-    const scrollTop = e.detail.scrollTop
+    const currentScrollTop = e.detail.scrollTop
 
     // 当滚动超过300px时显示悬浮按钮
-    setShowScrollTop(scrollTop > 300)
+    setShowScrollTop(currentScrollTop > 300)
 
     // 当滚动超过80px时，收缩header并隐藏搜索框
-    if (scrollTop > 80) {
+    if (currentScrollTop > 80) {
       setHeaderCollapsed(true)
     } else {
       setHeaderCollapsed(false)
@@ -216,14 +229,17 @@ export default function Index() {
           placeholder="请输入搜索关键词"
           value={searchKeyword}
           className='search-bg'
-          onChange={setSearchKeyword}
+          onChange={e => {
+            const value = e?.detail?.value ?? e ?? ''
+            setSearchKeyword(typeof value === 'string' ? value : String(value))
+          }}
         />
       </View>
 
       {/* 主内容区域 */}
-      <View className='content'>
+      <View className='content mt-4'>
         {/* 分类标签栏 */}
-        <View className='w-full mb-2'>
+        <View className='w-full mb-2 hidden'>
           <CategoryTabs
             categories={categories}
             value={selectedCategory}
@@ -240,10 +256,7 @@ export default function Index() {
             </Text>
             <Text
               className='text-sm text-blue-500'
-              onClick={() => {
-                setSearchKeyword("")
-                setIsSearching(false)
-              }}
+              onClick={handleClearSearch}
             >
               清空
             </Text>

@@ -3,8 +3,8 @@ import CommonWarp from "@/components/CommonWarp";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/store";
 import type { Package } from "@/types";
-import { Button, RollingText } from "@taroify/core";
-import { Award, BrushOutlined, Completed, Diamond, Hot, MedalOutlined, PointGift, VipCard } from "@taroify/icons";
+import { Button, Cell, RollingText } from "@taroify/core";
+import { Arrow, Award, BrushOutlined, Completed, Diamond, Hot, MedalOutlined, Description, PointGift, VipCard } from "@taroify/icons";
 import { Text, View } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import useRequest from "ahooks/lib/useRequest";
@@ -147,6 +147,23 @@ const Recharge: React.FC<RechargeProps> = (props) => {
           </View>
         </View>
       </View>
+
+      {/* 订单记录入口 */}
+      <Cell.Group inset className='mt-4'>
+        <Cell
+          title='订单记录'
+          brief='查看充值和消费记录'
+          icon={<Description size={24} />}
+          clickable
+          onClick={() => {
+            Taro.navigateTo({
+              url: '/packageUser/pages/orders/index'
+            })
+          }}
+        >
+          <Arrow slot="extra" />
+        </Cell>
+      </Cell.Group>
 
       <View className='w-full mt-4 flex items-center'>
 
