@@ -130,7 +130,7 @@ export const PromptInputFullscreen: FC<PromptInputFullscreenProps> = ({
                   value={fullscreenValue}
                   onInput={(e) => setFullscreenValue(e.detail.value)}
                   focus
-                  adjustPosition={true}
+                  adjustPosition
                   maxlength={-1}
                   autoHeight={false}
                   style={{ minHeight: '400px' }}

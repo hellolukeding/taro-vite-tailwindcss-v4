@@ -13,7 +13,7 @@ import { WECHAT_TASK_COMPLETE_TEMPLATE_ID } from "@/utils/constants";
 import { receivePromptFromTransfer } from "@/utils/promptTransfer";
 import type { Uploader } from "@taroify/core";
 import { ScrollView, Text, View } from "@tarojs/components";
-import Taro, { useDidShow } from "@tarojs/taro";
+import Taro, { useDidShow, useDidHide } from "@tarojs/taro";
 import { useEffect, useRef, useState } from "react";
 
 // 临时禁用 ESLint 警告
@@ -56,15 +56,18 @@ const Studio: React.FC<StudioProps> = (props) => {
     loadModels();
   }, []);
 
-  // 恢复 prompt 自动处理 - 只在首次挂载时执行
-  useEffect(() => {
+  // 恢复 prompt 自动处理 - 使用 useDidShow 确保每次页面显示时都能接收
+  useDidShow(() => {
     const processPrompt = async () => {
+      // 如果已经处理过，跳过（避免重复处理）
       if (hasHandledPrompt.current) {
+        console.log('[Studio useDidShow] Already handled, skipping');
         return;
       }
+
       try {
         const promptContent = await receivePromptFromTransfer();
-        console.log('[Studio] Received promptContent:', promptContent, 'type:', typeof promptContent);
+        console.log('[Studio useDidShow] Received promptContent:', promptContent, 'type:', typeof promptContent);
 
         if (promptContent) {
           let finalPrompt = "";
@@ -97,7 +100,7 @@ const Studio: React.FC<StudioProps> = (props) => {
 
             // 如果仍然为空，将对象序列化为 JSON
             if (!finalPrompt) {
-              console.warn('[Studio] ⚠️ 无法从对象中提取字符串，使用 JSON 序列化');
+              console.warn('[Studio useDidShow] ⚠️ 无法从对象中提取字符串，使用 JSON 序列化');
               finalPrompt = JSON.stringify(promptContent);
             }
           } else {
@@ -107,16 +110,16 @@ const Studio: React.FC<StudioProps> = (props) => {
 
           // 确保最终结果是字符串
           if (typeof finalPrompt !== 'string') {
-            console.error('[Studio] ❌ finalPrompt 不是字符串:', typeof finalPrompt, finalPrompt);
+            console.error('[Studio useDidShow] ❌ finalPrompt 不是字符串:', typeof finalPrompt, finalPrompt);
             finalPrompt = String(finalPrompt || '');
           }
 
-          console.log('[Studio] Final prompt type:', typeof finalPrompt, 'length:', finalPrompt.length);
+          console.log('[Studio useDidShow] Final prompt type:', typeof finalPrompt, 'length:', finalPrompt.length);
 
           if (finalPrompt && finalPrompt.trim().length > 0) {
             setPrompt(finalPrompt);
             hasHandledPrompt.current = true;
-            console.log('[Studio] ✅ 从提示词详情页接收到 prompt, 长度:', finalPrompt.length);
+            console.log('[Studio useDidShow] ✅ 从提示词详情页接收到 prompt, 长度:', finalPrompt.length);
             Taro.showToast({
               title: '已填入提示词',
               icon: 'success',
@@ -124,19 +127,26 @@ const Studio: React.FC<StudioProps> = (props) => {
             });
           } else {
             hasHandledPrompt.current = true;
-            console.warn('[Studio] ⚠️ 接收到空提示词');
+            console.warn('[Studio useDidShow] ⚠️ 接收到空提示词');
           }
         } else {
           hasHandledPrompt.current = true;
-          console.log('[Studio] No prompt content received');
+          console.log('[Studio useDidShow] No prompt content received');
         }
       } catch (error) {
         hasHandledPrompt.current = true;
-        console.error('[Studio] ❌ 读取 prompt 失败:', error);
+        console.error('[Studio useDidShow] ❌ 读取 prompt 失败:', error);
       }
     };
+
     processPrompt();
-  }, []);
+  });
+
+  // 当用户离开页面时重置标志，允许下次接收新提示词
+  useDidHide(() => {
+    console.log('[Studio useDidHide] Resetting hasHandledPrompt flag');
+    hasHandledPrompt.current = false;
+  });
 
   // 当prompt、模型、比例变化时重新估算成本
   useEffect(() => {

@@ -1,15 +1,14 @@
 import { paymentApi } from "@/api"
 import CommonWarp from "@/components/CommonWarp"
 import { useAuth } from "@/hooks/useAuth"
+import { formatRelativeTime } from "@/utils/timeFormat"
 import { Cell, Tabs } from "@taroify/core"
-import { ArrowDown, Description, AddOutlined, Minus } from "@taroify/icons"
+import { AddOutlined, Description, Minus } from "@taroify/icons"
 import { ScrollView, Text, View } from "@tarojs/components"
 import Taro, { usePullDownRefresh, useReachBottom } from "@tarojs/taro"
 import { useCallback, useEffect, useState } from "react"
-import { formatRelativeTime } from "@/utils/timeFormat"
-import "./index.scss"
 
-interface OrderProps {}
+interface OrderProps { }
 
 type TabType = "all" | "recharge" | "consume"
 
@@ -47,9 +46,21 @@ const Orders: React.FC<OrderProps> = () => {
       }
 
       setHasMore(result.has_more)
-    } catch (error) {
+    } catch (error: any) {
       console.error("Load orders error:", error)
-      Taro.showToast({ title: "加载失败", icon: "none" })
+      // 提取详细的错误信息
+      let errorMsg = "加载失败"
+      if (error?.message && typeof error.message === 'string') {
+        errorMsg = error.message
+      } else if (error?.errMsg && typeof error.errMsg === 'string') {
+        errorMsg = error.errMsg
+      } else if (typeof error === 'string') {
+        errorMsg = error
+      } else {
+        // 最后的保险措施：确保总是字符串
+        errorMsg = String(errorMsg)
+      }
+      Taro.showToast({ title: errorMsg, icon: "none" })
     } finally {
       setLoading(false)
     }
@@ -125,9 +136,9 @@ const Orders: React.FC<OrderProps> = () => {
   }
 
   return (
-    <CommonWarp title="订单记录" withHeader>
+    <CommonWarp title="订单记录" withHeader={false}>
       {/* 标签栏 */}
-      <View className="orders-tabs">
+      <View className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <Tabs
           value={activeTab}
           onChange={(tab: any) => setActiveTab(tab)}
@@ -140,49 +151,49 @@ const Orders: React.FC<OrderProps> = () => {
       </View>
 
       {/* 订单列表 */}
-      <ScrollView scrollY className="orders-list">
-        {orders.length === 0 && !loading ? (
-          <View className="empty-state">
-            <Description size={48} color="#d1d5db" />
-            <Text className="empty-text">暂无订单记录</Text>
-          </View>
-        ) : (
-          <Cell.Group inset={false}>
-            {orders.map((order) => (
-              <Cell
-                key={order.id}
-                className="order-cell"
-                onClick={() => {
-                  // 可以添加点击查看详情的功能
-                }}
-              >
-                <View className="order-item">
-                  <View className="order-header">
-                    <View className="order-type">
+      <ScrollView scrollY className="h-[calc(100vh-100px)] bg-gray-50">
+        <View className="px-4">
+          {orders.length === 0 && !loading ? (
+            <View className="flex flex-col items-center justify-center py-20">
+              <Description size={48} color="#d1d5db" />
+              <Text className="mt-4 text-base text-gray-400">暂无订单记录</Text>
+            </View>
+          ) : (
+            <View>
+              {orders.map((order) => (
+                <View
+                  key={order.id}
+                  className="bg-white my-3 rounded-xl p-4 shadow-sm w-full"
+                  onClick={() => {
+                    // 可以添加点击查看详情的功能
+                  }}
+                >
+                  <View className="flex justify-between items-center mb-3">
+                    <View className="flex items-center gap-2 flex-1 min-w-0">
                       {order.type === 'recharge' ? (
                         <AddOutlined size={20} color="#10b981" />
                       ) : (
                         <Minus size={20} color="#f59e0b" />
                       )}
-                      <Text className="order-type-text">
+                      <Text className="text-base font-semibold text-gray-800 flex-1 truncate">
                         {order.type === 'recharge' ? (order.package_name || '充值') : order.description}
                       </Text>
                     </View>
                     <Text
-                      className="order-status"
+                      className="text-sm font-medium ml-2 flex-shrink-0"
                       style={{ color: getStatusColor(order.status) }}
                     >
                       {getStatusText(order.status)}
                     </Text>
                   </View>
 
-                  <View className="order-body">
+                  <View className="flex justify-between items-center mb-2">
                     <Text
-                      className={`order-amount ${order.type === 'recharge' ? 'amount-positive' : 'amount-negative'}`}
+                      className={`text-xl font-bold flex-shrink-0 ${order.type === 'recharge' ? 'text-green-500' : 'text-amber-500'}`}
                     >
                       {formatAmount(order.amount, order.type)} 积分
                     </Text>
-                    <Text className="order-time">
+                    <Text className="text-sm text-gray-400 flex-shrink-0">
                       {formatRelativeTime(order.created_at)}
                     </Text>
                   </View>
@@ -190,52 +201,60 @@ const Orders: React.FC<OrderProps> = () => {
                   {/* 详细信息 */}
                   {(order.type === 'recharge' && (order.bonus > 0 || order.is_vip)) ||
                    (order.type === 'consume' && order.task_info) ? (
-                    <View className="order-details">
+                    <View className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-gray-100">
                       {order.type === 'recharge' && (
                         <>
                           {order.bonus > 0 && (
-                            <Text className="detail-tag">赠送 {order.bonus} 积分</Text>
+                            <Text className="text-xs px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full flex-shrink">
+                              赠送 {order.bonus} 积分
+                            </Text>
                           )}
                           {order.is_vip && order.vip_days > 0 && (
-                            <Text className="detail-tag vip">VIP {order.vip_days} 天</Text>
+                            <Text className="text-xs px-2.5 py-1 bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600 text-white rounded-full flex-shrink">
+                              VIP {order.vip_days} 天
+                            </Text>
                           )}
                           {order.amount_rmb && (
-                            <Text className="detail-price">¥{order.amount_rmb}</Text>
+                            <Text className="text-sm font-semibold text-amber-500 ml-auto flex-shrink-0">
+                              ¥{order.amount_rmb}
+                            </Text>
                           )}
                         </>
                       )}
                       {order.type === 'consume' && order.task_info && (
-                        <Text className="detail-tag">任务ID: {order.task_info.task_id?.substring(0, 8)}...</Text>
+                        <Text className="text-xs px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full flex-shrink">
+                          任务ID: {order.task_info.task_id?.substring(0, 8)}...
+                        </Text>
                       )}
                     </View>
                   ) : null}
 
                   {order.balance_after !== undefined && (
-                    <View className="order-footer">
-                      <Text className="order-balance">
+                    <View className="mt-2 pt-2 border-t border-gray-100">
+                      <Text className="text-sm text-gray-600 flex-shrink">
                         余额: {order.balance_after} 积分
                       </Text>
                       {order.type === 'recharge' && order.paid_at && (
-                        <Text className="order-paid-time">
+                        <Text className="text-xs text-gray-400 flex-shrink">
                           支付于 {formatRelativeTime(order.paid_at)}
                         </Text>
                       )}
                     </View>
                   )}
                 </View>
-              </Cell>
-            ))}
-          </Cell.Group>
-        )}
+              ))}
+            </View>
+          )}
+        </View>
 
         {loading && (
-          <View className="loading-more">
+          <View className="flex justify-center py-5 text-sm text-gray-400">
             <Text>加载中...</Text>
           </View>
         )}
 
         {!hasMore && orders.length > 0 && (
-          <View className="no-more">
+          <View className="flex justify-center py-5 text-sm text-gray-400">
             <Text>没有更多了</Text>
           </View>
         )}
@@ -245,3 +264,4 @@ const Orders: React.FC<OrderProps> = () => {
 }
 
 export default Orders
+

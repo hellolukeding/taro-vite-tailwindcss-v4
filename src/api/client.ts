@@ -119,7 +119,13 @@ class APIClient {
 
       // 4. 处理其他HTTP错误
       if (statusCode >= 400) {
-        const errorMsg = responseData?.error?.message || '请求失败'
+        let errorMsg = responseData?.error?.message || responseData?.detail || '请求失败'
+        // 确保errorMsg是字符串（处理数组、对象等情况）
+        if (Array.isArray(errorMsg)) {
+          errorMsg = errorMsg.join(', ')
+        } else if (typeof errorMsg !== 'string') {
+          errorMsg = String(errorMsg || '请求失败')
+        }
         if (!skipErrorTip) {
           Taro.showToast({
             title: errorMsg,
@@ -152,7 +158,13 @@ class APIClient {
       }
 
       // 6. 处理错误响应
-      const errorMsg = responseData?.error?.message || responseData?.detail || '请求失败'
+      let errorMsg = responseData?.error?.message || responseData?.detail || '请求失败'
+      // 确保errorMsg是字符串（处理数组、对象等情况）
+      if (Array.isArray(errorMsg)) {
+        errorMsg = errorMsg.join(', ')
+      } else if (typeof errorMsg !== 'string') {
+        errorMsg = String(errorMsg || '请求失败')
+      }
 
       // 检查是否是认证相关错误
       const authErrorKeywords = ['未提供认证Token', '认证失败', '未授权', 'Unauthorized', 'Authentication failed']
@@ -177,7 +189,88 @@ class APIClient {
       throw new Error(errorMsg)
     } catch (error: any) {
       console.error('API Request Error:', error)
-      throw error
+      console.error('Error type:', typeof error)
+      console.error('Error keys:', error ? Object.keys(error) : 'error is null/undefined')
+
+      // 处理不同类型的错误对象
+      let errorMessage = '请求失败'
+
+      if (error) {
+        // 尝试提取错误信息 - 所有分支都要确保是字符串
+        if (error.message && typeof error.message === 'string') {
+          // 检查是否是 "[object Object]" 这种无意义的字符串
+          if (error.message !== '[object Object]') {
+            errorMessage = error.message
+            console.log('Using error.message:', errorMessage)
+          } else {
+            // error.message 是 [object Object]，需要从其他地方获取
+            console.log('error.message is "[object Object]", trying other sources')
+            if (error.errMsg && typeof error.errMsg === 'string') {
+              errorMessage = error.errMsg
+              console.log('Using error.errMsg:', errorMessage)
+            } else if (error?.error?.message) {
+              if (Array.isArray(error.error.message)) {
+                errorMessage = error.error.message.join(', ')
+              } else if (typeof error.error.message === 'string') {
+                errorMessage = error.error.message
+              } else {
+                errorMessage = String(error.error.message || '请求失败，请稍后重试')
+              }
+              console.log('Using error.error.message:', errorMessage)
+            }
+          }
+        } else if (error.errMsg && typeof error.errMsg === 'string') {
+          errorMessage = error.errMsg
+          console.log('Using error.errMsg:', errorMessage)
+        } else if (typeof error === 'string') {
+          errorMessage = error
+          console.log('Using error as string:', errorMessage)
+        } else if (error?.error?.message) {
+          if (Array.isArray(error.error.message)) {
+            errorMessage = error.error.message.join(', ')
+          } else if (typeof error.error.message === 'string') {
+            errorMessage = error.error.message
+          } else {
+            errorMessage = String(error.error.message || '请求失败，请稍后重试')
+          }
+          console.log('Using error.error.message:', errorMessage)
+        } else if (error?.error?.detail) {
+          if (Array.isArray(error.error.detail)) {
+            errorMessage = error.error.detail.join(', ')
+          } else if (typeof error.error.detail === 'string') {
+            errorMessage = error.error.detail
+          } else {
+            errorMessage = String(error.error.detail || '请求失败，请稍后重试')
+          }
+          console.log('Using error.error.detail:', errorMessage)
+        } else {
+          // 如果error是对象，尝试序列化以便调试
+          try {
+            const errorStr = JSON.stringify(error)
+            console.error('Error object:', errorStr)
+            // 尝试从字符串中提取有用信息
+            if (errorStr.includes('"message":')) {
+              const match = errorStr.match(/"message":\s*"([^"]+)"/)
+              if (match && match[1]) {
+                errorMessage = match[1]
+              }
+            }
+          } catch (e) {
+            console.error('Error object (non-serializable):', error)
+          }
+          errorMessage = '请求失败，请稍后重试'
+        }
+      }
+
+      // 最后的保险措施：确保errorMessage是字符串
+      if (typeof errorMessage !== 'string') {
+        console.warn('errorMessage is not a string, converting:', typeof errorMessage, errorMessage)
+        errorMessage = String(errorMessage || '请求失败，请稍后重试')
+      }
+
+      console.log('Final errorMessage to throw:', errorMessage)
+      // 抛出包含正确消息的Error对象
+      throw new Error(errorMessage)
     }
   }
 

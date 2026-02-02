@@ -1,5 +1,5 @@
 export default definePageConfig({
-  navigationBarTitleText: '订单记录',
-  enablePullDownRefresh: true,
-  onReachBottomDistance: 50,
+  navigationStyle: 'custom',
+  navigationBarBackgroundColor: '#ffffff',
+  navigationBarTextStyle: 'black'
 })

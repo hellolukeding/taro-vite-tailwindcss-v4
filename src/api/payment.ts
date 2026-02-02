@@ -89,7 +89,12 @@ export const paymentApi = {
     page_size: number
     has_more: boolean
   }> {
-    const response = await client.get<any>('/miniprogram/recharge/orders', params, { returnFullResponse: true })
+    // 过滤掉 undefined 的参数，避免传递 type=undefined 导致后端验证失败
+    const filteredParams = params ? Object.fromEntries(
+      Object.entries(params).filter(([_, value]) => value !== undefined)
+    ) : undefined
+
+    const response = await client.get<any>('/miniprogram/recharge/orders', filteredParams, { returnFullResponse: true })
     const data = response.success ? response.data : response
     return data
   },

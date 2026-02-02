@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/store";
 import type { Package } from "@/types";
 import { Button, Cell, RollingText } from "@taroify/core";
-import { Arrow, Award, BrushOutlined, Completed, Diamond, Hot, MedalOutlined, Description, PointGift, VipCard } from "@taroify/icons";
+import { Arrow, Award, BrushOutlined, Completed, Diamond, Hot, MedalOutlined, PointGift, VipCard } from "@taroify/icons";
 import { Text, View } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import useRequest from "ahooks/lib/useRequest";
@@ -13,7 +13,7 @@ import "./index.scss";
 
 interface RechargeProps { }
 
-const Recharge: React.FC<RechargeProps> = (props) => {
+const Recharge: React.FC<RechargeProps> = () => {
   const { requireLoginRedirect } = useAuth()
   const { userInfo, refreshUserInfo } = useUser()
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null)
@@ -148,7 +148,7 @@ const Recharge: React.FC<RechargeProps> = (props) => {
         </View>
       </View>
 
-      {/* 订单记录入口 */}
+      {/* 订单记录入口
       <Cell.Group inset className='mt-4'>
         <Cell
           title='订单记录'
@@ -163,7 +163,20 @@ const Recharge: React.FC<RechargeProps> = (props) => {
         >
           <Arrow slot="extra" />
         </Cell>
-      </Cell.Group>
+      </Cell.Group> */}
+      <Cell
+        title="订单记录" brief="查看充值和消费记录" size="large" align="start"
+        onClick={() => {
+          Taro.navigateTo({
+            url: '/packageUser/pages/orders/index'
+          })
+        }}
+        clickable
+        className="my-2"
+        arrowDirection="right"
+      >
+        <Arrow />
+      </Cell>
 
       <View className='w-full mt-4 flex items-center'>
 
@@ -202,10 +215,10 @@ const Recharge: React.FC<RechargeProps> = (props) => {
                   {pkg.credits} 积分
                 </Text>
                 <Text className='font-semibold text-2xl mt-2'>
-                  ￥{parseFloat(pkg.price)}
+                  ￥{pkg.price}
                 </Text>
                 <Text className='line-through opacity-85 mt-2'>
-                  ￥{pkg.original_price ? parseFloat(pkg.original_price) : '-'}
+                  ￥{pkg.original_price ? pkg.original_price : '-'}
                 </Text>
               </View>
             )
@@ -264,8 +277,8 @@ const Recharge: React.FC<RechargeProps> = (props) => {
                     </View>
 
                     <View className='absolute bottom-2 right-2 flex flex-col justify-end items-end'>
-                      <Text className='text-3xl font-semibold'>{`¥${parseFloat(pkg.price)}`}</Text>
-                      <Text className='line-through opacity-85'>{`¥${pkg.original_price ? parseFloat(pkg.original_price) : '-'}`}</Text>
+                      <Text className='text-3xl font-semibold'>{`¥${pkg.price}`}</Text>
+                      <Text className='line-through opacity-85'>{`¥${pkg.original_price ? pkg.original_price : '-'}`}</Text>
                     </View>
                   </View>
 
@@ -280,7 +293,7 @@ const Recharge: React.FC<RechargeProps> = (props) => {
       <View className='w-screen z-50 fixed bottom-0 left-0 h-30 flex bg-white items-center justify-between px-6 py-4 shadow-t-lg'>
 
         <View className='flex flex-col'>
-          <Text className='text-2xl font-semibold'>{`¥ ${selectedPackage ? parseFloat(selectedPackage.price) : 0}`}</Text>
+          <Text className='text-2xl font-semibold'>{`¥ ${selectedPackage ? selectedPackage.price : 0}`}</Text>
           <Text className='text-xs'>应付金额</Text>
         </View>
 
