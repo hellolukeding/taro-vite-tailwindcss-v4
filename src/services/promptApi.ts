@@ -20,22 +20,26 @@ function unwrapResponse(response: any, errorMessage = "Invalid response format")
     throw new Error(response.data.detail);
   }
 
-  // 新格式：直接返回数据（已解包）
-  // 检查是否有业务数据字段（根据具体接口调整）
-  if (
-    response.data.prompt_id ||
-    response.data.title ||
-    response.data.likes_count !== undefined ||
-    response.data.favorites_count !== undefined ||
-    Array.isArray(response.data.items) ||
-    Array.isArray(response.data.comments)
-  ) {
-    return response.data;
-  }
-
-  // 旧格式：{success: true, data: {...}}
+  // 优先检查旧格式：{success: true, data: {...}}
+  // 必须先检查这个，因为 response.data.success 也是truthy
   if (response.data.success && response.data.data) {
     return response.data.data;
+  }
+
+  // 新格式：直接返回数据（已解包）
+  // 检查是否有业务数据字段（根据具体接口调整）
+  // 注意：排除 success 字段，避免与旧格式冲突
+  if (
+    !response.data.success &&  // 确保不是旧格式
+    (response.data.prompt_id ||
+     response.data.title ||
+     response.data.cover_image ||
+     response.data.likes_count !== undefined ||
+     response.data.favorites_count !== undefined ||
+     Array.isArray(response.data.items) ||
+     Array.isArray(response.data.comments))
+  ) {
+    return response.data;
   }
 
   // 都不是，抛出错误
