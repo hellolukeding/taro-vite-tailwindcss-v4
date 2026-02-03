@@ -320,6 +320,13 @@ class APIClient {
   }
 
   /**
+   * PATCH请求
+   */
+  patch<T = any>(url: string, data?: any, options?: Partial<RequestOptions>) {
+    return this.request<T>({ url, method: 'PATCH', data, ...options })
+  }
+
+  /**
    * DELETE请求
    */
   delete<T = any>(url: string, data?: any, options?: Partial<RequestOptions>) {

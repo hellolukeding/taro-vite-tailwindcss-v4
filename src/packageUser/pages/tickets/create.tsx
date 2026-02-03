@@ -58,46 +58,7 @@ const Create: React.FC<CreateProps> = () => {
 
     setLoading(true)
     try {
-      // 请求订阅消息
-      let subscribeAccepted = false
-      try {
-        const templateId = WECHAT_TICKET_REPLY_TEMPLATE_ID
-
-        console.log('📱 [工单] 开始请求订阅消息')
-        console.log('  - 模板ID:', templateId)
-
-        if (!templateId) {
-          console.warn('⚠️ [工单] 未配置模板ID，跳过订阅消息')
-        } else {
-          const subscribeResult = await Taro.requestSubscribeMessage({
-            tmplIds: [templateId],
-          })
-
-          console.log('📋 [工单] 订阅结果:', subscribeResult)
-
-          if (subscribeResult[templateId] === 'accept') {
-            console.log('✅ [工单] 用户同意订阅消息')
-            subscribeAccepted = true
-            Taro.showToast({
-              title: '已订阅工单回复通知',
-              icon: 'success',
-              duration: 1500
-            })
-          } else if (subscribeResult[templateId] === 'reject') {
-            console.log('❌ [工单] 用户拒绝订阅消息')
-            subscribeAccepted = false
-          } else {
-            console.log('⚠️ [工单] 未知状态:', subscribeResult[templateId])
-            subscribeAccepted = false
-          }
-        }
-      } catch (subscribeError: any) {
-        console.error('💥 [工单] 订阅异常:', subscribeError)
-        subscribeAccepted = false
-        // 订阅失败不影响工单提交
-      }
-
-      // 提交工单
+      // 1. 先提交工单（不包含订阅状态）
       const ticket = await ticketsApi.createTicket({
         type,
         priority,
@@ -106,11 +67,57 @@ const Create: React.FC<CreateProps> = () => {
         related_order_id: relatedOrderId.trim() || undefined,
         related_task_id: relatedTaskId.trim() || undefined,
         attachments: attachments.length > 0 ? attachments : undefined,
-        subscribe_accepted: subscribeAccepted,
+        subscribe_accepted: false,  // 先传false，工单提交后再请求订阅
       })
 
       Taro.showToast({ title: '提交成功', icon: 'success' })
 
+      // 2. 工单提交成功后，延迟请求订阅消息
+      setTimeout(async () => {
+        try {
+          const templateId = WECHAT_TICKET_REPLY_TEMPLATE_ID
+
+          console.log('📱 [工单] 工单提交成功，开始请求订阅消息')
+          console.log('  - 模板ID:', templateId)
+          console.log('  - 工单ID:', ticket.ticket_id)
+
+          if (!templateId) {
+            console.warn('⚠️ [工单] 未配置模板ID，跳过订阅消息')
+          } else {
+            const subscribeResult = await Taro.requestSubscribeMessage({
+              tmplIds: [templateId],
+            })
+
+            console.log('📋 [工单] 订阅结果:', subscribeResult)
+
+            if (subscribeResult[templateId] === 'accept') {
+              console.log('✅ [工单] 用户同意订阅消息，更新工单状态')
+
+              // 更新工单的订阅状态
+              await ticketsApi.updateSubscription(ticket.ticket_id, true)
+
+              Taro.showToast({
+                title: '已订阅工单回复通知（单次有效）',
+                icon: 'success',
+                duration: 2000
+              })
+            } else if (subscribeResult[templateId] === 'reject') {
+              console.log('❌ [工单] 用户拒绝订阅消息')
+            } else {
+              console.log('⚠️ [工单] 未知状态:', subscribeResult[templateId])
+            }
+          }
+        } catch (subscribeError: any) {
+          console.error('💥 [工单] 订阅异常:', subscribeError)
+
+          // 订阅失败不影响工单，静默处理
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('⚠️ [开发提示] 订阅消息弹窗只能在真机上触发')
+          }
+        }
+      }, 500)
+
+      // 3. 延迟跳转到工单详情页
       setTimeout(() => {
         Taro.redirectTo({
           url: `/packageUser/pages/tickets/detail?id=${ticket.ticket_id}`,

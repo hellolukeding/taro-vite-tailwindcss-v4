@@ -11,6 +11,7 @@ export interface CreateTicketParams {
   related_order_id?: string
   related_task_id?: string
   attachments?: string[]
+  subscribe_accepted?: boolean  // 用户是否同意接收工单回复通知
 }
 
 export interface Ticket {
@@ -27,6 +28,7 @@ export interface Ticket {
   related_task_id: string | null
   assigned_to: string | null
   attachments: string[]
+  subscribe_accepted: boolean  // 用户是否同意接收工单回复通知
   created_at: string
   updated_at: string
   resolved_at: string | null
@@ -64,6 +66,18 @@ export const ticketsApi = {
    */
   async createTicket(params: CreateTicketParams): Promise<Ticket> {
     return client.post('/miniprogram/tickets', params)
+  },
+
+  /**
+   * 更新工单订阅状态
+   */
+  async updateSubscription(ticketId: string, subscribeAccepted: boolean): Promise<{
+    success: boolean
+    message: string
+  }> {
+    return client.patch(`/miniprogram/tickets/${ticketId}/subscription`, {}, {
+      params: { subscribe_accepted: subscribeAccepted }
+    })
   },
 
   /**

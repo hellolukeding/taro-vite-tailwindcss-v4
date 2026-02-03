@@ -170,6 +170,18 @@ export const studioApi = {
   },
 
   /**
+   * 更新任务订阅状态
+   */
+  async updateSubscription(taskId: string, subscribeAccepted: boolean): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    return client.patch(`/miniprogram/studio/task/${taskId}/subscription`, {}, {
+      params: { subscribe_accepted: subscribeAccepted }
+    });
+  },
+
+  /**
    * 上传图片到服务器
    */
   async uploadImage(
