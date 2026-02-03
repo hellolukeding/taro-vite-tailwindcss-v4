@@ -136,7 +136,7 @@ const Orders: React.FC<OrderProps> = () => {
   }
 
   return (
-    <CommonWarp title="订单记录" withHeader={false}>
+    <CommonWarp title="订单记录" withHeader>
       {/* 标签栏 */}
       <View className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <Tabs
