@@ -2,7 +2,7 @@ import { paymentApi } from "@/api"
 import CommonWarp from "@/components/CommonWarp"
 import { useAuth } from "@/hooks/useAuth"
 import { formatRelativeTime } from "@/utils/timeFormat"
-import { Cell, Tabs } from "@taroify/core"
+import { Tabs } from "@taroify/core"
 import { AddOutlined, Description, Minus } from "@taroify/icons"
 import { ScrollView, Text, View } from "@tarojs/components"
 import Taro, { usePullDownRefresh, useReachBottom } from "@tarojs/taro"
@@ -124,7 +124,7 @@ const Orders: React.FC<OrderProps> = () => {
   // 获取详细描述
   const getDetailDescription = (item: any) => {
     if (item.type === 'recharge') {
-      const parts = []
+      const parts: string[] = []
       if (item.credits) parts.push(`${item.credits} 积分`)
       if (item.bonus > 0) parts.push(`赠送 ${item.bonus} 积分`)
       if (item.is_vip && item.vip_days > 0) parts.push(`${item.vip_days}天VIP`)
@@ -200,7 +200,7 @@ const Orders: React.FC<OrderProps> = () => {
 
                   {/* 详细信息 */}
                   {(order.type === 'recharge' && (order.bonus > 0 || order.is_vip)) ||
-                   (order.type === 'consume' && order.task_info) ? (
+                    (order.type === 'consume' && order.task_info) ? (
                     <View className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-gray-100">
                       {order.type === 'recharge' && (
                         <>
