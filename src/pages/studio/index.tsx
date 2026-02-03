@@ -299,7 +299,41 @@ const Studio: React.FC<StudioProps> = (props) => {
 
     setIsGenerating(true);
     try {
-      // 1. 先提交任务（不包含订阅状态）
+      // 1. 先请求订阅消息（必须在用户点击事件的同步调用链中）
+      let subscribeAccepted = false;
+      const templateId = WECHAT_TASK_COMPLETE_TEMPLATE_ID;
+
+      console.log('📱 [订阅消息] 开始请求订阅消息');
+      console.log('  - 模板ID:', templateId);
+
+      if (templateId) {
+        try {
+          const subscribeResult = await Taro.requestSubscribeMessage({
+            tmplIds: [templateId],
+          });
+
+          console.log('📋 [订阅消息] 订阅结果:', subscribeResult);
+
+          if (subscribeResult[templateId] === 'accept') {
+            subscribeAccepted = true;
+            console.log('✅ [订阅消息] 用户同意订阅消息');
+          } else if (subscribeResult[templateId] === 'reject') {
+            console.log('❌ [订阅消息] 用户拒绝订阅消息');
+          } else {
+            console.log('⚠️ [订阅消息] 未知状态:', subscribeResult[templateId]);
+          }
+        } catch (subscribeError: any) {
+          console.warn('⚠️ [订阅消息] 请求失败:', subscribeError);
+          // 用户取消或请求失败，继续提交流程（不影响任务）
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('💡 [开发提示] 订阅消息弹窗只能在真机上触发');
+          }
+        }
+      } else {
+        console.warn('⚠️ [订阅消息] 未配置模板ID，跳过订阅消息');
+      }
+
+      // 2. 提交任务（传递用户的订阅选择）
       const [width, height] = getResolutionFromRatio(selectedRatio);
       const imageUrls = uploadedImages.map(file => file.url).filter(Boolean);
 
@@ -308,7 +342,7 @@ const Studio: React.FC<StudioProps> = (props) => {
         prompt: prompt,
         parameters: { width, height, steps, cfg_scale: cfg },
         image_urls: imageUrls.length > 0 ? imageUrls : undefined,
-        subscribe_accepted: false,  // 先传false，任务提交后再请求订阅
+        subscribe_accepted: subscribeAccepted,  // 传递用户实际的选择
       });
 
       // 显示提交成功的提示
@@ -319,56 +353,21 @@ const Studio: React.FC<StudioProps> = (props) => {
         duration: 1500,
       });
 
+      // 如果用户同意订阅，额外提示
+      if (subscribeAccepted) {
+        setTimeout(() => {
+          Taro.showToast({
+            title: '已订阅任务完成通知（单次有效）',
+            icon: 'success',
+            duration: 2000
+          });
+        }, 1600);
+      }
+
       // 清空表单
       setPrompt("");
       setUploadedImages([]);
       setEstimatedCost(0);
-
-      // 2. 任务提交成功后，延迟请求订阅消息
-      setTimeout(async () => {
-        try {
-          const templateId = WECHAT_TASK_COMPLETE_TEMPLATE_ID;
-
-          console.log('📱 [订阅消息] 任务提交成功，开始请求订阅消息');
-          console.log('  - 模板ID:', templateId);
-          console.log('  - 任务ID:', result.task_id);
-
-          if (!templateId) {
-            console.warn('⚠️ [订阅消息] 未配置模板ID，跳过订阅消息');
-          } else {
-            const subscribeResult = await Taro.requestSubscribeMessage({
-              tmplIds: [templateId],
-            });
-
-            console.log('📋 [订阅消息] 订阅结果:', subscribeResult);
-
-            // 检查用户是否同意订阅
-            if (subscribeResult[templateId] === 'accept') {
-              console.log('✅ [订阅消息] 用户同意订阅消息，更新任务状态');
-
-              // 更新任务的订阅状态
-              await studioApi.updateSubscription(result.task_id, true);
-
-              Taro.showToast({
-                title: '已订阅任务完成通知（单次有效）',
-                icon: 'success',
-                duration: 2000
-              });
-            } else if (subscribeResult[templateId] === 'reject') {
-              console.log('❌ [订阅消息] 用户拒绝订阅消息');
-            } else {
-              console.log('⚠️ [订阅消息] 未知状态:', subscribeResult[templateId]);
-            }
-          }
-        } catch (subscribeError: any) {
-          console.error('💥 [订阅消息] 请求异常:', subscribeError);
-
-          // 订阅失败不影响任务，静默处理
-          if (process.env.NODE_ENV === 'development') {
-            console.warn('⚠️ [开发提示] 订阅消息弹窗只能在真机上触发');
-          }
-        }
-      }, 500);
 
       // 3. 延迟跳转到资产页面
       setTimeout(() => {
